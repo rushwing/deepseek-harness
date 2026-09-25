@@ -5,3 +5,7 @@
 # Preserve the exact upstream license text, including its original whitespace.
 asr-lab/app/src/main/assets/licenses/android-ndk-toolchain-NOTICE.txt -whitespace
 asr-lab/app/src/main/assets/licenses/cpp-httplib-LICENSE -whitespace
+
+# Keep Linux entry points executable from WSL even when core.autocrlf=true.
+*.sh text eol=lf
+gradlew text eol=lf
