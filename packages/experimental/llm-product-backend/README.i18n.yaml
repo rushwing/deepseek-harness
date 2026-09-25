@@ -1,0 +1,58 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/llm-product-backend/README.md
+/:
+  en: d2823cddc9706785
+  zh: dc1af01b7783fb07
+/deepseek-ai-dsh-experimental-llm-product-backend:
+  en: f360b3f1640c8a00
+  zh: a756b2cf331ac347
+/deepseek-ai-dsh-experimental-llm-product-backend/summary:
+  en: 1fee378182f18d95
+  zh: 75580a6d65736a7c
+/deepseek-ai-dsh-experimental-llm-product-backend/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-experimental-llm-product-backend/use-this-package:
+  en: 406fae90916ca809
+  zh: e0d2929ca6526b9e
+/deepseek-ai-dsh-experimental-llm-product-backend/use-this-package/derive-the-turn-s-input:
+  en: 1fa0d9c7a08229fc
+  zh: 328047bcc0800039
+/deepseek-ai-dsh-experimental-llm-product-backend/use-this-package/stream-the-product-s-output:
+  en: 540cf064469a5662
+  zh: 7ee21c353292f4ed
+/deepseek-ai-dsh-experimental-llm-product-backend/use-this-package/describe-product-activity:
+  en: 4f7ee9ccd26db3f2
+  zh: 2aae1735010cccda
+/deepseek-ai-dsh-experimental-llm-product-backend/use-this-package/bridge-approvals-and-questions:
+  en: 5ac5ea3aef798df6
+  zh: 2f6d6240c1b9dfc6
+/deepseek-ai-dsh-experimental-llm-product-backend/use-this-package/bind-the-session-to-a-product-conversation:
+  en: 67ed41e35d9f2d2b
+  zh: a8c210413a16c34c
+/deepseek-ai-dsh-experimental-llm-product-backend/understand-the-implementation:
+  en: 062fc0f8afff1d79
+  zh: 85213c73a3aeee0b
+/deepseek-ai-dsh-experimental-llm-product-backend/understand-the-implementation/design-concept:
+  en: 1c001f689ccc1d7a
+  zh: 739ec2765f438e5a
+/deepseek-ai-dsh-experimental-llm-product-backend/understand-the-implementation/source-map:
+  en: d6848fcb2e1ed5e8
+  zh: 4685531411b0b8cd
+/deepseek-ai-dsh-experimental-llm-product-backend/further-exploration:
+  en: 8e4bf5eb06e9233f
+  zh: 6b3d5018c82faae5
+/deepseek-ai-dsh-experimental-llm-product-backend/model-experience:
+  en: f75517109126baf0
+  zh: 714332c31a6a63d8
+/deepseek-ai-dsh-experimental-llm-product-backend/model-experience/kv-cache-effect:
+  en: cfbac7b923f61545
+  zh: bcac2ad5946e894c
+/deepseek-ai-dsh-experimental-llm-product-backend/known-limitations-and-deferred-work:
+  en: 5d22d584a07c401a
+  zh: 2e74b642357df510
+/deepseek-ai-dsh-experimental-llm-product-backend/known-limitations-and-deferred-work/dev-note:
+  en: c80709d6a71d59ab
+  zh: 3534a11851915499
