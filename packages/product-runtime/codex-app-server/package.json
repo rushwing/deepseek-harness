@@ -1,0 +1,41 @@
+{
+  "name": "@deepseek-ai/dsh-codex-app-server",
+  "description": "Pinned official Codex runtime and the app-server protocol client shared by the one-shot Codex subagent provider and the Codex conversation backend",
+  "version": "0.1.7-rc.2",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/product-runtime/codex-app-server"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "workspace:~",
+    "@deepseek-ai/dsh-subprocess": "workspace:*"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-sdk-protocol": "workspace:*",
+    "@openai/codex": "0.153.4"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "workspace:~",
+    "@deepseek-ai/dsh-subprocess": "workspace:*"
+  }
+}

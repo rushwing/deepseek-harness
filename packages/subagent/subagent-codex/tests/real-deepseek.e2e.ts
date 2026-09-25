@@ -25,7 +25,10 @@ import {
 } from './deepseek-responses-bridge.ts'
 
 const execFileAsync = promisify(execFile)
-const codexPackageJson = createRequire(import.meta.url).resolve('@openai/codex/package.json')
+// The wrapper is pinned by the shared runtime package; resolve it from there.
+const codexPackageJson = createRequire(
+  import.meta.resolve('@deepseek-ai/dsh-codex-app-server/package.json'),
+).resolve('@openai/codex/package.json')
 const codexPackage = JSON.parse(readFileSync(
   codexPackageJson,
   'utf8',

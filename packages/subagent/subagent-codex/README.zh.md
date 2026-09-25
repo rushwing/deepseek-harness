@@ -107,7 +107,7 @@ dsh --profile <name>
 |---|---|
 | [`src/index.ts`](src/index.ts) | 插件入口：config schema、提供方注册 |
 | [`src/run.ts`](src/run.ts) | 运行生命周期、轮次执行、结果选择与诊断 |
-| [`src/wire.ts`](src/wire.ts) | 最小的 app-server JSON-RPC 协议实现 |
+| [`src/wire.ts`](src/wire.ts) | 一次性 wire：基于共享运行时协议辅助函数的单个临时线程与轮次 |
 | [`cordis.patch.yml`](cordis.patch.yml) | 注册休眠提供方的 Profile patch 层 |
 
 ### 运行流程
@@ -126,6 +126,7 @@ dsh --profile <name>
 - [Subagent 子系统](../../../docs/subsystems/subagent.zh.md)——服务约定、提供方约定与终态结果语义。
 - [dsh-subagent seam](../subagent/README.zh.md)——本提供方注册于其上的注册表与启动 API。
 - [Claude Code subagent 提供方](../subagent-claude-code/README.zh.md)——经官方 Agent SDK 的兄弟产品后端。
+- [Codex app-server 运行时](../../product-runtime/codex-app-server/README.zh.md)——固定包装器版本并拥有本 wire 所调用协议辅助函数的共享包。
 - [Claude Code 与 Codex 后端](../../../.agents/notes/implemented/feature/2026-08-04-claude-code-and-codex-subagent-backends.zh.md)——产品提供方的设计记录。
 - [生成配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-subagent-codex)——每个受支持配置字段及其源声明。
 
@@ -188,7 +189,7 @@ Codex 子级会在一个全新的临时线程中，以单个轮次接收这些�
 本开发备注是维护者的工作上下文：开放问题与尚未决定的探索方向。它明确不具权威性——已交付的行为与限制以上文和包代码为准。
 
 - **载荷体积披露**——当前 darwin-arm64 平台载荷压缩后约 114 MB、解包后约 282 MB；这些是披露数字，不是安装阈值。
-- **版本锁定的协议**——运行时依赖锁定为 `@openai/codex@0.153.4`；升级需要重新生成上游 schema 证据并重新运行带凭证的随机数测试。
+- **版本锁定的协议**——运行时依赖由共享的 `@deepseek-ai/dsh-codex-app-server` 包锁定为 `@openai/codex@0.153.4`；升级需要重新生成上游 schema 证据并重新运行带凭证的随机数测试。
 
 </details>
 

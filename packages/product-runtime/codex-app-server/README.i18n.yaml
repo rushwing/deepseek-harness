@@ -1,0 +1,58 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/product-runtime/codex-app-server/README.md
+/:
+  en: c9605a42e2c69f5a
+  zh: 322f690954101ec0
+/deepseek-ai-dsh-codex-app-server:
+  en: 44c39527ee81713f
+  zh: 704ea1da90903121
+/deepseek-ai-dsh-codex-app-server/summary:
+  en: 1eab922b5715f159
+  zh: ef3c97dc8e4801d5
+/deepseek-ai-dsh-codex-app-server/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-codex-app-server/use-this-package:
+  en: 7575966d205ca806
+  zh: 408933c3f4a3c534
+/deepseek-ai-dsh-codex-app-server/use-this-package/start-the-product:
+  en: 74c175daa3f308e7
+  zh: 50941db7e56a37c0
+/deepseek-ai-dsh-codex-app-server/use-this-package/threads-and-turns:
+  en: c08f863fe7815820
+  zh: 31555d7b00cb3e65
+/deepseek-ai-dsh-codex-app-server/use-this-package/server-requests:
+  en: e4eb7dd383a52965
+  zh: 4d52d65290f9bb5f
+/deepseek-ai-dsh-codex-app-server/use-this-package/catalog-and-account:
+  en: 494145fcea0e0333
+  zh: 06a0e81f0cc66a82
+/deepseek-ai-dsh-codex-app-server/use-this-package/failure-and-closure:
+  en: 1cc34f92491bffbe
+  zh: 7b6689e3240ca81f
+/deepseek-ai-dsh-codex-app-server/understand-the-implementation:
+  en: 76fef13f2b657ac7
+  zh: 3c817e54938ed4cd
+/deepseek-ai-dsh-codex-app-server/understand-the-implementation/design-concept:
+  en: eecf35f9233946df
+  zh: 4e0141fbb1c7dfff
+/deepseek-ai-dsh-codex-app-server/understand-the-implementation/source-map:
+  en: b16ff935f55cb690
+  zh: 47c75b74c4134104
+/deepseek-ai-dsh-codex-app-server/further-exploration:
+  en: 725796816776e034
+  zh: ec54202900b6fdb9
+/deepseek-ai-dsh-codex-app-server/model-experience:
+  en: beed6ae15a065148
+  zh: 3080171744edbdee
+/deepseek-ai-dsh-codex-app-server/model-experience/kv-cache-effect:
+  en: cfbac7b923f61545
+  zh: bcac2ad5946e894c
+/deepseek-ai-dsh-codex-app-server/known-limitations-and-deferred-work:
+  en: 30bd3406b352408a
+  zh: 67ccf5b15899040e
+/deepseek-ai-dsh-codex-app-server/known-limitations-and-deferred-work/dev-note:
+  en: 9aa004ed3b810027
+  zh: fd94a3508edfd58b

@@ -37,6 +37,7 @@ Every package lives in exactly one group; new packages join existing groups, and
 | [`identity/`](identity/README.md) | Shared anonymous identity |
 | [`llm/`](llm/README.md) | LLM capability family: abstract service + provider adapters |
 | [`subprocess/`](subprocess/README.md) | Subprocess capability family: Service Definition + local process-tree provider |
+| [`product-runtime/`](product-runtime/README.md) | Pinned Codex and Claude Code runtimes and protocol clients shared by providers and backends |
 | [`ssh/`](ssh/README.md) | POSIX remote connection with paired filesystem, subprocess and sandbox providers |
 | [`shell/`](shell/README.md) | Bash capability family: executor seam, local impl, model-facing tools |
 | [`terminal/`](terminal/README.md) | Persistent PTY capability family: owner-scoped sessions, local implementation, model-facing tools |

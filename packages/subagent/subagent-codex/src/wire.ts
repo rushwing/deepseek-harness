@@ -10,142 +10,33 @@
 import type { Readable, Writable } from 'node:stream'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import type { SubagentResult } from '@deepseek-ai/dsh-subagent'
-import { JsonRpcLineTransport } from '@deepseek-ai/dsh-sdk-protocol'
-import type { CodexPermissionMode } from './run.ts'
+import {
+  connectTransport,
+  expectObject,
+  expectString,
+  initializeHandshake,
+  raceAbort,
+  startThreadRequest,
+  turnFailureInfo,
+  unattendedDecision as sharedUnattendedDecision,
+  type CodexPermissionMode,
+  type CodexTurnFailureCategory,
+  type JsonObject,
+} from '@deepseek-ai/dsh-codex-app-server'
+import type { JsonRpcLineTransport } from '@deepseek-ai/dsh-sdk-protocol'
 
-type JsonObject = Record<string, unknown>
+const SOURCE = 'subagent-codex'
 
 /** Product facts owned by the Codex wire after publication. */
 export interface CodexWireFailureFacts {
   readonly stage: 'turn-start' | 'turn'
-  readonly category:
-    | 'limit'
-    | 'access-policy'
-    | 'service'
-    | 'transport'
-    | 'product-error'
-    | 'invalid-result'
-    | 'unknown'
+  readonly category: CodexTurnFailureCategory
   readonly httpStatus?: number | undefined
 }
 
-const THREAD_PERMISSION_PARAMS: Readonly<Record<CodexPermissionMode, JsonObject>> = {
-  never: { approvalPolicy: 'never' },
-  'approve-for-me': {
-    approvalPolicy: 'on-request',
-    approvalsReviewer: 'auto_review',
-    sandbox: 'workspace-write',
-  },
-  'dangerously-bypass-approvals-and-sandbox': {
-    approvalPolicy: 'never',
-    sandbox: 'danger-full-access',
-  },
-}
-
-function object(value: unknown, label: string): JsonObject {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`subagent-codex: app-server returned invalid ${label}`)
-  }
-  return value as JsonObject
-}
-
-function string(value: unknown, label: string): string {
-  if (typeof value !== 'string' || value.length === 0) {
-    throw new Error(`subagent-codex: app-server returned invalid ${label}`)
-  }
-  return value
-}
-
-function unattendedDecision(params: JsonObject): 'cancel' | 'decline' {
-  const available = params.availableDecisions
-  if (available === undefined || available === null) return 'decline'
-  if (Array.isArray(available)) {
-    if (available.includes('cancel')) return 'cancel'
-    if (available.includes('decline')) return 'decline'
-  }
-  throw new Error('subagent-codex: app-server offered no unattended approval decision')
-}
-
-function numericHttpStatus(value: unknown): number | undefined {
-  return typeof value === 'number'
-    && Number.isInteger(value)
-    && value >= 0
-    && value <= 65_535
-    ? value
-    : undefined
-}
-
-interface ParsedFailureInfo {
-  readonly category: CodexWireFailureFacts['category']
-  readonly httpStatus?: number | undefined
-  readonly maxTokens?: true
-  readonly sandboxFailure?: true
-}
-
-function objectFailureInfo(value: JsonObject): ParsedFailureInfo {
-  const keys = Object.keys(value)
-  const category = keys[0]
-  if (keys.length !== 1 || category === undefined) {
-    return { category: 'unknown' }
-  }
-  const detail = value[category]
-  if (detail === null || typeof detail !== 'object' || Array.isArray(detail)) {
-    return { category: 'unknown' }
-  }
-  const fields = detail as JsonObject
-  switch (category) {
-    case 'httpConnectionFailed':
-    case 'responseStreamConnectionFailed':
-    case 'responseStreamDisconnected':
-    case 'responseTooManyFailedAttempts':
-    {
-      const httpStatus = numericHttpStatus(fields.httpStatusCode)
-      return httpStatus === undefined
-        ? { category: 'transport' }
-        : { category: 'transport', httpStatus }
-    }
-    case 'activeTurnNotSteerable':
-      return { category: 'product-error' }
-    default:
-      return { category: 'unknown' }
-  }
-}
-
-function failureInfo(turn: JsonObject): ParsedFailureInfo {
-  if (turn.status !== 'failed') return { category: 'unknown' }
-  const error = turn.error
-  if (error === null || typeof error !== 'object' || Array.isArray(error)) {
-    return { category: 'unknown' }
-  }
-  const info = (error as JsonObject).codexErrorInfo
-  if (typeof info === 'string') {
-    switch (info) {
-      case 'contextWindowExceeded':
-        return { category: 'limit', maxTokens: true }
-      case 'sessionBudgetExceeded':
-      case 'usageLimitExceeded':
-        return { category: 'limit' }
-      case 'serverOverloaded':
-      case 'internalServerError':
-        return { category: 'service' }
-      case 'cyberPolicy':
-      case 'misalignmentPolicyViolation':
-      case 'unauthorized':
-        return { category: 'access-policy' }
-      case 'badRequest':
-      case 'threadRollbackFailed':
-      case 'other':
-        return { category: 'product-error' }
-      case 'sandboxError':
-        return { category: 'access-policy', sandboxFailure: true }
-      default:
-        return { category: 'unknown' }
-    }
-  }
-  return info !== null && typeof info === 'object' && !Array.isArray(info)
-    ? objectFailureInfo(info as JsonObject)
-    : { category: 'unknown' }
-}
+const object = (value: unknown, label: string): JsonObject => expectObject(value, label, SOURCE)
+const string = (value: unknown, label: string): string => expectString(value, label, SOURCE)
+const unattendedDecision = (params: JsonObject): 'cancel' | 'decline' => sharedUnattendedDecision(params, SOURCE)
 
 function unattendedDiagnostic(
   mode: CodexPermissionMode,
@@ -159,28 +50,6 @@ function unattendedDiagnostic(
 function thrown(value: unknown): Error {
   /* v8 ignore next -- typed protocol and stream failures reject with Error. */
   return value instanceof Error ? value : new Error(String(value))
-}
-
-function abortError(signal: AbortSignal): Error {
-  return signal.reason instanceof Error
-    ? signal.reason
-    : new Error(`subagent-codex: app-server request aborted: ${String(signal.reason)}`)
-}
-
-async function raceAbort<T>(pending: Promise<T>, signal: AbortSignal): Promise<T> {
-  if (signal.aborted) {
-    void pending.catch(() => {})
-    throw abortError(signal)
-  }
-  let rejectAbort!: (error: Error) => void
-  const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject })
-  const onAbort = (): void => { rejectAbort(abortError(signal)) }
-  signal.addEventListener('abort', onAbort, { once: true })
-  try {
-    return await Promise.race([pending, aborted])
-  } finally {
-    signal.removeEventListener('abort', onAbort)
-  }
 }
 
 /**
@@ -220,31 +89,29 @@ export class CodexAppServerWire {
   private terminalObserved = false
   private closed = false
 
+  private readonly detachEnd: () => void
+
   constructor(
-    private readonly input: Readable,
+    input: Readable,
     output: Writable,
     private readonly permissionMode: CodexPermissionMode,
     private readonly model?: string,
   ) {
-    this.transport = new JsonRpcLineTransport(input, output)
+    /* jscpd:ignore-start -- the one-shot wire and the persistent connection
+     * bind the same three handlers to the shared transport helper. */
+    const connected = connectTransport(input, output, {
+      request: (method, params) => this.handleServerRequest(method, params),
+      notification: (method, params) => { this.handleNotification(method, params) },
+      fatal: (error) => { this.fail(error) },
+      ended: () => { this.inputEnded = true },
+    }, SOURCE)
+    /* jscpd:ignore-end */
+    this.transport = connected.transport
+    this.detachEnd = connected.detachEnd
     // Fatal protocol state can arrive after the current guarded operation has
     // already settled. Keep the shared rejection observed without inserting
     // another promise-adoption hop into active races.
     void this.fatal.promise.catch(() => {})
-    this.transport.onRequest((method, params) => this.handleServerRequest(method, params))
-    this.transport.onNotification((method, params) => {
-      try {
-        this.handleNotification(method, params)
-      } catch (error: unknown) {
-        this.fail(thrown(error))
-      }
-    })
-    this.input.on('error', this.onInputError)
-    this.input.on('end', this.onInputEnd)
-    // Pipe errors can race protocol closure and process teardown. Retain both
-    // error listeners for the lifetime of their per-run streams so no late
-    // EPIPE or read failure becomes an unhandled EventEmitter error.
-    output.on('error', this.onOutputError)
   }
 
   /** Start reading app-server frames. */
@@ -265,19 +132,7 @@ export class CodexAppServerWire {
    * @param signal - unpublished-start cancellation.
    */
   async initialize(signal: AbortSignal): Promise<void> {
-    object(await this.guarded(this.transport.request('initialize', {
-      clientInfo: {
-        name: 'deepseek-harness',
-        title: 'DeepSeek Harness',
-        version: '0.0.1',
-      },
-      capabilities: {
-        experimentalApi: false,
-        requestAttestation: false,
-      },
-    }, signal), signal), 'initialize response')
-    this.transport.notify('initialized')
-    await this.guarded(this.transport.flush(), signal)
+    await initializeHandshake(this.transport, pending => this.guarded(pending, signal), signal, SOURCE)
   }
 
   /**
@@ -286,18 +141,16 @@ export class CodexAppServerWire {
    * @param signal - unpublished-start cancellation.
    */
   async startThread(cwd: string, signal: AbortSignal): Promise<void> {
-    const response = object(await this.guarded(this.transport.request('thread/start', {
+    const thread = await startThreadRequest(this.transport, pending => this.guarded(pending, signal), {
       cwd,
+      permissionMode: this.permissionMode,
+      model: this.model,
       ephemeral: true,
-      ...this.model === undefined ? {} : { model: this.model },
-      ...THREAD_PERMISSION_PARAMS[this.permissionMode],
-    }, signal), signal), 'thread/start response')
-    const thread = object(response.thread, 'thread/start thread')
-    const id = string(thread.id, 'thread/start thread id')
-    if (thread.ephemeral !== true) {
+    }, signal, SOURCE)
+    if (!thread.ephemeral) {
       throw new Error('subagent-codex: app-server did not create an ephemeral thread')
     }
-    this.threadId = id
+    this.threadId = thread.id
   }
 
   /**
@@ -343,7 +196,7 @@ export class CodexAppServerWire {
     }
     const status = terminal.status
     if (status !== 'completed') {
-      const parsed = failureInfo(terminal)
+      const parsed = turnFailureInfo(terminal)
       this.recordFailure(parsed.httpStatus === undefined
         ? { stage: 'turn', category: parsed.category }
         : {
@@ -417,30 +270,17 @@ export class CodexAppServerWire {
   close(): void {
     if (this.closed) return
     this.closed = true
-    this.input.off('end', this.onInputEnd)
+    this.detachEnd()
     this.transport.close()
   }
 
   private async guarded<T>(pending: Promise<T>, signal: AbortSignal): Promise<T> {
     const withFatal = Promise.race([this.fatal.promise, pending])
-    return raceAbort(withFatal, signal)
+    return raceAbort(withFatal, signal, SOURCE)
   }
 
   private fail(error: Error): void {
     this.fatal.reject(error)
-  }
-
-  private readonly onInputError = (error: Error): void => {
-    this.fail(error)
-  }
-
-  private readonly onOutputError = (error: Error): void => {
-    this.fail(error)
-  }
-
-  private readonly onInputEnd = (): void => {
-    this.inputEnded = true
-    this.fail(new Error('subagent-codex: app-server protocol stream closed'))
   }
 
   private observePendingTurnId(id: string): void {

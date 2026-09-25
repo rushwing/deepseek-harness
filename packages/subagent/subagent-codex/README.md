@@ -107,7 +107,7 @@ This section explains how the provider drives a real Codex app-server and where 
 |---|---|
 | [`src/index.ts`](src/index.ts) | Plugin entry: config schema, provider registration |
 | [`src/run.ts`](src/run.ts) | The run lifecycle, turn execution, result selection, and diagnostics |
-| [`src/wire.ts`](src/wire.ts) | The minimal app-server JSON-RPC wire implementation |
+| [`src/wire.ts`](src/wire.ts) | The one-shot wire: a single ephemeral thread and turn over the shared runtime's protocol helpers |
 | [`cordis.patch.yml`](cordis.patch.yml) | The Profile patch layer that registers the dormant provider |
 
 ### Run flow
@@ -126,6 +126,7 @@ Read these pages when the package-level contract is not enough. They move from t
 - [Subagent subsystem](../../../docs/subsystems/subagent.md) — the service contract, provider contract, and terminal result semantics.
 - [dsh-subagent seam](../subagent/README.md) — the registry and start API this provider registers on.
 - [Claude Code subagent provider](../subagent-claude-code/README.md) — the sibling product backend over the official Agent SDK.
+- [Codex app-server runtime](../../product-runtime/codex-app-server/README.md) — the shared package that pins the wrapper and owns the protocol helpers this wire calls.
 - [Claude Code and Codex backends](../../../.agents/notes/implemented/feature/2026-08-04-claude-code-and-codex-subagent-backends.md) — the design record for the product providers.
 - [Generated configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-subagent-codex) — every accepted config field and its source declaration.
 
@@ -188,7 +189,7 @@ These limits define when this provider is a poor fit or needs special operationa
 This Dev Note is working context for maintainers: open questions and undecided directions. It is explicitly non-authoritative — shipped behavior and limits live in the sections above and in the package code.
 
 - **Payload size disclosure** — the current darwin-arm64 platform payload packs to about 114 MB and unpacks to about 282 MB; these are disclosure numbers, not installation thresholds.
-- **Version-pinned protocol** — the runtime dependency is pinned to `@openai/codex@0.153.4`; upgrading requires regenerating the upstream schema evidence and rerunning the credentialed nonce tests.
+- **Version-pinned protocol** — the runtime dependency is pinned to `@openai/codex@0.153.4` by the shared `@deepseek-ai/dsh-codex-app-server` package; upgrading requires regenerating the upstream schema evidence and rerunning the credentialed nonce tests.
 
 </details>
 

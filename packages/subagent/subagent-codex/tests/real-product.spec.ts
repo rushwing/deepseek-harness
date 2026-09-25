@@ -33,9 +33,11 @@ import {
 import { cleanupRealProduct } from './real-product-cleanup.ts'
 
 const execFileAsync = promisify(execFile)
-const packageRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const codexBinDir = join(packageRoot, 'node_modules', '.bin')
-const codexPackageJson = createRequire(import.meta.url).resolve('@openai/codex/package.json')
+// The wrapper is pinned by the shared runtime package, so its bin shim and
+// manifest resolve through that package rather than through this provider.
+const runtimePackageJson = fileURLToPath(import.meta.resolve('@deepseek-ai/dsh-codex-app-server/package.json'))
+const codexBinDir = join(dirname(runtimePackageJson), 'node_modules', '.bin')
+const codexPackageJson = createRequire(runtimePackageJson).resolve('@openai/codex/package.json')
 const codexPackage = JSON.parse(readFileSync(
   codexPackageJson,
   'utf8',

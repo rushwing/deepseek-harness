@@ -15,31 +15,10 @@
       "path": "../../../vendor/cordis"
     },
     {
-      "path": "../../../vendor/schemastery"
-    },
-    {
-      "path": "../../core/agent"
-    },
-    {
-      "path": "../../llm/llm"
-    },
-    {
-      "path": "../../product-runtime/codex-app-server"
-    },
-    {
       "path": "../../sdk/protocol"
     },
     {
-      "path": "../../core/session"
-    },
-    {
-      "path": "../subagent"
-    },
-    {
       "path": "../../subprocess/subprocess"
-    },
-    {
-      "path": "../../util/timeout"
     }
   ]
 }
