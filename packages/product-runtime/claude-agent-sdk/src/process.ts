@@ -1,8 +1,9 @@
 /**
  * Projection from the shared managed-process handle to the official Claude
- * Agent SDK's custom-spawn process interface.
+ * Agent SDK's custom-spawn process interface, so every SDK query in the
+ * harness places its real CLI under the subprocess seam.
  *
- * @module @deepseek-ai/dsh-subagent-claude-code/process
+ * @module @deepseek-ai/dsh-claude-agent-sdk/process
  */
 
 import { EventEmitter } from 'node:events'
@@ -48,7 +49,7 @@ export function claudeSpawnSpec(
   graceMs: number,
 ): SubprocessSpawnSpec {
   if (options.cwd === undefined || options.cwd.length === 0) {
-    throw new Error('subagent-claude-code: SDK spawn request omitted its workspace')
+    throw new Error('claude-agent-sdk: SDK spawn request omitted its workspace')
   }
   return {
     argv: [options.command, ...options.args],

@@ -38,7 +38,7 @@ import {
   claudeSpawnSpec,
   ManagedClaudeCodeProcess,
   sdkEnvironmentOverlay,
-} from '../src/process.ts'
+} from '@deepseek-ai/dsh-claude-agent-sdk'
 import {
   CLAUDE_CODE_PERMISSION_MODES,
   DEFAULT_CLAUDE_CODE_PERMISSION_MODE,
@@ -71,8 +71,10 @@ const CLAUDE_PLATFORM_PACKAGES = [
   '@anthropic-ai/claude-agent-sdk-win32-x64',
 ] as const
 
-vi.mock('@anthropic-ai/claude-agent-sdk', async importOriginal => ({
-  ...await importOriginal<typeof import('@anthropic-ai/claude-agent-sdk')>(),
+// The provider reaches the official SDK through the shared runtime package,
+// so the mock replaces `query` on that module.
+vi.mock('@deepseek-ai/dsh-claude-agent-sdk', async importOriginal => ({
+  ...await importOriginal<typeof import('@deepseek-ai/dsh-claude-agent-sdk')>(),
   query: queryMock,
 }))
 
@@ -349,15 +351,10 @@ describe('task admission and package contracts', () => {
     }
     expect(manifest.dsh?.bundle?.patch).toBe('./cordis.patch.yml')
     expect(manifest.files).toContain('cordis.patch.yml')
-    expect(manifest.dependencies).toHaveProperty(
-      '@anthropic-ai/claude-agent-sdk',
-      CLAUDE_AGENT_SDK_VERSION,
-    )
-    expect(manifest.dependencies).toHaveProperty(
-      '@modelcontextprotocol/sdk',
-      '^1.29.0',
-    )
-    expect(manifest.dependencies).toHaveProperty('zod', '^4.4.3')
+    // The official SDK is pinned once, by the shared runtime package; the
+    // provider only consumes it (see packages/product-runtime/claude-agent-sdk).
+    expect(manifest.dependencies).toHaveProperty('@deepseek-ai/dsh-claude-agent-sdk', 'workspace:*')
+    expect(manifest.dependencies).not.toHaveProperty('@anthropic-ai/claude-agent-sdk')
     expect(manifest.dependencies).not.toHaveProperty('@deepseek-ai/dsh-subagent-codex')
 
     const sdkRoot = dirname(fileURLToPath(

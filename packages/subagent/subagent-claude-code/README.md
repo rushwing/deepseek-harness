@@ -109,7 +109,6 @@ This section explains how the provider drives a real Claude Code CLI and where t
 |---|---|
 | [`src/index.ts`](src/index.ts) | Plugin entry: config schema, provider registration |
 | [`src/run.ts`](src/run.ts) | The SDK query lifecycle, result acceptance, and permission handling |
-| [`src/process.ts`](src/process.ts) | Managed-range termination escalation on disposal |
 | [`cordis.patch.yml`](cordis.patch.yml) | The Profile patch layer that registers the dormant provider |
 
 ### Run flow
@@ -128,6 +127,7 @@ Read these pages when the package-level contract is not enough. They move from t
 - [Subagent subsystem](../../../docs/subsystems/subagent.md) — the service contract, provider contract, and terminal result semantics.
 - [dsh-subagent seam](../subagent/README.md) — the registry and start API this provider registers on.
 - [Codex subagent provider](../subagent-codex/README.md) — the sibling product backend over the official app-server protocol.
+- [Claude Agent SDK runtime](../../product-runtime/claude-agent-sdk/README.md) — the shared package that pins the SDK and owns the managed-process projection this provider spawns through.
 - [Claude Code and Codex backends](../../../.agents/notes/implemented/feature/2026-08-04-claude-code-and-codex-subagent-backends.md) — the design record for the product providers.
 - [Generated configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-subagent-claude-code) — every accepted config field and its source declaration.
 
@@ -190,7 +190,7 @@ These limits define when this provider is a poor fit or needs special operationa
 This Dev Note is working context for maintainers: open questions and undecided directions. It is explicitly non-authoritative — shipped behavior and limits live in the sections above and in the package code.
 
 - **Payload size disclosure** — the current darwin-arm64 platform payload packs to about 92 MB and unpacks to about 325 MB; these are disclosure numbers, not installation thresholds.
-- **Version-pinned protocol** — the runtime dependency is pinned to Agent SDK 0.3.263; upgrading pins a new SDK version and requires re-running the keyless real-product and loader-composition evidence.
+- **Version-pinned protocol** — the runtime dependency is pinned to Agent SDK 0.3.263 by the shared `@deepseek-ai/dsh-claude-agent-sdk` package; upgrading pins a new SDK version there and requires re-running the keyless real-product and loader-composition evidence.
 
 </details>
 

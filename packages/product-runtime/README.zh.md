@@ -24,9 +24,10 @@ harness 通过官方集成面接入两个外部 agent 产品 Codex 与 Claude Co
 
 | 包 | 角色 | ctx 键 |
 |---|---|---|
+| [`claude-agent-sdk`](claude-agent-sdk/README.zh.md) | 固定 `@anthropic-ai/claude-agent-sdk` 版本、重新导出其 `query` 入口与类型、命名原生权限模式，并把托管进程投影到 SDK 的派生接口 | 库——无 ctx 键 |
 | [`codex-app-server`](codex-app-server/README.zh.md) | 固定 `@openai/codex` 版本、构造包内 app-server 命令，并提供共享协议辅助函数与持久多线程连接 | 库——无 ctx 键 |
 
-消费方保留产品特定的生命周期：[Codex subagent 提供方](../subagent/subagent-codex/README.zh.md)拥有其一次性运行，会话后端拥有按 Session 的线程。
+消费方保留产品特定的生命周期：[Codex](../subagent/subagent-codex/README.zh.md) 与 [Claude Code](../subagent/subagent-claude-code/README.zh.md) subagent 提供方拥有各自的一次性运行，会话后端拥有按 Session 的对话。
 
 -----
 

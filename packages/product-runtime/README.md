@@ -24,9 +24,10 @@ The harness reaches two external agent products, Codex and Claude Code, through 
 
 | Package | Role | ctx key |
 |---|---|---|
+| [`claude-agent-sdk`](claude-agent-sdk/README.md) | Pins `@anthropic-ai/claude-agent-sdk`, re-exports its `query` entry and types, names the native permission modes, and projects the managed process onto the SDK's spawn interface | library — no ctx key |
 | [`codex-app-server`](codex-app-server/README.md) | Pins `@openai/codex`, builds the package-local app-server command, and offers the shared protocol helpers plus a persistent multi-thread connection | library — no ctx key |
 
-Consumers keep product-specific lifecycle: the [Codex subagent provider](../subagent/subagent-codex/README.md) owns its one-shot run, and a conversation backend owns per-Session threads.
+Consumers keep product-specific lifecycle: the [Codex](../subagent/subagent-codex/README.md) and [Claude Code](../subagent/subagent-claude-code/README.md) subagent providers own their one-shot runs, and a conversation backend owns per-Session conversations.
 
 -----
 

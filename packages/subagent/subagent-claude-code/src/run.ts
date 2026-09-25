@@ -7,16 +7,20 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { brandString } from '@deepseek-ai/dsh-brand'
 import {
+  ManagedClaudeCodeProcess,
+  SUPPORTED_UNATTENDED_DIALOG_KINDS,
+  claudeSpawnSpec,
   query as officialQuery,
+  type ClaudeCodePermissionMode,
   type Options,
   type Query,
   type SDKMessage,
   type SDKResultMessage,
   type SpawnOptions,
-} from '@anthropic-ai/claude-agent-sdk'
+} from '@deepseek-ai/dsh-claude-agent-sdk'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
-import { brandString } from '@deepseek-ai/dsh-brand'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import {
   settleRunResult,
@@ -32,32 +36,15 @@ import {
   type SubprocessOutcome,
   type SubprocessSpawnSpec,
 } from '@deepseek-ai/dsh-subprocess'
-import {
-  claudeSpawnSpec,
-  ManagedClaudeCodeProcess,
-} from './process.ts'
 
 /** Default POSIX grace between subprocess termination tiers. */
 export const DEFAULT_DISPOSE_GRACE_MS = 3_000
 
-/** Claude Code permission modes that cannot wait for a human response. */
-export const CLAUDE_CODE_PERMISSION_MODES = [
-  'dontAsk',
-  'acceptEdits',
-  'auto',
-  'plan',
-  'bypassPermissions',
-] as const satisfies readonly NonNullable<Options['permissionMode']>[]
-
-/** Profile-selectable non-interactive Claude Code permission mode. */
-export type ClaudeCodePermissionMode = typeof CLAUDE_CODE_PERMISSION_MODES[number]
-
-/** Safe default for unattended Claude Code runs. */
-export const DEFAULT_CLAUDE_CODE_PERMISSION_MODE: ClaudeCodePermissionMode = 'dontAsk'
-
-const SUPPORTED_UNATTENDED_DIALOG_KINDS = [
-  'refusal_fallback_prompt',
-] satisfies NonNullable<Options['supportedDialogKinds']>
+export {
+  CLAUDE_CODE_PERMISSION_MODES,
+  DEFAULT_CLAUDE_CODE_PERMISSION_MODE,
+  type ClaudeCodePermissionMode,
+} from '@deepseek-ai/dsh-claude-agent-sdk'
 
 type ClaudeCodeFailureStage =
   | 'query-start'

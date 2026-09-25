@@ -109,7 +109,6 @@ dsh --profile <name>
 |---|---|
 | [`src/index.ts`](src/index.ts) | 插件入口：配置 schema、提供方注册 |
 | [`src/run.ts`](src/run.ts) | SDK query 生命周期、结果接受与权限处理 |
-| [`src/process.ts`](src/process.ts) | dispose（资源释放）时的 managed-range 逐级终止 |
 | [`cordis.patch.yml`](cordis.patch.yml) | 注册休眠提供方的 Profile patch 层 |
 
 ### 运行流程
@@ -128,6 +127,7 @@ dsh --profile <name>
 - [Subagent 子系统](../../../docs/subsystems/subagent.zh.md)——服务约定、提供方约定与终态结果语义。
 - [dsh-subagent seam](../subagent/README.zh.md)——本提供方注册于其上的注册表与启动 API。
 - [Codex subagent 提供方](../subagent-codex/README.zh.md)——经官方 app-server 协议的兄弟产品后端。
+- [Claude Agent SDK 运行时](../../product-runtime/claude-agent-sdk/README.zh.md)——固定 SDK 版本并拥有本提供方借以派生的托管进程投影的共享包。
 - [Claude Code 与 Codex 后端](../../../.agents/notes/implemented/feature/2026-08-04-claude-code-and-codex-subagent-backends.zh.md)——产品提供方的设计记录。
 - [生成配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-subagent-claude-code)——每个受支持配置字段及其源声明。
 
@@ -190,7 +190,7 @@ Claude Code 子级会在一个全新的 SDK query 中接收独立文本任务。
 本开发备注是维护者的工作上下文：开放问题与尚未决定的探索方向。它明确不具权威性——已交付的行为与限制以上文和包代码为准。
 
 - **载荷体积披露**——当前 darwin-arm64 平台载荷压缩后约 92 MB、解包后约 325 MB；这些是披露数字，不是安装阈值。
-- **版本锁定的协议**——运行时依赖锁定为 Agent SDK 0.3.263；升级会锁定新的 SDK 版本，并需要重新运行无密钥真实产品与 loader 组合证据。
+- **版本锁定的协议**——运行时依赖由共享的 `@deepseek-ai/dsh-claude-agent-sdk` 包锁定为 Agent SDK 0.3.263；升级会在该包锁定新的 SDK 版本，并需要重新运行无密钥真实产品与 loader 组合证据。
 
 </details>
 

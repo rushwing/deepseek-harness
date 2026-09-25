@@ -1,0 +1,52 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/product-runtime/claude-agent-sdk/README.md
+/:
+  en: 0bdd916235ea60c9
+  zh: 2b6433c19206276e
+/deepseek-ai-dsh-claude-agent-sdk:
+  en: 54b675c5533b95b3
+  zh: fde11a8f0b841724
+/deepseek-ai-dsh-claude-agent-sdk/summary:
+  en: b7b33d9952191f7d
+  zh: 6abf931029d125c2
+/deepseek-ai-dsh-claude-agent-sdk/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-claude-agent-sdk/use-this-package:
+  en: bc937afc3399d31d
+  zh: 757f1443a2f3d512
+/deepseek-ai-dsh-claude-agent-sdk/use-this-package/start-a-query:
+  en: 35bf9dc5ed0ae857
+  zh: 3bd5409eb820434f
+/deepseek-ai-dsh-claude-agent-sdk/use-this-package/permission-modes:
+  en: f5c6de533cf53e11
+  zh: 8149913418f0d823
+/deepseek-ai-dsh-claude-agent-sdk/use-this-package/process-facts:
+  en: b6e10ba44a19ab5b
+  zh: 6c6aa4127029f043
+/deepseek-ai-dsh-claude-agent-sdk/understand-the-implementation:
+  en: 76fef13f2b657ac7
+  zh: 3c817e54938ed4cd
+/deepseek-ai-dsh-claude-agent-sdk/understand-the-implementation/design-concept:
+  en: b620bd500b117bd9
+  zh: d7fa488c24a5ddbf
+/deepseek-ai-dsh-claude-agent-sdk/understand-the-implementation/source-map:
+  en: c11d7e1a8f164b60
+  zh: 77dcc735fec7ec8e
+/deepseek-ai-dsh-claude-agent-sdk/further-exploration:
+  en: fc9ace7a24fe3da0
+  zh: 61bd9b12cbc10baf
+/deepseek-ai-dsh-claude-agent-sdk/model-experience:
+  en: 926958f9c606009f
+  zh: 1a7d25faa296133f
+/deepseek-ai-dsh-claude-agent-sdk/model-experience/kv-cache-effect:
+  en: cfbac7b923f61545
+  zh: bcac2ad5946e894c
+/deepseek-ai-dsh-claude-agent-sdk/known-limitations-and-deferred-work:
+  en: c13405841c3cf622
+  zh: 37a5bb830c3ef440
+/deepseek-ai-dsh-claude-agent-sdk/known-limitations-and-deferred-work/dev-note:
+  en: 2518c022785009ae
+  zh: da510d6dd6c77c60

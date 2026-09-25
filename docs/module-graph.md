@@ -320,6 +320,7 @@ flowchart TD
     pkg_persona["persona"]
   end
   subgraph group_product_runtime["packages/product-runtime"]
+    pkg_claude_agent_sdk["claude-agent-sdk"]
     pkg_codex_app_server["codex-app-server"]
   end
   subgraph group_ptc_runtime["packages/ptc-runtime"]
@@ -481,6 +482,7 @@ flowchart TD
   pkg_credentials_local --> pkg_home_paths
   pkg_credentials_local --> pkg_launch_environment
   pkg_experimental_computer_use_cua_driver_mcp --> pkg_computer_use
+  pkg_claude_agent_sdk --> pkg_subprocess
   pkg_codex_app_server --> pkg_subprocess
   pkg_sandbox_windows_acl --> pkg_subprocess
   pkg_subprocess_local --> pkg_subprocess
@@ -1508,6 +1510,7 @@ flowchart TD
 | [`authorization`](../packages/credentials/authorization) | `credentials` | [`credentials`](../packages/credentials/credentials), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm) |
 | [`credentials-local`](../packages/credentials/credentials-local) | `credentials` | [`atomic-write`](../packages/util/atomic-write), [`credentials`](../packages/credentials/credentials), [`home-paths`](../packages/util/home-paths), [`launch-environment`](../packages/util/launch-environment) |
 | [`experimental-computer-use-cua-driver-mcp`](../packages/experimental/computer-use-cua-driver-mcp) | `experimental` | [`computer-use`](../packages/computer-use/computer-use) |
+| [`claude-agent-sdk`](../packages/product-runtime/claude-agent-sdk) | `product-runtime` | [`subprocess`](../packages/subprocess/subprocess) |
 | [`codex-app-server`](../packages/product-runtime/codex-app-server) | `product-runtime` | [`subprocess`](../packages/subprocess/subprocess) |
 | [`sandbox-windows-acl`](../packages/sandbox/sandbox-windows-acl) | `sandbox` | [`subprocess`](../packages/subprocess/subprocess) |
 | [`subprocess-local`](../packages/subprocess/subprocess-local) | `subprocess` | [`subprocess`](../packages/subprocess/subprocess), [`timeout`](../packages/util/timeout) |
