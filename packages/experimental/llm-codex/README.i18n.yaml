@@ -1,0 +1,79 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/llm-codex/README.md
+/:
+  en: e28fed5bb7c13e42
+  zh: 68c8c7df0eb37438
+/deepseek-ai-dsh-experimental-llm-codex:
+  en: 64300a81a5108db5
+  zh: f51c1407709655d2
+/deepseek-ai-dsh-experimental-llm-codex/summary:
+  en: 8d7f8345b82ea061
+  zh: c14f1ebabea542a1
+/deepseek-ai-dsh-experimental-llm-codex/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-experimental-llm-codex/use-this-package:
+  en: bbff250eba0f1b89
+  zh: 0a618f05cc88ee2b
+/deepseek-ai-dsh-experimental-llm-codex/use-this-package/install-into-a-profile:
+  en: 2d1af1c51b894356
+  zh: cb788fe4e3f491a2
+/deepseek-ai-dsh-experimental-llm-codex/use-this-package/what-you-get:
+  en: e30bb30be61a66fd
+  zh: 9875ae99673ad9d9
+/deepseek-ai-dsh-experimental-llm-codex/use-this-package/configuration:
+  en: 751203ebfd28c0fe
+  zh: 90cea2bb5ac865b9
+/deepseek-ai-dsh-experimental-llm-codex/understand-the-implementation:
+  en: 92be839ce3469cc0
+  zh: cf5da2f7f3844877
+/deepseek-ai-dsh-experimental-llm-codex/further-exploration:
+  en: 4c7a07f2bdc8d651
+  zh: 5fec94ced8a43130
+/deepseek-ai-dsh-experimental-llm-codex/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/bound-turn-input:
+  en: 4f7cc5d8d6be741c
+  zh: b5adb586bd391427
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/bound-turn-input/what-the-model-sees:
+  en: f777824e0b293b4d
+  zh: cedb847c275f3360
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/bound-turn-input/token-effect:
+  en: 73d93d0d8a523eeb
+  zh: a4c115dedc44fb7b
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/bound-turn-input/kv-cache-effect:
+  en: 243acd088a9bc924
+  zh: 56b5430f8b6564f7
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/activity-lines:
+  en: 6004f5ebdd3ec00c
+  zh: bfeae027efb0953a
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/activity-lines/what-the-model-sees:
+  en: 694cf605c7990acc
+  zh: b14f25cbb8aba2ef
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/activity-lines/token-effect:
+  en: 1b4c966278f26e0b
+  zh: 2f940f2fd57c032e
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/activity-lines/kv-cache-effect:
+  en: cbc37ce53c92555b
+  zh: 7d04ea15c77e0e66
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/ephemeral-auxiliary-requests:
+  en: 999dfe817b804128
+  zh: f671c9ab340f9710
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/ephemeral-auxiliary-requests/what-the-model-sees:
+  en: c4db982e8a617695
+  zh: 877750cc83011a49
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/ephemeral-auxiliary-requests/token-effect:
+  en: 15f4770a2a22dce0
+  zh: bcd7e1f8744f33c9
+/deepseek-ai-dsh-experimental-llm-codex/model-experience/ephemeral-auxiliary-requests/kv-cache-effect:
+  en: 3722f407673f73e6
+  zh: 6e161714bf360a96
+/deepseek-ai-dsh-experimental-llm-codex/known-limitations-and-deferred-work:
+  en: c23b668ab9384f87
+  zh: e9cfb34c84d014e2
+/deepseek-ai-dsh-experimental-llm-codex/known-limitations-and-deferred-work/dev-note:
+  en: 03f8ab2d9d505572
+  zh: f7befbedb005d5d7

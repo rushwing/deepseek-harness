@@ -31,6 +31,12 @@ export type ProductActivity =
     readonly name: string
     readonly status: ProductActivityStatus
   }
+  | {
+    readonly kind: 'web-search'
+    /** The search query as the product issued it. */
+    readonly query: string
+    readonly status: ProductActivityStatus
+  }
 
 const MAX_COMMAND_CHARS = 200
 
@@ -86,6 +92,20 @@ function toolLine(activity: Extract<ProductActivity, { kind: 'tool' }>): string 
   }
 }
 
+function webSearchLine(activity: Extract<ProductActivity, { kind: 'web-search' }>): string {
+  const query = JSON.stringify(activity.query)
+  switch (activity.status) {
+    case 'started':
+      return `searching the web for ${query}`
+    case 'completed':
+      return `searched the web for ${query}`
+    case 'failed':
+      return `web search for ${query} failed`
+    case 'declined':
+      return `declined web search for ${query}`
+  }
+}
+
 /**
  * Describe one product action on a single line without a trailing newline.
  * @param activity - the reduced product action.
@@ -99,5 +119,7 @@ export function activityLine(activity: ProductActivity): string {
       return fileChangeLine(activity)
     case 'tool':
       return toolLine(activity)
+    case 'web-search':
+      return webSearchLine(activity)
   }
 }

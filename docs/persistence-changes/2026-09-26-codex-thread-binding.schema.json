@@ -1,0 +1,86 @@
+{
+  "formatVersion": 2,
+  "roots": [
+    {
+      "key": "event:codex/thread",
+      "kind": "event",
+      "event": "codex/thread",
+      "surface": false,
+      "digest": "83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 3,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 5,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "conversationId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "cwd",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "model",
+                "type": 2,
+                "optional": true
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "codex/thread"
+          }
+        ]
+      }
+    }
+  ],
+  "types": []
+}

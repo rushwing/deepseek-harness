@@ -9,8 +9,8 @@
   en: e7c80d1de4d328b4
   zh: d9f368c27fd9f998
 /session-persistence-event-catalog/persistence-type-fingerprints:
-  en: 0254fc43535dfaad
-  zh: 2f592cfae60e10ac
+  en: e8f991520cd14b71
+  zh: 520c662dbd43e02a
 /session-persistence-event-catalog/event-envelope:
   en: 7ebb1a2e0dd1f916
   zh: 8946f415dda5c1b8
@@ -50,6 +50,12 @@
 /session-persistence-event-catalog/events/assistant/assistant-message-surface:
   en: 70721b64d98f892e
   zh: ad5091727753c698
+/session-persistence-event-catalog/events/codex:
+  en: c4cf9e40e0bed625
+  zh: c4cf9e40e0bed625
+/session-persistence-event-catalog/events/codex/codex-thread-log-only:
+  en: 3b4b92e116c50dee
+  zh: 17b21c0b47530c25
 /session-persistence-event-catalog/events/command:
   en: 2cecb5b0ee955732
   zh: 2cecb5b0ee955732
@@ -381,8 +387,11 @@
   en: ae48fcd465c67547
   zh: ae48fcd465c67547
 /session-persistence-event-catalog/resolved-persistence-types/codex:
-  en: cd907982df03b4d9
-  zh: cd907982df03b4d9
+  en: 5d029b009d806ac4
+  zh: 5d029b009d806ac4
+/session-persistence-event-catalog/resolved-persistence-types/codex-thread:
+  en: 14c2a896692c3ae4
+  zh: 14c2a896692c3ae4
 /session-persistence-event-catalog/resolved-persistence-types/command-done:
   en: 5f2dcf7e9c3787ab
   zh: 5f2dcf7e9c3787ab
@@ -1095,8 +1104,11 @@
   en: 3e36e2f29ff1b506
   zh: 3dcc1a1dced59d9f
 /session-persistence-event-catalog/resolved-persistence-types/presentedfile~2:
-  en: 45eec434ea27986c
-  zh: c8d52b34de4df04f
+  en: a967a1cface997c7
+  zh: 8010060f8cb3db8f
+/session-persistence-event-catalog/resolved-persistence-types/productconversationbinding:
+  en: b1699bef20e8c63b
+  zh: 4d448788e5175c1d
 /session-persistence-event-catalog/resolved-persistence-types/ptcdispatcheventdata:
   en: 78e72b973fe1c580
   zh: 9947fbdb2ad284d8
@@ -1863,8 +1875,11 @@
   en: 5caed426cab416ee
   zh: 86f47f90f8c440f2
 /session-persistence-event-catalog/resolved-persistence-types/type-chunk:
-  en: 2186ede3e9917aea
-  zh: 0cfef64045dce95b
+  en: f5b3389b2ca40a92
+  zh: 5fad68dc70058006
+/session-persistence-event-catalog/resolved-persistence-types/type-codex-thread:
+  en: 50680ae1817f1512
+  zh: 43582d9ac0390c29
 /session-persistence-event-catalog/resolved-persistence-types/type-command-done:
   en: 1a28f9fcd1818880
   zh: 6d1ed0ec06272e65

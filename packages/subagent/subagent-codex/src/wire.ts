@@ -17,6 +17,7 @@ import {
   initializeHandshake,
   raceAbort,
   startThreadRequest,
+  threadPermissionParams,
   turnFailureInfo,
   unattendedDecision as sharedUnattendedDecision,
   type CodexPermissionMode,
@@ -143,7 +144,7 @@ export class CodexAppServerWire {
   async startThread(cwd: string, signal: AbortSignal): Promise<void> {
     const thread = await startThreadRequest(this.transport, pending => this.guarded(pending, signal), {
       cwd,
-      permissionMode: this.permissionMode,
+      permission: threadPermissionParams(this.permissionMode),
       model: this.model,
       ephemeral: true,
     }, signal, SOURCE)

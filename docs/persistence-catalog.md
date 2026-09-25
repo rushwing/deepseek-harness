@@ -27,6 +27,7 @@ The [format references](persistence-changes/historical-formats/README.md) cover 
 | `event:approval/policy` | event | `26718e15e7e395bce9642dba5bbe09b3b1a4ce2213d20d566cd9207d7fc5fb78` | [`{ type: "approval/policy" }`](#persistence-type-sha256-26718e15e7e395bce9642dba5bbe09b3b1a4ce2213d20d566cd9207d7fc5fb78) |
 | `event:assistant/attempt` | event | `15d5dfdd822aa35e115afd74a8982825a493880457774e6850bc1520b50875e4` | [`{ type: "assistant/attempt" }`](#persistence-type-sha256-15d5dfdd822aa35e115afd74a8982825a493880457774e6850bc1520b50875e4) |
 | `event:assistant/message` | event | `1033093edd0db80ff410e00830b523405e00bb0c7684948e531ff65095799625` | [`{ type: "assistant/message" }`](#persistence-type-sha256-1033093edd0db80ff410e00830b523405e00bb0c7684948e531ff65095799625) |
+| `event:codex/thread` | event | `83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925` | [`{ type: "codex/thread" }`](#persistence-type-sha256-83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925) |
 | `event:command/done` | event | `15196447222782e773eb943c92b18316ce96b9af0f0cfddb6e57ba8274ecc5ff` | [`{ type: "command/done" }`](#persistence-type-sha256-15196447222782e773eb943c92b18316ce96b9af0f0cfddb6e57ba8274ecc5ff) |
 | `event:command/run` | event | `37184378c6439257d105c4e2022d80fc9c3a3f7c7f6ac661b00bc9f18d871006` | [`{ type: "command/run" }`](#persistence-type-sha256-37184378c6439257d105c4e2022d80fc9c3a3f7c7f6ac661b00bc9f18d871006) |
 | `event:compaction/end` | event | `b0127044ab31a702bddfd785d345f5abd7a70876746e895ce443afa3e60ddf2d` | [`{ type: "compaction/end" }`](#persistence-type-sha256-b0127044ab31a702bddfd785d345f5abd7a70876746e895ce443afa3e60ddf2d) |
@@ -313,6 +314,26 @@ Source: [`packages/core/session/src/types.ts:355`](../packages/core/session/src/
 Types: [TokenUsage](subsystems/llm-streaming.md)
 
 Source: [`packages/core/session/src/types.ts:341`](../packages/core/session/src/types.ts)
+
+### `codex/*`
+
+<a id="codexthread--log-only"></a>
+
+#### `codex/thread` — log-only
+
+```ts persistence-catalog
+/**
+ * The Codex app-server acknowledged the thread this Session's turns run
+ * on. Log-only: appended once the thread exists, before its first turn
+ * starts, so a resumed Session continues the same Codex conversation
+ * instead of starting a new one. `conversationId` is the Codex thread id,
+ * `cwd` the workspace the thread was created in, and `model` the model the
+ * creating request named.
+ */
+'codex/thread': ProductConversationBinding
+```
+
+Source: [`packages/experimental/llm-codex/src/events.ts:23`](../packages/experimental/llm-codex/src/events.ts)
 
 ### `command/*`
 
@@ -1524,6 +1545,14 @@ SHA-256: `e7e154d47d5fbc5366330fb4dade1f108c6dfe4335044d21ded14b7bf1dce084`
 SHA-256: `15495614ccfa9cbdeefb0ec2abd76406435f4c6ff3dae42acae8e09ef42025c9`
 
 `"codex"`
+
+<a id="persistence-type-sha256-1d95c088e4a248db638d666e4226c4725cc4d18b02a59ada37115652fb4b9c3a"></a>
+
+### `"codex/thread"`
+
+SHA-256: `1d95c088e4a248db638d666e4226c4725cc4d18b02a59ada37115652fb4b9c3a`
+
+`"codex/thread"`
 
 <a id="persistence-type-sha256-8cdd3fdd295cee53035de16a1b23411716f75e9f994fe9510cac5d7fef605c76"></a>
 
@@ -4181,6 +4210,24 @@ Sources: [`packages/deliverables/tool-present/src/types.ts:5`](../packages/deliv
 SHA-256: `1d9cb3caa96100b18b1911fa3ff8c751ef6992971a03c5f4d9aefc1a0004a345`
 
 Array of [`PresentedFile`](#persistence-type-sha256-b8fc636a2121df9d8423c242e03c9d23b7ab7c6fdce00e45746932c60b730f97).
+
+<a id="persistence-type-sha256-b8ac13899206ed1df32a52a31b5924e16ffb00a95bb981e15c8035aa4350ac19"></a>
+
+<a id="persistence-type-packagesexperimentalllm-product-backendsrcbindingtsproductconversationbinding"></a>
+
+<a id="persistence-type-productconversationbinding"></a>
+
+### `ProductConversationBinding`
+
+SHA-256: `b8ac13899206ed1df32a52a31b5924e16ffb00a95bb981e15c8035aa4350ac19`
+
+Sources: [`packages/experimental/llm-product-backend/src/binding.ts:13`](../packages/experimental/llm-product-backend/src/binding.ts)
+
+| Property | Presence | Type |
+|---|---|---|
+| `conversationId` | required | `string` |
+| `cwd` | required | `string` |
+| `model` | optional | `string` |
 
 <a id="persistence-type-sha256-0ee52de154f8955c7abc82cffebc57452dcc8c44dccbdb6ad16c71a11305ead8"></a>
 
@@ -7750,6 +7797,22 @@ Sources: [`packages/llm/llm/src/assistant-stream.ts:44`](../packages/llm/llm/src
 | `chunk` | required | [`StreamChunk`](#persistence-type-sha256-47e9095591ae36e7c39ee62553097772f2bfa16304536a72dbbc3f691f605180) |
 | `time` | required | `number` |
 | `type` | required | `"chunk"` |
+
+<a id="persistence-type-sha256-83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925"></a>
+
+<a id="persistence-type-eventcodexthread"></a>
+
+### `{ type: "codex/thread" }`
+
+SHA-256: `83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925`
+
+| Property | Presence | Type |
+|---|---|---|
+| `data` | required | [`ProductConversationBinding`](#persistence-type-sha256-b8ac13899206ed1df32a52a31b5924e16ffb00a95bb981e15c8035aa4350ac19) |
+| `ignorable` | optional | `true` |
+| `seq` | required | `number` |
+| `time` | required | `number` |
+| `type` | required | `"codex/thread"` |
 
 <a id="persistence-type-sha256-15196447222782e773eb943c92b18316ce96b9af0f0cfddb6e57ba8274ecc5ff"></a>
 

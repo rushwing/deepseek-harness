@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Codex 对话后端",
+    "description": "通过已登录的 Codex app-server 在 Codex 线程上运行每个 Session 的回合，并将审批桥接到 dsh。"
+  }
+}

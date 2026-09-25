@@ -5404,6 +5404,86 @@
       }
     },
     {
+      "key": "event:codex/thread",
+      "kind": "event",
+      "event": "codex/thread",
+      "surface": false,
+      "digest": "83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 3,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 5,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "conversationId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "cwd",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "model",
+                "type": 2,
+                "optional": true
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "codex/thread"
+          }
+        ]
+      }
+    },
+    {
       "key": "event:command/done",
       "kind": "event",
       "event": "command/done",
@@ -31022,6 +31102,20 @@
           {
             "kind": "literal",
             "value": "pause"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
+      "digest": "1d95c088e4a248db638d666e4226c4725cc4d18b02a59ada37115652fb4b9c3a",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "codex/thread"
           }
         ]
       },
@@ -61765,6 +61859,84 @@
       "sources": []
     },
     {
+      "digest": "83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 3,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 5,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "conversationId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "cwd",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "model",
+                "type": 2,
+                "optional": true
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "codex/thread"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
       "digest": "83d6916021eede8f2d83a1872716caa1efdec39a3681890996c55147187fdd12",
       "schema": {
         "root": 0,
@@ -73095,6 +73267,45 @@
       ],
       "sources": [
         "packages/goal/goal/src/types.ts:45"
+      ]
+    },
+    {
+      "digest": "b8ac13899206ed1df32a52a31b5924e16ffb00a95bb981e15c8035aa4350ac19",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "conversationId",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "cwd",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "model",
+                "type": 1,
+                "optional": true
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          }
+        ]
+      },
+      "names": [
+        "packages/experimental/llm-product-backend/src/binding.ts#ProductConversationBinding"
+      ],
+      "sources": [
+        "packages/experimental/llm-product-backend/src/binding.ts:13"
       ]
     },
     {

@@ -257,6 +257,7 @@ flowchart TD
     pkg_experimental_computer_use_cua_driver_mcp["experimental-computer-use-cua-driver-mcp"]
     pkg_experimental_computer_use_cua_driver_native["experimental-computer-use-cua-driver-native"]
     pkg_experimental_inspector["experimental-inspector"]
+    pkg_experimental_llm_codex["experimental-llm-codex"]
     pkg_experimental_llm_product_backend["experimental-llm-product-backend"]
     pkg_experimental_ptc_runtime_python["experimental-ptc-runtime-python"]
     pkg_experimental_speech_to_text["experimental-speech-to-text"]
@@ -737,6 +738,14 @@ flowchart TD
   pkg_deepseek_account_platform --> pkg_credentials
   pkg_deepseek_account_platform --> pkg_deepseek_account
   pkg_deepseek_account_platform --> pkg_host_webserver
+  pkg_experimental_llm_codex --> pkg_agent
+  pkg_experimental_llm_codex --> pkg_llm
+  pkg_experimental_llm_codex --> pkg_session
+  pkg_experimental_llm_codex --> pkg_session_projection
+  pkg_experimental_llm_codex --> pkg_subprocess
+  pkg_experimental_llm_codex --> pkg_timeout
+  pkg_experimental_llm_codex --> pkg_user_approval
+  pkg_experimental_llm_codex --> pkg_user_questions
   pkg_experimental_llm_product_backend --> pkg_agent
   pkg_experimental_llm_product_backend --> pkg_llm
   pkg_experimental_llm_product_backend --> pkg_session
@@ -1591,6 +1600,7 @@ flowchart TD
 | [`api-account-controller`](../packages/api/account-controller) | `api` | [`agent`](../packages/core/agent), [`deepseek-account`](../packages/credentials/deepseek-account), [`typert-protocol`](../packages/typert/protocol) |
 | [`compaction`](../packages/compaction/compaction) | `compaction` | [`brand`](../packages/util/brand), [`commands`](../packages/interaction/commands), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`session`](../packages/core/session) |
 | [`deepseek-account-platform`](../packages/credentials/deepseek-account-platform) | `credentials` | [`authorization`](../packages/credentials/authorization), [`credentials`](../packages/credentials/credentials), [`deepseek-account`](../packages/credentials/deepseek-account), [`host-webserver`](../packages/host/webserver) |
+| [`experimental-llm-codex`](../packages/experimental/llm-codex) | `experimental` | [`agent`](../packages/core/agent), [`llm`](../packages/llm/llm), [`session`](../packages/core/session), [`session-projection`](../packages/session/session-projection), [`subprocess`](../packages/subprocess/subprocess), [`timeout`](../packages/util/timeout), [`user-approval`](../packages/interaction/user-approval), [`user-questions`](../packages/interaction/user-questions) |
 | [`experimental-llm-product-backend`](../packages/experimental/llm-product-backend) | `experimental` | [`agent`](../packages/core/agent), [`llm`](../packages/llm/llm), [`session`](../packages/core/session), [`session-projection`](../packages/session/session-projection), [`user-approval`](../packages/interaction/user-approval), [`user-questions`](../packages/interaction/user-questions) |
 | [`command-feedback`](../packages/feedback/command-feedback) | `feedback` | [`anonymous-user-id`](../packages/identity/anonymous-user-id), [`commands`](../packages/interaction/commands), [`session`](../packages/core/session), [`typert-protocol`](../packages/typert/protocol) |
 | [`permission-presets`](../packages/interaction/permission-presets) | `interaction` | [`commands`](../packages/interaction/commands), [`invariants`](../packages/runtime-diagnostics/invariants), [`sandbox`](../packages/sandbox/sandbox), [`sandbox-policy`](../packages/sandbox/sandbox-policy), [`session`](../packages/core/session), [`session-projection`](../packages/session/session-projection), [`shell`](../packages/shell/shell), [`typert-protocol`](../packages/typert/protocol), [`user-approval`](../packages/interaction/user-approval) |

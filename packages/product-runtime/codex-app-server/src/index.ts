@@ -43,6 +43,7 @@ export {
 export {
   CODEX_PERMISSION_MODES,
   DEFAULT_CODEX_PERMISSION_MODE,
+  INTERACTIVE_THREAD_PERMISSION_PARAMS,
   threadPermissionParams,
   type CodexPermissionMode,
   type CodexThreadPermissionParams,

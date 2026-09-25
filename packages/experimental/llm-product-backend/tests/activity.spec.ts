@@ -32,4 +32,11 @@ describe('activityLine', () => {
     expect(activityLine({ kind: 'tool', name: 'web_search', status: 'failed' })).toBe('tool web_search failed')
     expect(activityLine({ kind: 'tool', name: 'web_search', status: 'declined' })).toBe('declined tool web_search')
   })
+
+  it('names web searches by their query', () => {
+    expect(activityLine({ kind: 'web-search', query: 'vitest coverage', status: 'started' })).toBe('searching the web for "vitest coverage"')
+    expect(activityLine({ kind: 'web-search', query: 'vitest coverage', status: 'completed' })).toBe('searched the web for "vitest coverage"')
+    expect(activityLine({ kind: 'web-search', query: 'vitest coverage', status: 'failed' })).toBe('web search for "vitest coverage" failed')
+    expect(activityLine({ kind: 'web-search', query: 'vitest coverage', status: 'declined' })).toBe('declined web search for "vitest coverage"')
+  })
 })

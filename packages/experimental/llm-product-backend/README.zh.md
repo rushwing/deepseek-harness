@@ -37,7 +37,7 @@ kind: "package-library"
 
 ### 描述产品活动
 
-`activityLine(activity)` 把命令、文件变更或工具动作及其状态渲染为一行有界文本，例如 ``ran `git status` (exit 0)`` 或 `edited a.ts, b.ts`。后端把产品条目归约为 `ProductActivity` 并把该行作为推理流出。
+`activityLine(activity)` 把命令、文件变更、工具动作或网页搜索及其状态渲染为一行有界文本，例如 ``ran `git status` (exit 0)``、`edited a.ts, b.ts` 或 `searched the web for "vitest"`。后端把产品条目归约为 `ProductActivity` 并把该行作为推理流出。
 
 ### 桥接审批与提问
 
@@ -45,7 +45,7 @@ kind: "package-library"
 
 ### 把 Session 绑定到产品对话
 
-`ProductConversationBinding` 为 `{ conversationId, cwd, model? }`。后端声明自己承载该形状的 `SessionEventMap` 成员和自己的 `SessionProjectionStateMap` 键，然后在 `ctx.sessionProjections` 上注册 `bindingProjection(key, eventType)`：投影从 `null` 开始，在后端事件上用 `productConversationBindingSchema` 校验后替换状态，对其他事件返回同一引用。`conversationMissing(product, conversationId)` 与 `productNotSignedIn(product, loginCommand)` 构造产品已不存在的已绑定对话（`PRODUCT_CONVERSATION_MISSING`）和没有账号的产品（`MISSING_CREDENTIAL`）对应的 `LlmError`。
+`ProductConversationBinding` 为 `{ conversationId, cwd, model? }`。后端声明自己承载该形状的 `SessionEventMap` 成员和自己的 `SessionProjectionStateMap` 键，然后在 `ctx.sessionProjections` 上注册 `bindingProjection(key, eventType)`：投影从 `null` 开始，在后端事件上用 `productConversationBindingSchema` 校验后替换状态，对其他事件返回同一引用。`conversationMissing(product, conversationId, detail?)`（可选的 `detail` 附加产品自身的拒绝消息）与 `productNotSignedIn(product, loginCommand)` 构造产品已不存在的已绑定对话（`PRODUCT_CONVERSATION_MISSING`）和没有账号的产品（`MISSING_CREDENTIAL`）对应的 `LlmError`。
 
 -----
 

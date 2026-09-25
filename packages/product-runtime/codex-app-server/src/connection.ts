@@ -10,7 +10,7 @@
 
 import type { Readable, Writable } from 'node:stream'
 import type { JsonRpcLineTransport } from '@deepseek-ai/dsh-sdk-protocol'
-import { threadPermissionParams, type CodexPermissionMode } from './permission.ts'
+import type { CodexThreadPermissionParams } from './permission.ts'
 import {
   connectTransport,
   expectObject,
@@ -49,8 +49,8 @@ export type CodexServerRequestHandler = (request: CodexServerRequest) => Promise
 export interface CodexThreadOptions {
   /** Workspace the thread works in. */
   readonly cwd: string
-  /** Native mode selecting the approval, reviewer, and sandbox fields. */
-  readonly permissionMode: CodexPermissionMode
+  /** The approval, reviewer, and sandbox fields the thread runs under. */
+  readonly permission: CodexThreadPermissionParams
   /** Model fixed for the thread; omission leaves native Codex settings in force. */
   readonly model?: string
   /** Create a thread Codex does not persist. Defaults to a persistent thread. */
@@ -61,8 +61,8 @@ export interface CodexThreadOptions {
 export interface CodexThreadResumeOptions {
   /** Workspace the resumed thread works in. */
   readonly cwd: string
-  /** Native mode selecting the approval, reviewer, and sandbox fields. */
-  readonly permissionMode: CodexPermissionMode
+  /** The approval, reviewer, and sandbox fields the resumed thread runs under. */
+  readonly permission: CodexThreadPermissionParams
   /** Model for the resumed thread; omission leaves the thread's own setting. */
   readonly model?: string
 }
@@ -88,6 +88,8 @@ export interface CodexTokenUsageBreakdown {
 
 /** Receives the streamed facts of one turn as they arrive. */
 export interface CodexTurnObserver {
+  /** The `turn/start` response arrived; from here on the turn can be interrupted by id. */
+  onTurnStarted(turnId: string): void
   /** An assistant message text fragment. */
   onTextDelta(delta: string): void
   /** A reasoning or reasoning-summary text fragment. */
@@ -256,7 +258,7 @@ export class CodexAppServerConnection {
   async startThread(options: CodexThreadOptions, signal: AbortSignal): Promise<{ threadId: string }> {
     const thread = await startThreadRequest(this.transport, pending => this.guarded(pending, signal), {
       cwd: options.cwd,
-      permissionMode: options.permissionMode,
+      permission: options.permission,
       model: options.model,
       ephemeral: options.ephemeral ?? false,
     }, signal, SOURCE)
@@ -279,7 +281,7 @@ export class CodexAppServerConnection {
       threadId,
       cwd: options.cwd,
       ...options.model === undefined ? {} : { model: options.model },
-      ...threadPermissionParams(options.permissionMode),
+      ...options.permission,
     }, signal), signal), 'thread/resume response')
     const thread = expectObject(response.thread, 'thread/resume thread')
     return { threadId: expectString(thread.id, 'thread/resume thread id') }
@@ -331,6 +333,7 @@ export class CodexAppServerConnection {
       }, signal), signal), 'turn/start response')
       const turn = expectObject(response.turn, 'turn/start turn')
       active.turnId = expectString(turn.id, 'turn/start turn id')
+      observer.onTurnStarted(active.turnId)
       for (const notification of active.early.splice(0)) {
         this.handleNotification(notification.method, notification.params)
       }

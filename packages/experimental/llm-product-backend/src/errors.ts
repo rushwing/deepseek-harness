@@ -18,11 +18,13 @@ export const MISSING_CREDENTIAL_CODE = 'MISSING_CREDENTIAL'
  * The failure for a Session whose product conversation is gone.
  * @param product - product name shown to the user, for example `Codex`.
  * @param conversationId - the bound conversation the product no longer has.
+ * @param detail - the product's own refusal message, appended when present.
  * @returns an `LlmError` with code {@link PRODUCT_CONVERSATION_MISSING_CODE}.
  */
-export function conversationMissing(product: string, conversationId: string): LlmError {
+export function conversationMissing(product: string, conversationId: string, detail?: string): LlmError {
+  const reason = detail === undefined ? '' : ` (${product} said: ${detail})`
   return new LlmError(
-    `${product} no longer has the conversation ${JSON.stringify(conversationId)} this Session is bound to; start a new Session to begin a new ${product} conversation`,
+    `${product} no longer has the conversation ${JSON.stringify(conversationId)} this Session is bound to${reason}; start a new Session to begin a new ${product} conversation`,
     PRODUCT_CONVERSATION_MISSING_CODE,
   )
 }

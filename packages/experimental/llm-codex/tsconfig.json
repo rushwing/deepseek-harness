@@ -1,0 +1,57 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../../../vendor/cosmokit"
+    },
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../../../vendor/schemastery"
+    },
+    {
+      "path": "../../core/agent"
+    },
+    {
+      "path": "../../core/session"
+    },
+    {
+      "path": "../../llm/llm"
+    },
+    {
+      "path": "../../session/session-projection"
+    },
+    {
+      "path": "../../subprocess/subprocess"
+    },
+    {
+      "path": "../../util/timeout"
+    },
+    {
+      "path": "../../interaction/user-approval"
+    },
+    {
+      "path": "../../interaction/user-questions"
+    },
+    {
+      "path": "../../sdk/protocol"
+    },
+    {
+      "path": "../../util/values"
+    },
+    {
+      "path": "../../product-runtime/codex-app-server"
+    },
+    {
+      "path": "../llm-product-backend"
+    }
+  ]
+}

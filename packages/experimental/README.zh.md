@@ -44,6 +44,7 @@ kind: "package-group"
 | [`tool-agent-team`](tool-agent-team/README.zh.md) | 让模型创建、发消息与协调 teammate 的九个工具 | 按作用域注册工具到 `ctx.tools` |
 | [`webworker-packer`](webworker-packer/README.zh.md) | 构建浏览器 worker 预览所消费的 gzip 压缩虚拟文件系统（VFS）镜像 | 库与 CLI（命令行界面），不使用 ctx key |
 | [`webworker-runtime`](webworker-runtime/README.zh.md) | 在专用浏览器 worker 中运行 harness 插件树 | 库与 worker 入口，不使用 ctx key |
+| [`llm-codex`](llm-codex/README.zh.md) | Codex 会话后端：在一个持久 Codex 线程上运行每个 Session 回合并桥接审批的 provider 路由 | — |
 | [`llm-product-backend`](llm-product-backend/README.zh.md) | 运行在外部 agent 产品上的会话后端共享的输入、流、活动、交互与绑定辅助函数 | 库——无 ctx 键 |
 
 -----

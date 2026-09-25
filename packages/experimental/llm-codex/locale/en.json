@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Codex Conversation Backend",
+    "description": "Run each Session's turns on a Codex thread through the signed-in Codex app-server, with approvals bridged to dsh."
+  }
+}

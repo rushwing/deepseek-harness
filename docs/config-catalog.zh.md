@@ -1012,6 +1012,50 @@ export interface InspectorOptions {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-inspector -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-llm-codex -->
+<a id="deepseek-aidsh-experimental-llm-codex"></a>
+
+## `@deepseek-ai/dsh-experimental-llm-codex`
+
+- `inject`: `llm` · `agents` · `subprocess` · `sessionProjections` · `approval` · `userQuestions`
+- `refs`: [`CodexPermissionMode`](../packages/product-runtime/codex-app-server/src/index.ts)
+- `source`: [`packages/experimental/llm-codex/src/config.ts:38`](../packages/experimental/llm-codex/src/config.ts)
+
+```ts config-catalog
+/** Deployment-owned routes, environment, and process-release settings. */
+export interface Config {
+  /**
+   * Provider routes keyed by the name a request selects with
+   * `GenerateOptions.provider`; every route shares one app-server. Defaults to
+   * one bridged `codex` route.
+   */
+  routes?: Record<string, RouteConfig>
+  /**
+   * Explicit environment entries layered over the subprocess seam's
+   * credential-scrubbed parent environment, for example `CODEX_HOME`.
+   */
+  env?: Record<string, string>
+  /** Grace in milliseconds between app-server termination tiers on disposal. */
+  disposeGraceMs?: number
+  /** Fail a turn that produces no notification for this long; omission leaves turns unbounded. */
+  turnIdleTimeoutMs?: number
+}
+
+/** One provider route this plugin instance serves. */
+export interface RouteConfig {
+  /** Approval behavior for threads created through this route (default `bridge`). */
+  permissionMode?: CodexRoutePermissionMode
+}
+
+/**
+ * How a route answers Codex approval and user-input requests: `bridge` routes
+ * them to the harness approval and user-question services; the native modes
+ * keep Codex's own unattended behavior.
+ */
+export type CodexRoutePermissionMode = CodexPermissionMode | 'bridge'
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-llm-codex -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-ptc-runtime-python -->
 <a id="deepseek-aidsh-experimental-ptc-runtime-python"></a>
 
@@ -3136,6 +3180,7 @@ export type PermissionPolicy = 'allow' | 'reject'
 ## `@deepseek-ai/dsh-subagent-claude-code`
 
 - `inject`: `subagents` · `subprocess`
+- `refs`: [`ClaudeCodePermissionMode`](../packages/product-runtime/claude-agent-sdk/src/index.ts)
 - `source`: [`packages/subagent/subagent-claude-code/src/index.ts:38`](../packages/subagent/subagent-claude-code/src/index.ts)
 
 ```ts config-catalog
@@ -3160,9 +3205,6 @@ export interface Config {
   /** Grace in milliseconds between Claude Code managed-range termination tiers. */
   disposeGraceMs?: number
 }
-
-/** Profile-selectable non-interactive Claude Code permission mode. */
-export type ClaudeCodePermissionMode = typeof CLAUDE_CODE_PERMISSION_MODES[number]
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-subagent-claude-code -->
 
@@ -3172,6 +3214,7 @@ export type ClaudeCodePermissionMode = typeof CLAUDE_CODE_PERMISSION_MODES[numbe
 ## `@deepseek-ai/dsh-subagent-codex`
 
 - `inject`: `subagents` · `subprocess`
+- `refs`: [`CodexPermissionMode`](../packages/product-runtime/codex-app-server/src/index.ts)
 - `source`: [`packages/subagent/subagent-codex/src/index.ts:36`](../packages/subagent/subagent-codex/src/index.ts)
 
 ```ts config-catalog
@@ -3191,12 +3234,6 @@ export interface Config {
   /** Grace in milliseconds between app-server managed-range termination tiers. */
   disposeGraceMs?: number
 }
-
-/** Profile-selectable non-interactive Codex permission mode. */
-export type CodexPermissionMode =
-  | 'never'
-  | 'approve-for-me'
-  | 'dangerously-bypass-approvals-and-sandbox'
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-subagent-codex -->
 
@@ -4416,6 +4453,7 @@ export interface Config {
 | `@deepseek-ai/dsh-base` | — | [`packages/bundle/base/src/index.ts`](../packages/bundle/base/src/index.ts) |
 | `@deepseek-ai/dsh-brand` | — | [`packages/util/brand/src/index.ts`](../packages/util/brand/src/index.ts) |
 | `@deepseek-ai/dsh-chunked-list` | — | [`packages/util/chunked-list/src/index.ts`](../packages/util/chunked-list/src/index.ts) |
+| `@deepseek-ai/dsh-claude-agent-sdk` | — | [`packages/product-runtime/claude-agent-sdk/src/index.ts`](../packages/product-runtime/claude-agent-sdk/src/index.ts) |
 | `@deepseek-ai/dsh-client-store` | — | [`packages/client/store/src/index.ts`](../packages/client/store/src/index.ts) |
 | `@deepseek-ai/dsh-client-test-runtime` | — | [`packages/test-support/client-runtime/src/index.ts`](../packages/test-support/client-runtime/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-dockkit` | — | [`packages/client/ui-dockkit/src/index.ts`](../packages/client/ui-dockkit/src/index.ts) |
@@ -4423,9 +4461,11 @@ export interface Config {
 | `@deepseek-ai/dsh-client-ui-slots` | — | [`packages/client/ui-slots/src/index.ts`](../packages/client/ui-slots/src/index.ts) |
 | `@deepseek-ai/dsh-client-web` | — | [`packages/client/web/src/index.ts`](../packages/client/web/src/index.ts) |
 | `@deepseek-ai/dsh-cmdline` | — | [`packages/boot/cmdline/src/index.ts`](../packages/boot/cmdline/src/index.ts) |
+| `@deepseek-ai/dsh-codex-app-server` | — | [`packages/product-runtime/codex-app-server/src/index.ts`](../packages/product-runtime/codex-app-server/src/index.ts) |
 | `@deepseek-ai/dsh-deque` | — | [`packages/util/deque/src/index.ts`](../packages/util/deque/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-agent-team-profile` | — | [`packages/experimental/agent-team-profile/src/index.ts`](../packages/experimental/agent-team-profile/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-browser-use-runtime` | — | [`packages/experimental/browser-use-runtime/src/index.ts`](../packages/experimental/browser-use-runtime/src/index.ts) |
+| `@deepseek-ai/dsh-experimental-llm-product-backend` | — | [`packages/experimental/llm-product-backend/src/index.ts`](../packages/experimental/llm-product-backend/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-voice-input-bundle` | — | [`packages/experimental/voice-input-bundle/src/index.ts`](../packages/experimental/voice-input-bundle/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-webworker-packer` | — | [`packages/experimental/webworker-packer/src/index.ts`](../packages/experimental/webworker-packer/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-webworker-runtime` | — | [`packages/experimental/webworker-runtime/src/index.ts`](../packages/experimental/webworker-runtime/src/index.ts) |

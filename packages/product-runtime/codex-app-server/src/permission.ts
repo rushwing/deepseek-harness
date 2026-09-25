@@ -38,6 +38,16 @@ const THREAD_PERMISSION_PARAMS: Readonly<Record<CodexPermissionMode, CodexThread
 }
 
 /**
+ * The thread fields for a client that answers Codex approval requests itself:
+ * Codex asks before commands and file changes and runs under the
+ * workspace-write sandbox.
+ */
+export const INTERACTIVE_THREAD_PERMISSION_PARAMS: CodexThreadPermissionParams = {
+  approvalPolicy: 'on-request',
+  sandbox: 'workspace-write',
+}
+
+/**
  * The official thread fields one native mode selects.
  * @param mode - a native non-interactive permission mode.
  * @returns a fresh object holding the `approvalPolicy`, `approvalsReviewer`, and `sandbox` fields the mode sets.

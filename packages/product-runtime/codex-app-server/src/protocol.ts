@@ -9,7 +9,7 @@
 
 import type { Readable, Writable } from 'node:stream'
 import { JsonRpcLineTransport } from '@deepseek-ai/dsh-sdk-protocol'
-import { threadPermissionParams, type CodexPermissionMode } from './permission.ts'
+import type { CodexThreadPermissionParams } from './permission.ts'
 
 /** A decoded JSON-RPC params or result object. */
 export type JsonObject = Record<string, unknown>
@@ -117,8 +117,8 @@ export async function initializeHandshake(
 export interface ThreadStartFields {
   /** Workspace the thread works in. */
   readonly cwd: string
-  /** Native mode selecting the approval, reviewer, and sandbox fields. */
-  readonly permissionMode: CodexPermissionMode
+  /** The approval, reviewer, and sandbox fields the thread runs under. */
+  readonly permission: CodexThreadPermissionParams
   /** Model fixed for the thread; omission leaves native Codex settings in force. */
   readonly model?: string | undefined
   /** Whether Codex should skip persisting the thread. */
@@ -151,7 +151,7 @@ export async function startThreadRequest(
     cwd: fields.cwd,
     ephemeral: fields.ephemeral,
     ...fields.model === undefined ? {} : { model: fields.model },
-    ...threadPermissionParams(fields.permissionMode),
+    ...fields.permission,
   }, signal)), 'thread/start response', source)
   const thread = expectObject(response.thread, 'thread/start thread', source)
   return {

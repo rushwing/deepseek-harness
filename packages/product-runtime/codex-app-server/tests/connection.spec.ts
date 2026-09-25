@@ -2,7 +2,9 @@ import { PassThrough } from 'node:stream'
 import { describe, expect, it, vi } from 'vitest'
 import {
   CodexAppServerConnection,
+  threadPermissionParams,
   type CodexServerRequest,
+  type CodexTokenUsageBreakdown,
   type CodexTurnObserver,
 } from '@deepseek-ai/dsh-codex-app-server'
 
@@ -111,25 +113,29 @@ async function initialized(h: Harness): Promise<void> {
 }
 
 function observer(): CodexTurnObserver & {
+  readonly turns: string[]
   readonly text: string[]
   readonly reasoning: string[]
   readonly items: string[]
-  readonly usage: JsonObject[]
+  readonly usage: CodexTokenUsageBreakdown[]
 } {
+  const turns: string[] = []
   const text: string[] = []
   const reasoning: string[] = []
   const items: string[] = []
-  const usage: JsonObject[] = []
+  const usage: CodexTokenUsageBreakdown[] = []
   return {
+    turns,
     text,
     reasoning,
     items,
     usage,
+    onTurnStarted: (turnId) => { turns.push(turnId) },
     onTextDelta: (delta) => { text.push(delta) },
     onReasoningDelta: (delta) => { reasoning.push(delta) },
     onItemStarted: (item) => { items.push(`started:${String(item.type)}:${String(item.id)}`) },
     onItemCompleted: (item) => { items.push(`completed:${String(item.type)}:${String(item.id)}`) },
-    onUsage: (breakdown) => { usage.push(breakdown as unknown as JsonObject) },
+    onUsage: (breakdown) => { usage.push(breakdown) },
   }
 }
 
@@ -145,7 +151,7 @@ describe('handshake and threads', () => {
     await initialized(h)
     const starting = h.connection.startThread({
       cwd: '/work/repo',
-      permissionMode: 'approve-for-me',
+      permission: threadPermissionParams('approve-for-me'),
       model: 'gpt-5.6-sol',
     }, signal())
     const threadStart = await h.peer.nextMethod('thread/start')
@@ -167,7 +173,7 @@ describe('handshake and threads', () => {
     await initialized(h)
     const starting = h.connection.startThread({
       cwd: '/work/repo',
-      permissionMode: 'never',
+      permission: threadPermissionParams('never'),
       ephemeral: true,
     }, signal())
     const threadStart = await h.peer.nextMethod('thread/start')
@@ -180,7 +186,7 @@ describe('handshake and threads', () => {
   it('rejects a thread/start response without a thread id', async () => {
     const h = harness()
     await initialized(h)
-    const starting = h.connection.startThread({ cwd: '/work', permissionMode: 'never' }, signal())
+    const starting = h.connection.startThread({ cwd: '/work', permission: threadPermissionParams('never') }, signal())
     h.peer.respond(await h.peer.nextMethod('thread/start'), { thread: {} })
     await expect(starting).rejects.toThrow('app-server returned invalid thread/start thread id')
     h.connection.close()
@@ -191,7 +197,7 @@ describe('handshake and threads', () => {
     await initialized(h)
     const resuming = h.connection.resumeThread('thread-A', {
       cwd: '/work/repo',
-      permissionMode: 'never',
+      permission: threadPermissionParams('never'),
     }, signal())
     const resume = await h.peer.nextMethod('thread/resume')
     expect(resume.params).toEqual({ threadId: 'thread-A', cwd: '/work/repo', approvalPolicy: 'never' })
@@ -205,7 +211,7 @@ describe('handshake and threads', () => {
     await initialized(h)
     const resuming = h.connection.resumeThread('thread-A', {
       cwd: '/work/repo',
-      permissionMode: 'never',
+      permission: threadPermissionParams('never'),
       model: 'gpt-5.6-mini',
     }, signal())
     const resume = await h.peer.nextMethod('thread/resume')
@@ -218,7 +224,7 @@ describe('handshake and threads', () => {
   it('surfaces a thread/resume error response as a rejection', async () => {
     const h = harness()
     await initialized(h)
-    const resuming = h.connection.resumeThread('gone', { cwd: '/work', permissionMode: 'never' }, signal())
+    const resuming = h.connection.resumeThread('gone', { cwd: '/work', permission: threadPermissionParams('never') }, signal())
     h.peer.respondError(await h.peer.nextMethod('thread/resume'), -32000, 'no such thread')
     await expect(resuming).rejects.toThrow('no such thread')
     h.connection.close()
@@ -226,7 +232,7 @@ describe('handshake and threads', () => {
 })
 
 async function startedThread(h: Harness, threadId: string): Promise<void> {
-  const starting = h.connection.startThread({ cwd: '/work', permissionMode: 'never' }, signal())
+  const starting = h.connection.startThread({ cwd: '/work', permission: threadPermissionParams('never') }, signal())
   h.peer.respond(await h.peer.nextMethod('thread/start'), { thread: { id: threadId, ephemeral: false } })
   await starting
 }
@@ -659,7 +665,7 @@ describe('edge cases', () => {
   it('rejects a thread/start response whose thread is not an object', async () => {
     const h = harness()
     await initialized(h)
-    const starting = h.connection.startThread({ cwd: '/w', permissionMode: 'never' }, signal())
+    const starting = h.connection.startThread({ cwd: '/w', permission: threadPermissionParams('never') }, signal())
     h.peer.respond(await h.peer.nextMethod('thread/start'), { thread: 'nope' })
     await expect(starting).rejects.toThrow('app-server returned invalid thread/start thread')
     h.connection.close()
@@ -737,7 +743,7 @@ describe('closure', () => {
     await initialized(h)
     h.connection.close()
     h.connection.close()
-    await expect(h.connection.startThread({ cwd: '/w', permissionMode: 'never' }, signal()))
+    await expect(h.connection.startThread({ cwd: '/w', permission: threadPermissionParams('never') }, signal()))
       .rejects.toThrow('connection is closed')
     expect(h.connection.closed).toBe(true)
   })

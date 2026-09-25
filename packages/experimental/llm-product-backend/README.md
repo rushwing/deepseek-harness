@@ -37,7 +37,7 @@ Import the helpers from a backend adapter's `stream()` and plugin setup. Each he
 
 ### Describe product activity
 
-`activityLine(activity)` renders a command, file change, or tool action with its status on one bounded line, for example ``ran `git status` (exit 0)`` or `edited a.ts, b.ts`. A backend reduces its product's item to a `ProductActivity` and streams the line as reasoning.
+`activityLine(activity)` renders a command, file change, tool action, or web search with its status on one bounded line, for example ``ran `git status` (exit 0)``, `edited a.ts, b.ts`, or `searched the web for "vitest"`. A backend reduces its product's item to a `ProductActivity` and streams the line as reasoning.
 
 ### Bridge approvals and questions
 
@@ -45,7 +45,7 @@ Import the helpers from a backend adapter's `stream()` and plugin setup. Each he
 
 ### Bind the Session to a product conversation
 
-`ProductConversationBinding` is `{ conversationId, cwd, model? }`. A backend declares its own `SessionEventMap` member carrying that shape and its own `SessionProjectionStateMap` key, then registers `bindingProjection(key, eventType)` on `ctx.sessionProjections`: the projection starts at `null`, replaces the state on the backend's event after validating it with `productConversationBindingSchema`, and returns the same reference for every other event. `conversationMissing(product, conversationId)` and `productNotSignedIn(product, loginCommand)` build the `LlmError`s for a bound conversation the product no longer has (`PRODUCT_CONVERSATION_MISSING`) and for a product without an account (`MISSING_CREDENTIAL`).
+`ProductConversationBinding` is `{ conversationId, cwd, model? }`. A backend declares its own `SessionEventMap` member carrying that shape and its own `SessionProjectionStateMap` key, then registers `bindingProjection(key, eventType)` on `ctx.sessionProjections`: the projection starts at `null`, replaces the state on the backend's event after validating it with `productConversationBindingSchema`, and returns the same reference for every other event. `conversationMissing(product, conversationId, detail?)` (the optional `detail` appends the product's own refusal message) and `productNotSignedIn(product, loginCommand)` build the `LlmError`s for a bound conversation the product no longer has (`PRODUCT_CONVERSATION_MISSING`) and for a product without an account (`MISSING_CREDENTIAL`).
 
 -----
 

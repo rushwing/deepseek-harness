@@ -33,9 +33,9 @@ kind: "package-library"
 
 ### 线程与轮次
 
-`startThread({ cwd, permissionMode, model?, ephemeral? })` 发送带有由 `threadPermissionParams` 得到的模式 `approvalPolicy`、`approvalsReviewer` 与 `sandbox` 字段的 `thread/start`；`resumeThread(threadId, { cwd, permissionMode, model? })` 发送 `thread/resume`。两者都返回 Codex 报告的线程 id，并在响应畸形或产品出错时拒绝。
+`startThread({ cwd, permission, model?, ephemeral? })` 发送带有给定 `approvalPolicy`、`approvalsReviewer` 与 `sandbox` 字段的 `thread/start`：原生无人值守模式由 `threadPermissionParams(mode)` 提供这些字段，自行回答审批请求的客户端则使用 `INTERACTIVE_THREAD_PERMISSION_PARAMS`（`on-request` 审批、`workspace-write` 沙箱）；`resumeThread(threadId, { cwd, permission, model? })` 发送 `thread/resume`。两者都返回 Codex 报告的线程 id，并在响应畸形或产品出错时拒绝。
 
-`runTurn(threadId, { input, model?, effort? }, signal, observer)` 发送带文本块及可选每轮次模型与推理投入的 `turn/start`，然后把该线程和轮次的通知路由给观察者：`item/agentMessage/delta` 到 `onTextDelta`，`item/reasoning/textDelta` 与 `item/reasoning/summaryTextDelta` 到 `onReasoningDelta`，`item/started` 与 `item/completed` 到条目回调，`thread/tokenUsage/updated` 到 `onUsage`。在 `turn/start` 应答前到达的通知在轮次 id 已知后重放；其他线程或过期轮次的通知被忽略。调用以权威的 `turn/completed` 结算：`completed` 携带最终助手文本（最后一条 `final_answer` 消息，否则最后一条无阶段消息），`interrupted` 不携带更多内容，`failed` 携带粗粒度的 `CodexTurnFailureInfo` 和产品消息。一个线程一次只运行一个轮次；第二次调用会拒绝。中止信号会拒绝调用并释放线程，但不会停止产品；为此请调用 `interrupt(threadId, turnId)`。
+`runTurn(threadId, { input, model?, effort? }, signal, observer)` 发送带文本块及可选每轮次模型与推理投入的 `turn/start`，然后把该线程和轮次的通知路由给观察者：`turn/start` 的响应连同轮次 id 到 `onTurnStarted`，`item/agentMessage/delta` 到 `onTextDelta`，`item/reasoning/textDelta` 与 `item/reasoning/summaryTextDelta` 到 `onReasoningDelta`，`item/started` 与 `item/completed` 到条目回调，`thread/tokenUsage/updated` 到 `onUsage`。在 `turn/start` 应答前到达的通知在轮次 id 已知后重放；其他线程或过期轮次的通知被忽略。调用以权威的 `turn/completed` 结算：`completed` 携带最终助手文本（最后一条 `final_answer` 消息，否则最后一条无阶段消息），`interrupted` 不携带更多内容，`failed` 携带粗粒度的 `CodexTurnFailureInfo` 和产品消息。一个线程一次只运行一个轮次；第二次调用会拒绝。中止信号会拒绝调用并释放线程，但不会停止产品；为此请调用 `interrupt(threadId, turnId)`。
 
 ### 服务端请求
 

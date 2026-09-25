@@ -66,6 +66,8 @@ describe('errors', () => {
     expect(error.failure.code).toBe('PRODUCT_CONVERSATION_MISSING')
     expect(error.message).toContain('thread-A')
     expect(error.message).toContain('Codex')
+    expect(error.message).not.toContain('said:')
+    expect(conversationMissing('Codex', 'thread-A', 'thread not found').message).toContain('(Codex said: thread not found)')
   })
 
   it('tells the user how to sign in when the product has no account', () => {
