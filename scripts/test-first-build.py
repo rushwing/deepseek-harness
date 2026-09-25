@@ -33,6 +33,10 @@ class FirstBuildTests(unittest.TestCase):
                 self.assertEqual(archive.getmember('home/script').mode,0o700)
                 self.assertTrue(archive.getmember('usr/bin/alias').issym())
                 self.assertEqual(archive.extractfile('home/data').read(),b'public fixture')
+                for name in ('GPL-2.0.txt','GPL-3.0.txt','LGPL-2.1.txt','LGPL-3.0.txt'):
+                    member=archive.getmember('usr/share/LICENSES/'+name)
+                    self.assertEqual(member.mode,0o600)
+                    self.assertGreater(member.size,7000)
             self.assertFalse((work/'snapshot.tar').exists())
 
     def test_clean_sources_handles_js_package_directories(self):

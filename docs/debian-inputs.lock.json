@@ -1,14 +1,14 @@
 {
   "schema": 1,
   "distribution": "debian:bookworm-slim",
-  "index_sha256": "88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171",
+  "index_sha256": "3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251",
   "architectures": {
     "x86_64": {
-      "manifest": "sha256:5ae3c39ebd15e229dcedd5cee596b2497182493d41ff162e824ba13fc1b2b867",
+      "manifest": "sha256:f3034a6ec3c1205360777c4aae76234998866ad18806ae62b63a3f84ccad782b",
       "rootfs": {
-        "url": "https://registry-1.docker.io/v2/library/debian/blobs/sha256:a8ac7f6c67abc236e4c745052c404112b8fab6fe8ac3a329d1ef3b867ad67c71",
-        "sha256": "a8ac7f6c67abc236e4c745052c404112b8fab6fe8ac3a329d1ef3b867ad67c71",
-        "bytes": 28232655
+        "url": "https://registry-1.docker.io/v2/library/debian/blobs/sha256:774043ccc8ccd0d0833a9ee0792142ab7ad93df971e59dd248fbf82db16d0150",
+        "sha256": "774043ccc8ccd0d0833a9ee0792142ab7ad93df971e59dd248fbf82db16d0150",
+        "bytes": 28238443
       },
       "packages": [
         {
@@ -25,18 +25,18 @@
         },
         {
           "package": "proot",
-          "version": "5.1.107.92",
-          "url": "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/proot_5.1.107.92_x86_64.deb",
-          "sha256": "70236632826c30ec0245082b633bbc7ef1e9fa5531bd51bd4f20231bfcdc999b"
+          "version": "5.1.107.95",
+          "url": "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/proot_5.1.107.95_x86_64.deb",
+          "sha256": "f63ce9bd0d38715eae0163a3772f3395913587444c7ce7232091c6d359afe3c3"
         }
       ]
     },
     "arm64": {
-      "manifest": "sha256:6bd27d44e6c32a66bbd72d7cb2b76a8ae3497ec2e5274a81abd1b37f6013fa1f",
+      "manifest": "sha256:0c8bbb8e987a035fe1d9704eb2e571b7e9a836e1caa46345290674b45b69e417",
       "rootfs": {
-        "url": "https://registry-1.docker.io/v2/library/debian/blobs/sha256:75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a",
-        "sha256": "75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a",
-        "bytes": 28117289
+        "url": "https://registry-1.docker.io/v2/library/debian/blobs/sha256:333125b5cee9fb6718bdcb523fc93b4adc71b7c37ada6146a20c193430e549b9",
+        "sha256": "333125b5cee9fb6718bdcb523fc93b4adc71b7c37ada6146a20c193430e549b9",
+        "bytes": 28123680
       },
       "packages": [
         {
@@ -53,9 +53,9 @@
         },
         {
           "package": "proot",
-          "version": "5.1.107.92",
-          "url": "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/proot_5.1.107.92_aarch64.deb",
-          "sha256": "1f1c983509701f6826f568482c70673ee453a9ba38c9f5fa445a472d6b7524e9"
+          "version": "5.1.107.95",
+          "url": "https://packages.termux.dev/apt/termux-main/pool/main/p/proot/proot_5.1.107.95_aarch64.deb",
+          "sha256": "0a1b3d0f6ef76436c5ed924cd8e8f5a6b7186e99e1650eb2d9bc734e218a74cb"
         }
       ]
     }

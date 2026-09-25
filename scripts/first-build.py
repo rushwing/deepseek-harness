@@ -6,6 +6,7 @@ no device is contacted. --phase allows resuming after a reported failure.
 """
 import argparse
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -108,6 +109,19 @@ def pack_runtime(runtime, target):
     with tarfile.open(temporary, 'w', dereference=False) as archive:
         for directory in ('usr','home'):
             archive.add(runtime/directory, arcname=directory, filter=private_mode)
+        # The public snapshot legitimately contains both share/licenses and
+        # share/LICENSES. A WSL build staged on case-insensitive NTFS collapses
+        # those directories, so inject the shared GNU texts from the audited
+        # repository copies directly into the tar stream.
+        for license in sorted((ANDROID/'LICENSES').glob('*.txt')):
+            content = license.read_bytes()
+            info = tarfile.TarInfo(f'usr/share/LICENSES/{license.name}')
+            info.size = len(content)
+            info.mode = 0o600
+            info.uid = info.gid = 0
+            info.uname = info.gname = ''
+            info.mtime = 0
+            archive.addfile(info, io.BytesIO(content))
     with target.with_suffix('.part').open('wb') as output:
         subprocess.run(['xz','-T4','-3','-c',str(temporary)],stdout=output,check=True)
     target.with_suffix('.part').replace(target)
