@@ -1,0 +1,34 @@
+# Bilingual-pair consistency record for 2026-09-26-lifecycle-team.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/proposed/architecture/2026-09-26-lifecycle-team.md
+/agent-note-lifecycle-team:
+  en: 184d822318fe1c8c
+  zh: b6d1945566081bc3
+/agent-note-lifecycle-team/problem:
+  en: 50571e699a4e2e4f
+  zh: 4dff93090bda8b95
+/agent-note-lifecycle-team/proposal:
+  en: b649051ad1f378e7
+  zh: 53d9bfa987f49efd
+/agent-note-lifecycle-team/proposal/package-topology:
+  en: 92ffb2a053e11e60
+  zh: ce84718035de5ffd
+/agent-note-lifecycle-team/proposal/durable-events:
+  en: 6631da75343ce6f9
+  zh: 34c1a5c58be98b23
+/agent-note-lifecycle-team/proposal/separation-invariants:
+  en: 97e93ee962eb2119
+  zh: e79f52fc58938f44
+/agent-note-lifecycle-team/proposal/artifact-lints:
+  en: f2ef55a301898449
+  zh: cc53f07b9ce33908
+/agent-note-lifecycle-team/alternatives-considered:
+  en: 650ab5d979d1dc89
+  zh: 27cc84643a7bab17
+/agent-note-lifecycle-team/acceptance-criteria:
+  en: ce5cfc7ae9515b48
+  zh: 4ed013b05b14826f
+/agent-note-lifecycle-team/risks:
+  en: 680c3c7b9bcdc9ee
+  zh: 29aeece79e42c39b
