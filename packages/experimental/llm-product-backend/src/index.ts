@@ -9,6 +9,21 @@
 
 export { activityLine, type ProductActivity, type ProductActivityStatus } from './activity.ts'
 export {
+  ABORTED_CODE,
+  TEXT_ONLY_MODALITIES,
+  finishForFailure,
+  providerDisplayInfo,
+  readBinding,
+  requireNewUserInput,
+  resolveProductTarget,
+  routeOf,
+  streamProductTurn,
+  thrown,
+  unlistedModelInfo,
+  type BackendIdentity,
+  type ProductTarget,
+} from './backend.ts'
+export {
   bindingProjection,
   productConversationBindingSchema,
   type ProductConversationBinding,
@@ -21,4 +36,12 @@ export {
 } from './errors.ts'
 export { isEphemeralRequest, newUserInput } from './input.ts'
 export { approvalAllows, askApproval, askQuestions } from './interaction.ts'
+export {
+  assertDuration,
+  resolveBackendSpec,
+  resolveRoutes,
+  type BackendConfig,
+  type BackendSpec,
+  type ResolvedRoute,
+} from './routes.ts'
 export { ProductTurnStream } from './stream.ts'

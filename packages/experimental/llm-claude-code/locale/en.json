@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Claude Code Conversation Backend",
+    "description": "Run each Session's turns on a Claude Code session through the signed-in Claude Code CLI, with approvals bridged to dsh."
+  }
+}

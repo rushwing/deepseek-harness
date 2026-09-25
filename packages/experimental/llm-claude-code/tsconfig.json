@@ -15,6 +15,9 @@
       "path": "../../../vendor/cordis"
     },
     {
+      "path": "../../../vendor/schemastery"
+    },
+    {
       "path": "../../core/agent"
     },
     {
@@ -27,13 +30,25 @@
       "path": "../../session/session-projection"
     },
     {
+      "path": "../../subprocess/subprocess"
+    },
+    {
       "path": "../../util/timeout"
+    },
+    {
+      "path": "../../util/values"
     },
     {
       "path": "../../interaction/user-approval"
     },
     {
       "path": "../../interaction/user-questions"
+    },
+    {
+      "path": "../../product-runtime/claude-agent-sdk"
+    },
+    {
+      "path": "../llm-product-backend"
     }
   ]
 }

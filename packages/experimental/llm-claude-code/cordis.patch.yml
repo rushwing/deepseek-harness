@@ -1,0 +1,3 @@
+- insert:
+    - id: llm-claude-code
+      name: '@deepseek-ai/dsh-experimental-llm-claude-code'

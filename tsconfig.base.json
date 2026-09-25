@@ -482,6 +482,9 @@
       "@deepseek-ai/dsh-storage-json": ["./packages/storage/storage-json/src"],
       "@deepseek-ai/dsh-storage-sqlite": ["./packages/storage/storage-sqlite/src"],
       "@deepseek-ai/dsh-claude-agent-sdk": ["./packages/product-runtime/claude-agent-sdk/src"],
+      "@deepseek-ai/dsh-experimental-llm-claude-code": [
+        "./packages/experimental/llm-claude-code/src/index.ts"
+      ],
       "@deepseek-ai/dsh-experimental-llm-codex": ["./packages/experimental/llm-codex/src"],
       "@deepseek-ai/dsh-experimental-llm-product-backend": ["./packages/experimental/llm-product-backend/src"],
       "@deepseek-ai/dsh-codex-app-server": ["./packages/product-runtime/codex-app-server/src"],

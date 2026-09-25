@@ -1010,6 +1010,50 @@ export interface InspectorOptions {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-inspector -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-llm-claude-code -->
+<a id="deepseek-aidsh-experimental-llm-claude-code"></a>
+
+## `@deepseek-ai/dsh-experimental-llm-claude-code`
+
+- `inject`: `llm` · `agents` · `subprocess` · `sessionProjections` · `approval` · `userQuestions`
+- `refs`: [`ClaudeCodePermissionMode`](../packages/product-runtime/claude-agent-sdk/src/index.ts)
+- `source`: [`packages/experimental/llm-claude-code/src/config.ts:43`](../packages/experimental/llm-claude-code/src/config.ts)
+
+```ts config-catalog
+/** Deployment-owned routes, environment, and process-release settings. */
+export interface Config {
+  /**
+   * Provider routes keyed by the name a request selects with
+   * `GenerateOptions.provider`. Defaults to one bridged `claude-code` route.
+   */
+  routes?: Record<string, RouteConfig>
+  /**
+   * Explicit environment entries layered over the subprocess seam's
+   * credential-scrubbed parent environment, for example `CLAUDE_CONFIG_DIR`.
+   */
+  env?: Record<string, string>
+  /** Grace in milliseconds between termination tiers when a turn's process is released. */
+  disposeGraceMs?: number
+  /** Fail a turn that produces no SDK message for this long; omission leaves turns unbounded. */
+  turnIdleTimeoutMs?: number
+}
+
+/** One provider route this plugin instance serves. */
+export interface RouteConfig {
+  /** Permission behavior for sessions driven through this route (default `bridge`). */
+  permissionMode?: ClaudeCodeRoutePermissionMode
+}
+
+/**
+ * How a route answers Claude Code permission and question requests: `bridge`
+ * runs the SDK's `default` mode and routes them to the harness approval and
+ * user-question services; the native modes keep Claude Code's own unattended
+ * behavior.
+ */
+export type ClaudeCodeRoutePermissionMode = ClaudeCodePermissionMode | 'bridge'
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-llm-claude-code -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-llm-codex -->
 <a id="deepseek-aidsh-experimental-llm-codex"></a>
 
@@ -1017,7 +1061,7 @@ export interface InspectorOptions {
 
 - `inject`: `llm` · `agents` · `subprocess` · `sessionProjections` · `approval` · `userQuestions`
 - `refs`: [`CodexPermissionMode`](../packages/product-runtime/codex-app-server/src/index.ts)
-- `source`: [`packages/experimental/llm-codex/src/config.ts:38`](../packages/experimental/llm-codex/src/config.ts)
+- `source`: [`packages/experimental/llm-codex/src/config.ts:42`](../packages/experimental/llm-codex/src/config.ts)
 
 ```ts config-catalog
 /** Deployment-owned routes, environment, and process-release settings. */

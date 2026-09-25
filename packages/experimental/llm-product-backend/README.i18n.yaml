@@ -30,8 +30,11 @@
   en: 5ac5ea3aef798df6
   zh: 2f6d6240c1b9dfc6
 /deepseek-ai-dsh-experimental-llm-product-backend/use-this-package/bind-the-session-to-a-product-conversation:
-  en: 3ff13e1a26ca81ad
-  zh: da03b6d57493a559
+  en: 85bd18abb43be4f2
+  zh: ea1435f85b9880b1
+/deepseek-ai-dsh-experimental-llm-product-backend/use-this-package/resolve-configuration-and-run-a-turn:
+  en: d424103e36c8e65f
+  zh: d0419f46b93d3bcd
 /deepseek-ai-dsh-experimental-llm-product-backend/understand-the-implementation:
   en: 062fc0f8afff1d79
   zh: 85213c73a3aeee0b
@@ -39,8 +42,8 @@
   en: 1c001f689ccc1d7a
   zh: 739ec2765f438e5a
 /deepseek-ai-dsh-experimental-llm-product-backend/understand-the-implementation/source-map:
-  en: d6848fcb2e1ed5e8
-  zh: 4685531411b0b8cd
+  en: 69ea84d98d4ec638
+  zh: f2b8a124fd301043
 /deepseek-ai-dsh-experimental-llm-product-backend/further-exploration:
   en: 8e4bf5eb06e9233f
   zh: 6b3d5018c82faae5

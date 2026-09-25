@@ -7,7 +7,9 @@
 
 import z from '@deepseek-ai/schemastery'
 import { CODEX_PERMISSION_MODES, type CodexPermissionMode } from '@deepseek-ai/dsh-codex-app-server'
-import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
+import { resolveBackendSpec, type BackendSpec, type ResolvedRoute } from '@deepseek-ai/dsh-experimental-llm-product-backend'
+
+const SOURCE = 'llm-codex'
 
 /** Default grace between termination tiers when the plugin disposes its app-server. */
 export const DEFAULT_DISPOSE_GRACE_MS = 3_000
@@ -28,6 +30,8 @@ export const CODEX_ROUTE_PERMISSION_MODES = [
   'bridge',
 ] as const satisfies readonly CodexRoutePermissionMode[]
 
+/* jscpd:ignore-start -- the config catalog reads each plugin's literal schema, so the
+ * parallel backend configurations stay spelled out per package. */
 /** One provider route this plugin instance serves. */
 export interface RouteConfig {
   /** Approval behavior for threads created through this route (default `bridge`). */
@@ -61,51 +65,20 @@ export const Config: z<Config> = z.object({
   disposeGraceMs: z.number().default(DEFAULT_DISPOSE_GRACE_MS),
   turnIdleTimeoutMs: z.number(),
 })
+/* jscpd:ignore-end */
 
 /** One resolved route. */
-export interface CodexRouteSpec {
-  readonly permissionMode: CodexRoutePermissionMode
-}
+export type CodexRouteSpec = ResolvedRoute<CodexRoutePermissionMode>
 
 /** The fully resolved plugin inputs. */
-export interface CodexBackendSpec {
-  /** Routes in configuration order, each with its resolved permission mode. */
-  readonly routes: ReadonlyMap<string, CodexRouteSpec>
-  readonly env: Readonly<Record<string, string>>
-  readonly disposeGraceMs: number
-  readonly turnIdleTimeoutMs: number | undefined
-}
-
-function assertPositiveFinite(field: string, value: number, max = Number.POSITIVE_INFINITY): void {
-  if (!Number.isFinite(value) || value <= 0 || value > max) {
-    throw new Error(`llm-codex: ${field} must be a positive finite number no greater than ${max}`)
-  }
-}
+export type CodexBackendSpec = BackendSpec<CodexRoutePermissionMode>
 
 /**
- * Resolve validated configuration into the spec the plugin runs with. The
- * schema has already filled every default, so the resolution only checks
- * what the schema cannot express.
+ * Resolve validated configuration into the spec the plugin runs with.
  * @param config - schema-validated plugin configuration.
  * @returns the routes with explicit permission modes and the process settings.
  * @throws when no route is configured, a route name is empty, or a duration is invalid.
  */
 export function resolveCodexBackendSpec(config: Config): CodexBackendSpec {
-  const routes = new Map<string, CodexRouteSpec>()
-  for (const [name, route] of Object.entries(config.routes as Record<string, RouteConfig>)) {
-    if (name.length === 0) throw new Error('llm-codex: route names must be non-empty')
-    routes.set(name, { permissionMode: route.permissionMode as CodexRoutePermissionMode })
-  }
-  if (routes.size === 0) throw new Error('llm-codex: routes must declare at least one route')
-  const disposeGraceMs = config.disposeGraceMs as number
-  assertPositiveFinite('disposeGraceMs', disposeGraceMs, MAX_TIMER_DELAY_MS)
-  if (config.turnIdleTimeoutMs !== undefined) {
-    assertPositiveFinite('turnIdleTimeoutMs', config.turnIdleTimeoutMs, MAX_TIMER_DELAY_MS)
-  }
-  return {
-    routes,
-    env: { ...config.env },
-    disposeGraceMs,
-    turnIdleTimeoutMs: config.turnIdleTimeoutMs,
-  }
+  return resolveBackendSpec(SOURCE, config)
 }

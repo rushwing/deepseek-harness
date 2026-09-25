@@ -9,7 +9,7 @@
  * @module @deepseek-ai/dsh-experimental-llm-codex/adapter
  */
 
-import type { Agent, AgentRegistry } from '@deepseek-ai/dsh-agent'
+import type { AgentRegistry } from '@deepseek-ai/dsh-agent'
 import {
   INTERACTIVE_THREAD_PERMISSION_PARAMS,
   abortError,
@@ -25,15 +25,25 @@ import {
   type JsonObject,
 } from '@deepseek-ai/dsh-codex-app-server'
 import {
+  ABORTED_CODE,
   ProductTurnStream,
+  TEXT_ONLY_MODALITIES,
   activityLine,
   conversationMissing,
-  isEphemeralRequest,
-  newUserInput,
   productNotSignedIn,
+  providerDisplayInfo,
+  readBinding,
+  requireNewUserInput,
+  resolveProductTarget,
+  routeOf,
+  streamProductTurn,
+  thrown,
+  unlistedModelInfo,
+  type BackendIdentity,
   type ProductActivity,
   type ProductActivityStatus,
   type ProductConversationBinding,
+  type ProductTarget,
 } from '@deepseek-ai/dsh-experimental-llm-product-backend'
 import {
   LlmAdapter,
@@ -41,11 +51,9 @@ import {
   ReasoningEffortId,
   type FinishReason,
   type GenerateOptions,
-  type LlmFailure,
   type LlmModelInfo,
   type LlmProviderInfo,
   type LlmResolvedModelInfo,
-  type ModelModality,
   type StreamChunk,
   type TokenUsage,
 } from '@deepseek-ai/dsh-llm'
@@ -60,12 +68,10 @@ import type { CodexAppServerHost } from './host.ts'
 
 const SOURCE = 'llm-codex'
 const PRODUCT = 'Codex'
+const IDENTITY: BackendIdentity = { source: SOURCE, product: PRODUCT }
 const LOGIN_COMMAND = 'codex login'
 const DEFAULT_ROUTE = 'codex'
-const TEXT_ONLY: readonly ModelModality[] = ['text']
 
-/** Failure code for a turn the product stopped without being asked. */
-const ABORTED_CODE = 'ABORTED'
 /** Failure code for a product operation that failed before or while the product answered. */
 const TRANSPORT_CODE = 'TRANSPORT'
 
@@ -95,10 +101,6 @@ export interface CodexBackendAdapterOptions {
   /** Reads the Session's `codexThread` binding. */
   readonly projections: Pick<SessionProjectionRegistry, 'stateOf'>
 }
-
-type Target =
-  | { readonly kind: 'bound'; readonly agent: Agent; readonly cwd: string }
-  | { readonly kind: 'ephemeral'; readonly cwd: string }
 
 const itemStatus = z.enum(['inProgress', 'completed', 'failed', 'declined']).catch('completed')
   .transform((status): ProductActivityStatus => (status === 'inProgress' ? 'started' : status))
@@ -158,7 +160,7 @@ function modelInfo(provider: string, model: CodexModel): LlmModelInfo {
     id: model.id,
     name: model.displayName,
     ...model.description === '' ? {} : { description: model.description },
-    inputModalities: TEXT_ONLY,
+    inputModalities: TEXT_ONLY_MODALITIES,
   }
 }
 
@@ -173,10 +175,6 @@ function resolvedModelInfo(provider: string, model: CodexModel): LlmResolvedMode
   }
 }
 
-function thrown(error: unknown): Error {
-  return error instanceof Error ? error : new Error(String(error))
-}
-
 /** Keep adapter-owned failures; classify anything the product runtime threw as a transport failure. */
 function productFailure(error: unknown): LlmError {
   const cause = thrown(error)
@@ -189,14 +187,6 @@ async function viaProduct<T>(operation: () => Promise<T>): Promise<T> {
   } catch (error: unknown) {
     throw productFailure(error)
   }
-}
-
-function failureFinish(error: Error, signal: AbortSignal | undefined): FinishReason {
-  if (signal?.aborted === true) {
-    return { kind: 'aborted', failure: { message: error.message, code: ABORTED_CODE } }
-  }
-  const failure: LlmFailure = error instanceof LlmError ? error.failure : { message: error.message, code: 'UNKNOWN' }
-  return { kind: 'error', failure }
 }
 
 function outcomeFinish(outcome: CodexTurnOutcome): FinishReason {
@@ -238,7 +228,7 @@ export class CodexBackendAdapter extends LlmAdapter {
    * @returns the route's display metadata.
    */
   override providerInfo(provider: string): LlmProviderInfo {
-    return { id: provider, name: provider === DEFAULT_ROUTE ? PRODUCT : `${PRODUCT} (${provider})` }
+    return providerDisplayInfo(PRODUCT, DEFAULT_ROUTE, provider)
   }
 
   /**
@@ -266,9 +256,7 @@ export class CodexBackendAdapter extends LlmAdapter {
     signal: AbortSignal = new AbortController().signal,
   ): Promise<LlmResolvedModelInfo> {
     const found = (await this.catalog(signal)).find(entry => entry.id === model)
-    return found === undefined
-      ? { provider, id: model, name: model, inputModalities: TEXT_ONLY }
-      : resolvedModelInfo(provider, found)
+    return found === undefined ? unlistedModelInfo(provider, model) : resolvedModelInfo(provider, found)
   }
 
   /**
@@ -278,11 +266,7 @@ export class CodexBackendAdapter extends LlmAdapter {
    * @returns the chunk stream; every failure ends it with an `error` or `aborted` finish.
    */
   stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
-    const turn = new ProductTurnStream()
-    void this.run(options, turn).catch((error: unknown) => {
-      turn.finish(failureFinish(thrown(error), options.signal))
-    })
-    return turn.chunks()
+    return streamProductTurn(options.signal, turn => this.run(options, turn))
   }
 
   private async catalog(signal: AbortSignal): Promise<readonly CodexModel[]> {
@@ -303,37 +287,11 @@ export class CodexBackendAdapter extends LlmAdapter {
     })
   }
 
-  private route(provider: string): CodexRouteSpec {
-    const route = this.options.spec.routes.get(provider)
-    if (route === undefined) throw new LlmError(`${SOURCE}: route ${JSON.stringify(provider)} is not configured`, 'NO_ROUTE')
-    return route
-  }
-
-  private target(options: GenerateOptions): Target {
-    const agent = options.sessionId === undefined ? undefined : this.options.agents.get(options.sessionId)
-    if (isEphemeralRequest(options)) {
-      const cwd = agent === undefined ? undefined : agent.session.header.cwd
-      return { kind: 'ephemeral', cwd: cwd ?? this.options.cwd }
-    }
-    if (agent === undefined) {
-      throw new LlmError(
-        `${SOURCE}: Session ${JSON.stringify(options.sessionId)} has no live Agent to run a ${PRODUCT} turn for`,
-        'NO_LIVE_AGENT',
-      )
-    }
-    const cwd = agent.session.header.cwd
-    if (cwd === undefined) {
-      throw new LlmError(`${SOURCE}: Session ${JSON.stringify(agent.id)} has no workspace; ${PRODUCT} needs one to start a thread`, 'NO_WORKSPACE')
-    }
-    return { kind: 'bound', agent, cwd }
-  }
-
   private async run(options: GenerateOptions, turn: ProductTurnStream): Promise<void> {
-    const route = this.route(options.provider)
-    const input = newUserInput(options.messages)
-    if (input.length === 0) throw new LlmError(`${SOURCE}: the request carries no new user input for ${PRODUCT}`, 'EMPTY_REQUEST')
+    const route = routeOf(IDENTITY, this.options.spec.routes, options.provider)
+    const input = requireNewUserInput(IDENTITY, options.messages)
     const signal = options.signal ?? new AbortController().signal
-    const target = this.target(options)
+    const target = resolveProductTarget(IDENTITY, options, this.options.agents, this.options.cwd)
     const connection = await viaProduct(() => this.options.host.connection(signal))
     const threadId = await this.thread(connection, route, target, options.model, signal)
     const request: CodexTurnRequest = {
@@ -355,30 +313,22 @@ export class CodexBackendAdapter extends LlmAdapter {
   private async thread(
     connection: CodexAppServerConnection,
     route: CodexRouteSpec,
-    target: Target,
+    target: ProductTarget,
     model: string,
     signal: AbortSignal,
   ): Promise<string> {
     const permission = permissionParams(route.permissionMode)
+    const binding = readBinding(IDENTITY, CODEX_THREAD_PROJECTION_KEY, target, agent =>
+      this.options.projections.stateOf(agent.session, CODEX_THREAD_PROJECTION_KEY))
     if (target.kind === 'ephemeral') {
       const started = await viaProduct(() => connection.startThread({ cwd: target.cwd, permission, model, ephemeral: true }, signal))
       return started.threadId
-    }
-    const binding = this.options.projections.stateOf(target.agent.session, CODEX_THREAD_PROJECTION_KEY)
-    if (binding === undefined) {
-      throw new LlmError(`${SOURCE}: the ${CODEX_THREAD_PROJECTION_KEY} projection is not registered`, 'PROJECTION_MISSING')
     }
     if (binding === null) {
       const started = await viaProduct(() => connection.startThread({ cwd: target.cwd, permission, model, ephemeral: false }, signal))
       target.agent.session.append(CODEX_THREAD_EVENT, { conversationId: started.threadId, cwd: target.cwd, model })
       this.options.host.markThreadLive(started.threadId)
       return started.threadId
-    }
-    if (binding.cwd !== target.cwd) {
-      throw new LlmError(
-        `${SOURCE}: this Session's ${PRODUCT} thread was created in ${binding.cwd} but the Session workspace is now ${target.cwd}`,
-        'WORKSPACE_MISMATCH',
-      )
     }
     if (!this.options.host.threadIsLive(binding.conversationId)) {
       await this.resume(connection, binding, permission, model, signal)

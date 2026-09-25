@@ -29,6 +29,7 @@
 | `event:approval/policy` | event | `26718e15e7e395bce9642dba5bbe09b3b1a4ce2213d20d566cd9207d7fc5fb78` | [`{ type: "approval/policy" }`](#persistence-type-sha256-26718e15e7e395bce9642dba5bbe09b3b1a4ce2213d20d566cd9207d7fc5fb78) |
 | `event:assistant/attempt` | event | `15d5dfdd822aa35e115afd74a8982825a493880457774e6850bc1520b50875e4` | [`{ type: "assistant/attempt" }`](#persistence-type-sha256-15d5dfdd822aa35e115afd74a8982825a493880457774e6850bc1520b50875e4) |
 | `event:assistant/message` | event | `1033093edd0db80ff410e00830b523405e00bb0c7684948e531ff65095799625` | [`{ type: "assistant/message" }`](#persistence-type-sha256-1033093edd0db80ff410e00830b523405e00bb0c7684948e531ff65095799625) |
+| `event:claude-code/session` | event | `7a0ee10bc28faab2a05f31e62ef214a443f88c068972e9ea516d5f242e3663cf` | [`{ type: "claude-code/session" }`](#persistence-type-sha256-7a0ee10bc28faab2a05f31e62ef214a443f88c068972e9ea516d5f242e3663cf) |
 | `event:codex/thread` | event | `83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925` | [`{ type: "codex/thread" }`](#persistence-type-sha256-83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925) |
 | `event:command/done` | event | `15196447222782e773eb943c92b18316ce96b9af0f0cfddb6e57ba8274ecc5ff` | [`{ type: "command/done" }`](#persistence-type-sha256-15196447222782e773eb943c92b18316ce96b9af0f0cfddb6e57ba8274ecc5ff) |
 | `event:command/run` | event | `37184378c6439257d105c4e2022d80fc9c3a3f7c7f6ac661b00bc9f18d871006` | [`{ type: "command/run" }`](#persistence-type-sha256-37184378c6439257d105c4e2022d80fc9c3a3f7c7f6ac661b00bc9f18d871006) |
@@ -316,6 +317,26 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 类型：[TokenUsage](subsystems/llm-streaming.zh.md)
 
 来源：[`packages/core/session/src/types.ts:341`](../packages/core/session/src/types.ts)
+
+### `claude-code/*`
+
+<a id="claude-codesession--log-only"></a>
+
+#### `claude-code/session` — log-only
+
+```ts persistence-catalog
+/**
+ * The Claude Code CLI reported the session this dsh Session's turns run
+ * on. Log-only: appended when the first bound turn's `system/init`
+ * message names the session, so a resumed dsh Session continues the same
+ * Claude Code conversation instead of starting a new one.
+ * `conversationId` is the Claude Code session id, `cwd` the workspace the
+ * session was created in, and `model` the model the creating request named.
+ */
+'claude-code/session': ProductConversationBinding
+```
+
+来源：[`packages/experimental/llm-claude-code/src/events.ts:24`](../packages/experimental/llm-claude-code/src/events.ts)
 
 ### `codex/*`
 
@@ -1531,6 +1552,14 @@ SHA-256: `14230f9b8b5797bb7e8c621fa636531cfbde2ffba1ef5f1fd058216ff21952a0`
 SHA-256: `aff60ef947c18b012644852bdd0d5bfe72065e061dd563787c76c646b4a10f6b`
 
 `"claude-code"`
+
+<a id="persistence-type-sha256-c234293e4aeeff18cbfd4319e44213bd5c72e2a2698981c7756d517f597ee4f0"></a>
+
+### `"claude-code/session"`
+
+SHA-256: `c234293e4aeeff18cbfd4319e44213bd5c72e2a2698981c7756d517f597ee4f0`
+
+`"claude-code/session"`
 
 <a id="persistence-type-sha256-e7e154d47d5fbc5366330fb4dade1f108c6dfe4335044d21ded14b7bf1dce084"></a>
 
@@ -7799,6 +7828,22 @@ SHA-256: `487b65c37bfedb8b72088c4107a0a90a6249701f6b26745f6d98f9b8a22b07c7`
 | `chunk` | 必需 | [`StreamChunk`](#persistence-type-sha256-47e9095591ae36e7c39ee62553097772f2bfa16304536a72dbbc3f691f605180) |
 | `time` | 必需 | `number` |
 | `type` | 必需 | `"chunk"` |
+
+<a id="persistence-type-sha256-7a0ee10bc28faab2a05f31e62ef214a443f88c068972e9ea516d5f242e3663cf"></a>
+
+<a id="persistence-type-eventclaude-codesession"></a>
+
+### `{ type: "claude-code/session" }`
+
+SHA-256: `7a0ee10bc28faab2a05f31e62ef214a443f88c068972e9ea516d5f242e3663cf`
+
+| 属性 | 存在性 | 类型 |
+|---|---|---|
+| `data` | 必需 | [`ProductConversationBinding`](#persistence-type-sha256-b8ac13899206ed1df32a52a31b5924e16ffb00a95bb981e15c8035aa4350ac19) |
+| `ignorable` | 可选 | `true` |
+| `seq` | 必需 | `number` |
+| `time` | 必需 | `number` |
+| `type` | 必需 | `"claude-code/session"` |
 
 <a id="persistence-type-sha256-83c489454066e65624fdf9680d5118a0d0b1083c542910dabda533fa479e9925"></a>
 

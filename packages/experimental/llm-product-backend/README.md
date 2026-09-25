@@ -47,6 +47,10 @@ Import the helpers from a backend adapter's `stream()` and plugin setup. Each he
 
 `ProductConversationBinding` is `{ conversationId, cwd, model? }`. A backend declares its own `SessionEventMap` member carrying that shape and its own `SessionProjectionStateMap` key, then registers `bindingProjection(key, eventType)` on `ctx.sessionProjections`: the projection starts at `null`, replaces the state on the backend's event after validating it with `productConversationBindingSchema`, and returns the same reference for every other event. `conversationMissing(product, conversationId, detail?)` (the optional `detail` appends the product's own refusal message) and `productNotSignedIn(product, loginCommand)` build the `LlmError`s for a bound conversation the product no longer has (`PRODUCT_CONVERSATION_MISSING`) and for a product without an account (`MISSING_CREDENTIAL`).
 
+### Resolve configuration and run a turn
+
+`resolveBackendSpec(source, config)` turns a backend's schema-defaulted `routes`, `env`, `disposeGraceMs`, and `turnIdleTimeoutMs` into a `BackendSpec` (through `resolveRoutes`, which rejects an empty route set or name, and `assertDuration`, which rejects a non-positive or over-long duration). Inside `stream()`, `streamProductTurn(signal, run)` owns the `ProductTurnStream` and finishes a rejected turn through `finishForFailure` (`aborted` when the signal aborted, else the `LlmError` facts or `UNKNOWN`); `routeOf`, `requireNewUserInput`, `resolveProductTarget` (a `bound` target with its live Agent and workspace, or an `ephemeral` one for auxiliary and session-less requests), and `readBinding` (`PROJECTION_MISSING`, `WORKSPACE_MISMATCH`) raise the shared `LlmError`s a backend reports before it touches the product; `providerDisplayInfo` names routes after the product.
+
 -----
 
 <a id="understand-the-implementation"></a>
@@ -73,6 +77,8 @@ This section explains how the helpers are split; the observable behavior lives i
 | [`src/interaction.ts`](src/interaction.ts) | `askApproval`, `approvalAllows`, `askQuestions` |
 | [`src/binding.ts`](src/binding.ts) | `ProductConversationBinding`, `productConversationBindingSchema`, `bindingProjection` |
 | [`src/errors.ts`](src/errors.ts) | `conversationMissing`, `productNotSignedIn`, and their codes |
+| [`src/routes.ts`](src/routes.ts) | `resolveRoutes`, `assertDuration`, `resolveBackendSpec`, `BackendConfig`, `BackendSpec` |
+| [`src/backend.ts`](src/backend.ts) | `routeOf`, `requireNewUserInput`, `resolveProductTarget`, `readBinding`, `providerDisplayInfo`, `finishForFailure`, `streamProductTurn` |
 | [`src/index.ts`](src/index.ts) | Consumer interface |
 | — | No runtime invariant companion is published; the library owns no event stream or mutable data relation, and each backend proves its own binding and audit facts. |
 

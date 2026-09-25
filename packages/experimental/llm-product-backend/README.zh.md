@@ -47,6 +47,10 @@ kind: "package-library"
 
 `ProductConversationBinding` 为 `{ conversationId, cwd, model? }`。后端声明自己承载该形状的 `SessionEventMap` 成员和自己的 `SessionProjectionStateMap` 键，然后在 `ctx.sessionProjections` 上注册 `bindingProjection(key, eventType)`：投影从 `null` 开始，在后端事件上用 `productConversationBindingSchema` 校验后替换状态，对其他事件返回同一引用。`conversationMissing(product, conversationId, detail?)`（可选的 `detail` 附加产品自身的拒绝消息）与 `productNotSignedIn(product, loginCommand)` 构造产品已不存在的已绑定对话（`PRODUCT_CONVERSATION_MISSING`）和没有账号的产品（`MISSING_CREDENTIAL`）对应的 `LlmError`。
 
+### 解析配置并运行回合
+
+`resolveBackendSpec(source, config)` 把后端经 schema 填充默认值后的 `routes`、`env`、`disposeGraceMs` 与 `turnIdleTimeoutMs` 变成 `BackendSpec`（经由拒绝空路由集合或空路由名的 `resolveRoutes`，以及拒绝非正或过长时长的 `assertDuration`）。在 `stream()` 内，`streamProductTurn(signal, run)` 拥有 `ProductTurnStream`，并通过 `finishForFailure` 结束被拒绝的回合（信号已中止则为 `aborted`，否则为 `LlmError` 事实或 `UNKNOWN`）；`routeOf`、`requireNewUserInput`、`resolveProductTarget`（带存活 Agent 与工作区的 `bound` 目标，或供辅助与无 Session 请求使用的 `ephemeral` 目标）与 `readBinding`（`PROJECTION_MISSING`、`WORKSPACE_MISMATCH`）抛出后端在触碰产品之前报告的共享 `LlmError`；`providerDisplayInfo` 以产品为路由命名。
+
 -----
 
 <a id="understand-the-implementation"></a>
@@ -73,6 +77,8 @@ kind: "package-library"
 | [`src/interaction.ts`](src/interaction.ts) | `askApproval`、`approvalAllows`、`askQuestions` |
 | [`src/binding.ts`](src/binding.ts) | `ProductConversationBinding`、`productConversationBindingSchema`、`bindingProjection` |
 | [`src/errors.ts`](src/errors.ts) | `conversationMissing`、`productNotSignedIn` 及其错误码 |
+| [`src/routes.ts`](src/routes.ts) | `resolveRoutes`、`assertDuration`、`resolveBackendSpec`、`BackendConfig`、`BackendSpec` |
+| [`src/backend.ts`](src/backend.ts) | `routeOf`、`requireNewUserInput`、`resolveProductTarget`、`readBinding`、`providerDisplayInfo`、`finishForFailure`、`streamProductTurn` |
 | [`src/index.ts`](src/index.ts) | 消费方接口 |
 | — | 不发布运行时不变量伴随包；库不拥有事件流或可变数据关系，每个后端自行证明其绑定与审计事实。 |
 
