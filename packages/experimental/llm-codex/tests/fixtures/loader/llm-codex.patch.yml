@@ -1,0 +1,18 @@
+# Two named Codex routes over the shipped headless profile and the package's
+# public bundle patch. No model or product process starts in this test.
+- id: headless-startup
+  disabled: true
+
+- id: headless-runner
+  disabled: true
+
+- id: llm-codex
+  config:
+    routes:
+      codex: {}
+      codex-unattended:
+        permissionMode: never
+
+- insert:
+    - id: fixture
+      name: './fixture.ts'

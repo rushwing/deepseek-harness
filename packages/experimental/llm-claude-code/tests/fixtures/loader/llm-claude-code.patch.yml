@@ -1,0 +1,18 @@
+# Two named Claude Code routes over the shipped headless profile and the package's
+# public bundle patch. No model or product process starts in this test.
+- id: headless-startup
+  disabled: true
+
+- id: headless-runner
+  disabled: true
+
+- id: llm-claude-code
+  config:
+    routes:
+      claude-code: {}
+      claude-code-unattended:
+        permissionMode: dontAsk
+
+- insert:
+    - id: fixture
+      name: './fixture.ts'

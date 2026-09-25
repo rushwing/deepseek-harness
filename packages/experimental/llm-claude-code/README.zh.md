@@ -33,7 +33,7 @@ kind: "package-bundle"
 pnpm dsh plugin --profile headless add ./packages/experimental/llm-claude-code
 ```
 
-CLI 会把本包的 [`cordis.patch.yml`](cordis.patch.yml) 追加为 profile 层。把该路由选为 Session 的 provider（`provider: claude-code`），模型 id 或别名可以是 CLI 接受的任意值（`sonnet`、`opus` 或完整模型 id）；Web 模型选择器会列出 CLI 公布的目录。通过同一 CLI 的 `remove @deepseek-ai/dsh-experimental-llm-claude-code` 移除该层。
+CLI 会把本包的 [`cordis.patch.yml`](cordis.patch.yml) 追加为 profile 层：adapter 行在每个 profile 中注册路由，而一个 `Claude Code` agent 预设（一个完整 persona，没有 dsh 工具或运行时上下文）会在挂载了预设注册表的地方加入 Web 预设选择器。把该路由选为 Session 的 provider（`provider: claude-code`），模型 id 或别名可以是 CLI 接受的任意值（`sonnet`、`opus` 或完整模型 id）；Web 模型选择器会列出 CLI 公布的目录。通过同一 CLI 的 `remove @deepseek-ai/dsh-experimental-llm-claude-code` 移除该层。
 
 ### 你会得到什么
 
@@ -61,7 +61,7 @@ Session 在某路由上的首个回合会在 Session 工作区中启动一个 Cl
 <details>
 <summary>实现内部——点击展开</summary>
 
-[`src/index.ts`](src/index.ts) 解析配置，构建一个 [`ClaudeCodeBackendAdapter`](src/adapter.ts)，它位于 [`@deepseek-ai/dsh-claude-agent-sdk`](../../product-runtime/claude-agent-sdk/README.zh.md) 的官方 `query` 与 `ctx.subprocess` 之上，然后在一个 effect 内注册 `claudeCodeSession` 投影与全部路由，其 disposer 释放两者。每次查询都设置 `spawnClaudeCodeProcess`，使 CLI 经由 `claudeSpawnSpec` 与 `ManagedClaudeCodeProcess` 运行，用已清洗的父环境加 `env` 组成子进程环境，并把 CLI 的 stderr 转发到 Host stderr，同时保留最后几行用于失败消息。
+[`cordis.patch.yml`](cordis.patch.yml) 插入 adapter 行与 `preset-claude-code` 行；在没有 `agentPresets` 的 profile 中预设行无害地等待。[`src/index.ts`](src/index.ts) 解析配置，构建一个 [`ClaudeCodeBackendAdapter`](src/adapter.ts)，它位于 [`@deepseek-ai/dsh-claude-agent-sdk`](../../product-runtime/claude-agent-sdk/README.zh.md) 的官方 `query` 与 `ctx.subprocess` 之上，然后在一个 effect 内注册 `claudeCodeSession` 投影与全部路由，其 disposer 释放两者。每次查询都设置 `spawnClaudeCodeProcess`，使 CLI 经由 `claudeSpawnSpec` 与 `ManagedClaudeCodeProcess` 运行，用已清洗的父环境加 `env` 组成子进程环境，并把 CLI 的 stderr 转发到 Host stderr，同时保留最后几行用于失败消息。
 
 adapter 的 `stream()` 用共享的 [`llm-product-backend`](../llm-product-backend/README.zh.md) 辅助函数对请求分类：带有存活 Agent 的循环请求使用 Session 绑定的会话（`resume` 设为记录的 id，Session 工作区改变时以 `WORKSPACE_MISMATCH` 拒绝），其他任何请求运行不持久化的查询。提示是一条用户消息，内容为以空行连接的末尾用户消息，并保持打开直到结果到达，以便 SDK 的控制通道可用。`system/init` 为未绑定的 Session 追加 `claude-code/session`；`stream_event` 的文本与思考增量作为文本与推理流出；`assistant` 的 tool-use 块与匹配的 `user` 工具结果成为活动行（Bash 视为命令，编辑类工具视为文件变更，WebSearch 视为网页搜索，其余视为工具）；`result` 消息提供用量。`success` 结果以 `stop` 结束（仅当没有部分消息流出时才把结果文本流出），`is_error` 结果按其 API 状态映射为 `AUTH`、`RATE_LIMIT`、`SERVER` 或 `PRODUCT_ERROR`，错误子类型映射为 `MAX_TURNS`、`BUDGET_EXCEEDED`、`INVALID_RESULT` 与 `PRODUCT_ERROR`。取消与空闲超时中止查询的 `AbortController`；恢复时在 `system/init` 之前失败的查询为 `PRODUCT_CONVERSATION_MISSING`，并以 CLI 的 stderr 作为细节，其他任何失败为带同一尾部的 `TRANSPORT`。
 

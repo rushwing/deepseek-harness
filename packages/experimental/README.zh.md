@@ -57,6 +57,7 @@ kind: "package-group"
 - [计算机操作](../../docs/subsystems/computer-use.zh.md)——桌面提供方选择。
 - [浏览器操作](../../docs/subsystems/browser-use.zh.md)——浏览器提供方选择与 Session 所有权。
 - [Agent Teams 子系统](../../docs/subsystems/agent-team.zh.md)——持久 Team 类型与 `ctx.agentTeams` 服务 API。
+- [会话后端](../../docs/subsystems/conversation-backend.zh.md)——在 Codex 或 Claude Code 上运行 Session：请求分类、Session 绑定与权限桥接。
 - [实验子树规则](AGENTS.md)——实验状态放宽了什么、不放宽什么。
 
 -----

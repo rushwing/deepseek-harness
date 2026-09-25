@@ -33,7 +33,7 @@ kind: "package-bundle"
 pnpm dsh plugin --profile headless add ./packages/experimental/llm-codex
 ```
 
-CLI 会把本包的 [`cordis.patch.yml`](cordis.patch.yml) 追加为 profile 层。把该路由选为 Session 的 provider（`provider: codex`），模型 id 可以是 Codex 提供的任意一个；一旦 Codex 可达，Web 模型选择器会列出目录。通过同一 CLI 的 `remove @deepseek-ai/dsh-experimental-llm-codex` 移除该层。
+CLI 会把本包的 [`cordis.patch.yml`](cordis.patch.yml) 追加为 profile 层：adapter 行在每个 profile 中注册路由，而一个 `Codex` agent 预设（一个完整 persona，没有 dsh 工具或运行时上下文）会在挂载了预设注册表的地方加入 Web 预设选择器。把该路由选为 Session 的 provider（`provider: codex`），模型 id 可以是 Codex 提供的任意一个；一旦 Codex 可达，Web 模型选择器会列出目录。通过同一 CLI 的 `remove @deepseek-ai/dsh-experimental-llm-codex` 移除该层。
 
 ### 你会得到什么
 
@@ -61,7 +61,7 @@ CLI 会把本包的 [`cordis.patch.yml`](cordis.patch.yml) 追加为 profile 层
 <details>
 <summary>实现内部——点击展开</summary>
 
-[`src/index.ts`](src/index.ts) 解析配置，构建一个 [`CodexAppServerHost`](src/host.ts)、一个 [`ThreadRegistry`](src/bridge.ts) 与一个 [`CodexBackendAdapter`](src/adapter.ts)，然后在一个 effect 内注册 `codexThread` 投影与全部路由，其 disposer 释放两者并终止 app-server。host 通过 `ctx.subprocess` 启动 [`@deepseek-ai/dsh-codex-app-server`](../../product-runtime/codex-app-server/README.zh.md) 固定版本的官方 wrapper，执行 `initialize` 握手，在并发调用者之间共享一个连接，进程一退出就关闭连接，并在下一个请求时重新启动；当前进程中创建或恢复过的线程会被记住，以便后续回合判断是否需要 `thread/resume`。
+[`cordis.patch.yml`](cordis.patch.yml) 插入 adapter 行与 `preset-codex` 行；在没有 `agentPresets` 的 profile 中预设行无害地等待。[`src/index.ts`](src/index.ts) 解析配置，构建一个 [`CodexAppServerHost`](src/host.ts)、一个 [`ThreadRegistry`](src/bridge.ts) 与一个 [`CodexBackendAdapter`](src/adapter.ts)，然后在一个 effect 内注册 `codexThread` 投影与全部路由，其 disposer 释放两者并终止 app-server。host 通过 `ctx.subprocess` 启动 [`@deepseek-ai/dsh-codex-app-server`](../../product-runtime/codex-app-server/README.zh.md) 固定版本的官方 wrapper，执行 `initialize` 握手，在并发调用者之间共享一个连接，进程一退出就关闭连接，并在下一个请求时重新启动；当前进程中创建或恢复过的线程会被记住，以便后续回合判断是否需要 `thread/resume`。
 
 adapter 的 `stream()` 用共享的 [`llm-product-backend`](../llm-product-backend/README.zh.md) 辅助函数对请求分类：带有存活 Agent 的循环请求使用 Session 绑定的线程（不存在时启动一个并追加 `codex/thread`，重启后恢复它，Codex 不再拥有它时以 `PRODUCT_CONVERSATION_MISSING` 拒绝，Session 工作区改变时以 `WORKSPACE_MISMATCH` 拒绝），其他任何请求使用临时线程。`turn/start` 只携带末尾的用户消息以及请求的模型与推理力度。文本、推理、已完成条目与 token 用量经由 `ProductTurnStream` 流出；`turn/completed` 映射为 `stop`、`max-tokens`（上下文窗口耗尽）、`aborted`（Codex 中断了回合），或一个 `error` finish，其 code 跟随 Codex 的失败类别（`RATE_LIMIT`、`SERVER`、`TRANSPORT`、`ACCESS_POLICY`、`PRODUCT_ERROR`、`INVALID_RESULT`、`UNKNOWN`）。取消与空闲超时在得知回合 id 后立即发送 `turn/interrupt`，并等待 `disposeGraceMs` 让 Codex 自行完成，之后才放弃协议等待。
 

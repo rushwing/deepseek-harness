@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for conversation-backend.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/subsystems/conversation-backend.md
+/conversation-backends:
+  en: 388c43ea4314e402
+  zh: 4ae5d8415462ccc2
+/conversation-backends/packages:
+  en: 9e7b402488891015
+  zh: 2eb58bb8d9d09122
+/conversation-backends/request-classification:
+  en: 3faf643c36cd2924
+  zh: b4dcbf9753a6599f
+/conversation-backends/session-binding:
+  en: 8c0e87bbe9f3efb7
+  zh: d5e5d180e47d3d35
+/conversation-backends/permission-bridge:
+  en: 5d874ae689904e8c
+  zh: 8ab0f7d0c453caaf
+/conversation-backends/transcript-and-failures:
+  en: 9e33a14b6e4ef445
+  zh: 358e1143aeeac2f5

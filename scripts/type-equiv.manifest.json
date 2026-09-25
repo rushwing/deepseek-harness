@@ -438,6 +438,11 @@
       "source": "packages/experimental/agent-team/src/types.ts"
     },
     {
+      "doc": "docs/subsystems/conversation-backend.md",
+      "symbol": "ProductConversationBinding",
+      "source": "packages/experimental/llm-product-backend/src/binding.ts"
+    },
+    {
       "doc": "docs/subsystems/agent-team.md",
       "symbol": "TeamMemberSnapshot",
       "source": "packages/experimental/agent-team/src/types.ts"

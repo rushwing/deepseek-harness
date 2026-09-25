@@ -1,3 +1,26 @@
+# Codex conversation backend layer. Apply after the base profile: the adapter
+# row serves the `codex` route in every profile, and the preset row adds a
+# minimal composition for Sessions that run on Codex to the Web preset picker.
 - insert:
     - id: llm-codex
       name: '@deepseek-ai/dsh-experimental-llm-codex'
+
+    - id: preset-codex
+      name: '@deepseek-ai/dsh-agent-preset'
+      # Only the Web and Desktop profiles mount the preset registry; elsewhere the
+      # row stays disabled instead of waiting for a service that never comes.
+      disabled: !!js "!['web', 'desktop'].includes(ctx.get('profileContext')?.name)"
+      config:
+        id: codex
+        name: Codex
+        description: Run the Session on your signed-in Codex account; Codex owns the tools, sandbox, and conversation history.
+        order: 50
+        plugins:
+          # Codex never receives the dsh system prompt or tools, so the composition
+          # stays minimal: one complete persona and no runtime context.
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: This Session runs on Codex, which owns the conversation, tools, and sandbox.
+              complete: true
+              includeRuntimeContext: false

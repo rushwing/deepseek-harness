@@ -1,3 +1,27 @@
+# Claude Code conversation backend layer. Apply after the base profile: the
+# adapter row serves the `claude-code` route in every profile, and the preset
+# row adds a minimal composition for Sessions that run on Claude Code to the
+# Web preset picker.
 - insert:
     - id: llm-claude-code
       name: '@deepseek-ai/dsh-experimental-llm-claude-code'
+
+    - id: preset-claude-code
+      name: '@deepseek-ai/dsh-agent-preset'
+      # Only the Web and Desktop profiles mount the preset registry; elsewhere the
+      # row stays disabled instead of waiting for a service that never comes.
+      disabled: !!js "!['web', 'desktop'].includes(ctx.get('profileContext')?.name)"
+      config:
+        id: claude-code
+        name: Claude Code
+        description: Run the Session on your signed-in Claude Code CLI; Claude Code owns the tools, permissions, and conversation history.
+        order: 51
+        plugins:
+          # Claude Code never receives the dsh system prompt or tools, so the
+          # composition stays minimal: one complete persona and no runtime context.
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: This Session runs on Claude Code, which owns the conversation, tools, and permissions.
+              complete: true
+              includeRuntimeContext: false
