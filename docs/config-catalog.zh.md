@@ -4563,6 +4563,7 @@ export interface Config {
 | `@deepseek-ai/dsh-experimental-agent-team-profile` | — | [`packages/experimental/agent-team-profile/src/index.ts`](../packages/experimental/agent-team-profile/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-browser-use-runtime` | — | [`packages/experimental/browser-use-runtime/src/index.ts`](../packages/experimental/browser-use-runtime/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-lifecycle-table` | — | [`packages/experimental/lifecycle-table/src/index.ts`](../packages/experimental/lifecycle-table/src/index.ts) |
+| `@deepseek-ai/dsh-experimental-lifecycle-team-profile` | — | [`packages/experimental/lifecycle-team-profile/src/index.ts`](../packages/experimental/lifecycle-team-profile/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-lifecycle-work-items` | — | [`packages/experimental/lifecycle-work-items/src/index.ts`](../packages/experimental/lifecycle-work-items/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-llm-product-backend` | — | [`packages/experimental/llm-product-backend/src/index.ts`](../packages/experimental/llm-product-backend/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-voice-input-bundle` | — | [`packages/experimental/voice-input-bundle/src/index.ts`](../packages/experimental/voice-input-bundle/src/index.ts) |

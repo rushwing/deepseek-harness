@@ -429,6 +429,7 @@
     { "path": "./packages/experimental/lifecycle-work-items" },
     { "path": "./packages/experimental/lifecycle-orchestrator" },
     { "path": "./packages/experimental/lifecycle-model-fallback" },
+    { "path": "./packages/experimental/lifecycle-team-profile" },
     { "path": "./packages/experimental/llm-product-backend" },
     { "path": "./packages/experimental/llm-claude-code" },
     { "path": "./packages/experimental/llm-codex" },

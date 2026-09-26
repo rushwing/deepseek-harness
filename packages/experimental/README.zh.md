@@ -51,6 +51,7 @@ kind: "package-group"
 | [`lifecycle-work-items`](lifecycle-work-items/README.zh.md) | 把 REQ、TC、BUG、RV 与 PL 工件解析为图，按工件契约做 lint，判定生命周期步骤，并原子地应用效果 | 库——无 ctx 键 |
 | [`lifecycle-orchestrator`](lifecycle-orchestrator/README.zh.md) | 读取工作区的生命周期表与工件，做 lint，生成生命周期目录脚手架，应用迁移，并用被围在自身工件内的新鲜角色子代驱动 REQ | `ctx.lifecycle`、`lifecycle_*` 工具、`/lifecycle`、`lifecycle:policy` |
 | [`lifecycle-model-fallback`](lifecycle-model-fallback/README.zh.md) | 当请求以可跳转的代码失败时，把生命周期角色子代移到其注册表条目的下一条路由，并在同一 uid 下重试该步 | 循环策略——`agent/request` 与 `agent/request-error` 监听器 |
+| [`lifecycle-team-profile`](lifecycle-team-profile/README.zh.md) | 把生命周期 orchestrator 与模型回退组合在 dsh-base 之上，成为一个可由用户开启的可选 bundle | bundle——无 ctx 键 |
 
 -----
 

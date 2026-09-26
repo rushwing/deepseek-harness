@@ -1,0 +1,12 @@
+# Keyed e2e overlay over the shipped headless profile plus the lifecycle team
+# bundle: no startup agent, no runner, sessions persisted beside the test.
+- id: headless-startup
+  disabled: true
+
+- id: headless-runner
+  disabled: true
+
+- id: session-persistence-jsonl
+  config:
+    root: './.sessions'
+    compression: none

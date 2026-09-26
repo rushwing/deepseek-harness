@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "生命周期团队",
+    "description": "让 Planner、Generator 与 Evaluator 三个角色基于工作区的生命周期工件推进需求，并为角色子代提供模型回退。"
+  }
+}

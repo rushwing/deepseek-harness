@@ -1,0 +1,24 @@
+# Experimental lifecycle team layer. Apply after dsh-base: the orchestrator
+# drives requirements through fresh role children and the fallback moves a
+# role child to its registry's next route when its model route fails. Ralph
+# stays off so a role child cannot be handed to a fresh-agent loop.
+
+- id: tool-ralph
+  disabled: true
+
+- insert:
+    - id: lifecycle-orchestrator
+      name: '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'
+      config:
+        lifecycleDir: lifecycle
+        maxStepsPerRun: 8
+        humanDecisions: ask
+        stepTimeoutMs: 1800000
+        proposalChannel: auto
+        subagentProvider: spawn
+
+    - id: lifecycle-model-fallback
+      name: '@deepseek-ai/dsh-experimental-lifecycle-model-fallback'
+      config:
+        lifecycleDir: lifecycle
+        maxHops: 2

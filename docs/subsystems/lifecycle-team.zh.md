@@ -12,6 +12,7 @@
 | [`dsh-experimental-lifecycle-work-items`](../../packages/experimental/lifecycle-work-items/README.zh.md) | 把工件解析为图，加载 `artifact-contract.yml`，对图做 lint，依据表的守卫与效果判定步骤，规划效果编辑并原子写入 |
 | [`dsh-experimental-lifecycle-orchestrator`](../../packages/experimental/lifecycle-orchestrator/README.zh.md) | `ctx.lifecycle` 服务、`lifecycle_*` 工具、`/lifecycle` 命令、`lifecycle:policy` 提示词节、角色简报，以及 `lifecycle_init` 脚手架生成的英文默认文件 |
 | [`dsh-experimental-lifecycle-model-fallback`](../../packages/experimental/lifecycle-model-fallback/README.zh.md) | 当请求以可跳转代码失败、且 `llm-retry` 与其他每个恢复策略都将其留为终态后，把生命周期角色子代移到其注册表条目的下一条路由，并在同一 uid 下重试该步 |
+| [`dsh-experimental-lifecycle-team-profile`](../../packages/experimental/lifecycle-team-profile/README.zh.md) | 把 orchestrator 与回退组合在 dsh-base 之上并让 Ralph 保持关闭的可选 bundle；由插件管理器按 profile 开启 |
 
 ## 工作区中的文件
 
