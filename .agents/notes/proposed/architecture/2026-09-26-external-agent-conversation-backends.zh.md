@@ -41,7 +41,7 @@ Codex：每个插件实例一个 app-server，首个请求时通过 `ctx.subproc
 
 ### Configuration
 
-两个插件都校验 `provider`（路由名，每实例唯一）、`permissionMode`（原生模式加 `bridge`，默认 `bridge`）、`env` 和 `disposeGraceMs`。Codex 插件另有 `turnIdleTimeoutMs`；其模型目录来自 `model/list`。Claude Code 插件另有 `models` 目录和经显式解析步骤映射到 SDK 的 `efforts` 表。两者都没有 `model` 字段：模型是每个 Agent 的 `AgentOptions.model`，由 Web 目录、`agent-default-model` 或派生它的父级选择。
+两个插件都校验一张 `routes` 表（路由名 → `permissionMode`，原生模式加 `bridge`，默认一条以产品命名的桥接路由）、`env`、`disposeGraceMs` 与 `turnIdleTimeoutMs`；一个插件实例服务其产品的全部路由。Codex 目录来自共享 app-server 上的 `model/list`；Claude Code 目录来自一次短暂 SDK 查询上的 `supportedModels()`，包含每个模型的力度等级，因此两个插件都不携带 `models` 或 `efforts` 表。两者都没有 `model` 字段：模型是每个 Agent 的 `AgentOptions.model`，由 Web 目录、`agent-default-model` 或派生它的父级选择。
 
 ## Alternatives considered
 
@@ -62,10 +62,10 @@ Codex：每个插件实例一个 app-server，首个请求时通过 `ctx.subproc
 - `agent-default-model` 设为 `codex` 或 `claude-code` 且产品已登录时，无界面运行在同一个产品对话上完成两个轮次，第二个产品请求携带第一轮的历史。
 - 重启 Host 并恢复会话后通过 `thread/resume` 或 `resume` 继续同一个产品对话；缺失的产品对话使轮次以 `PRODUCT_CONVERSATION_MISSING` 失败。
 - `bridge` 模式下产品审批请求在会话日志中产生 `approval/asked` 和 `approval/decided`，`rejected` 结果拒绝产品动作。
-- 中止轮次会中断产品轮次并将请求结算为 `aborted`。
+- 中止轮次会请 Codex 中断其轮次（或取消 Claude Code 查询）并将请求结算为 `aborted`；被拒绝的 Codex 审批拒绝该动作以让轮次继续，只有取消提示才取消轮次。
 - 一次性提供者在消费运行时包后保持行为和测试不变，每个产品运行时恰在一个包中固定版本。
-- 每个 bundle 在 headless profile 上的 Loader 组合注册路由且不启动产品进程；在 Web profile 上还列出预设。
-- 两个后端都具备单元、无密钥真实产品、Loader 组合和带凭据四个层级；录制会话快照覆盖转录；SDK 投影记录新事件。
+- 每个 bundle 在 headless profile 上的 Loader 组合注册路由且不启动产品进程；预设行在 `web` 与 `desktop` profile 之外被禁用，使 headless 启动不产生警告。
+- 两个后端都具备单元、无密钥真实产品（经真实 agent 循环驱动）、Loader 组合和带凭据四个层级。录制会话快照延期：产品每次运行分配对话 id，因此在快照规范化器认识产品对话 id 之前，已绑定的 Session 无法确定性重放；SDK 投影无需改动，因为 SDK 场景从不运行后端路由。
 
 ## Risks
 

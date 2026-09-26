@@ -140,6 +140,7 @@ Independent request in a new session; it neither reads nor invalidates the Sessi
 - **Cancellation kills the turn.** Aborting a dsh turn aborts the SDK query and its CLI process instead of asking Claude Code to stop gracefully; the persisted session still resumes on the next turn.
 - **Signed-out Claude Code is reported as a transport failure.** The SDK exposes no structured sign-in state, so the catalog and every turn report `TRANSPORT` with the CLI's own "Not logged in" text; the plugin never opens a browser or stores tokens.
 - **A missing session is inferred.** A query that fails before its first `system/init` while resuming is reported as `PRODUCT_CONVERSATION_MISSING` with the CLI stderr as detail, so a startup failure during a resume carries the same code.
+- **No recorded-session snapshot yet.** Claude Code assigns each session id per run, so the keyless snapshot lane cannot replay a bound Session; the loop-driven real-product spec pins the transcript against the real CLI instead.
 - **Activity is narration, not events.** Tool calls appear as reasoning lines; typed Session events and Web cards for Claude Code actions are deferred.
 - **A Session binds to one workspace.** A Session whose `cwd` differs from its session's workspace fails with `WORKSPACE_MISMATCH` instead of moving the session.
 

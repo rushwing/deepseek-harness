@@ -137,6 +137,7 @@ Independent request on a new thread; it neither reads nor invalidates the Sessio
 - **Activity is narration, not events.** Commands and file changes appear as reasoning lines; typed Session events and Web cards for Codex actions are deferred.
 - **A Session binds to one workspace.** A Session whose `cwd` differs from its thread's workspace fails with `WORKSPACE_MISMATCH` instead of moving the thread.
 - **Auxiliary requests spend Codex turns.** Session titles and compaction run as ephemeral Codex turns; deployments can disable those plugins for Codex-routed profiles.
+- **No recorded-session snapshot yet.** Codex assigns each thread id per run, so the keyless snapshot lane cannot replay a bound Session; the loop-driven real-product spec pins the transcript against the real app-server instead.
 - **Signed-out Codex fails at request time.** The catalog and every turn report `MISSING_CREDENTIAL` naming `codex login`; the plugin never opens a browser or stores tokens.
 
 <a id="dev-note"></a>

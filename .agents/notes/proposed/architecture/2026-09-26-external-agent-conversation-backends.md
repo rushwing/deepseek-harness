@@ -41,7 +41,7 @@ Codex: one app-server per plugin instance, spawned lazily through `ctx.subproces
 
 ### Configuration
 
-Both plugins validate `provider` (route name, unique per instance), `permissionMode` (native modes plus `bridge`, default `bridge`), `env`, and `disposeGraceMs`. The Codex plugin adds `turnIdleTimeoutMs`; its model catalog comes from `model/list`. The Claude Code plugin adds a `models` catalog and an `efforts` table mapped to the SDK by an explicit resolve step. Neither plugin has a `model` field: the model is per-Agent `AgentOptions.model`, chosen in the Web catalog, by `agent-default-model`, or by a spawning parent.
+Both plugins validate a `routes` table (route name → `permissionMode`, native modes plus `bridge`, default one bridged route named after the product), `env`, `disposeGraceMs`, and `turnIdleTimeoutMs`; one plugin instance serves every route of its product. The Codex catalog comes from `model/list` on the shared app-server; the Claude Code catalog comes from `supportedModels()` on a short-lived SDK query, including each model's effort levels, so neither plugin carries a `models` or `efforts` table. Neither plugin has a `model` field: the model is per-Agent `AgentOptions.model`, chosen in the Web catalog, by `agent-default-model`, or by a spawning parent.
 
 ## Alternatives considered
 
@@ -62,10 +62,10 @@ Both plugins validate `provider` (route name, unique per instance), `permissionM
 - A headless run with `agent-default-model` set to `codex` or `claude-code` and a signed-in product completes two turns on one product conversation, and the second product request carries the first turn's history.
 - Restarting the Host and resuming the Session continues the same product conversation through `thread/resume` or `resume`; a missing product conversation fails the turn with `PRODUCT_CONVERSATION_MISSING`.
 - In `bridge` mode a product approval request produces `approval/asked` and `approval/decided` in the Session log, and a `rejected` outcome declines the product action.
-- Aborting a turn interrupts the product turn and settles the request as `aborted`.
+- Aborting a turn asks Codex to interrupt its turn (or cancels the Claude Code query) and settles the request as `aborted`; a rejected Codex approval declines the action so the turn continues, and only a cancelled prompt cancels the turn.
 - The one-shot providers keep their behavior and tests after consuming the runtime packages, and each product runtime is pinned in exactly one package.
-- Loader composition of each bundle over the headless profile registers the route and starts no product process; over the Web profile it also lists the preset.
-- Unit, keyless real-product, loader-composition, and credentialed tiers exist for both backends; recorded-session snapshots cover the transcript; the SDK projections record the new events.
+- Loader composition of each bundle over the headless profile registers the routes and starts no product process; the preset row is disabled outside the `web` and `desktop` profiles so headless boots stay warning-free.
+- Unit, keyless real-product (driven through the real agent loop), loader-composition, and credentialed tiers exist for both backends. Recorded-session snapshots are deferred: the products assign conversation ids per run, so a bound Session cannot replay deterministically until the snapshot normalizer knows product conversation ids; the SDK projections need no change because SDK scenarios never run a backend route.
 
 ## Risks
 

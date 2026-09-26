@@ -137,6 +137,7 @@ Session 标题与压缩请求，以及没有 Session 的请求，运行在一个
 - **活动是叙述，不是事件。** 命令与文件变更以推理行出现；Codex 动作的类型化 Session 事件与 Web 卡片延期。
 - **一个 Session 绑定一个工作区。** `cwd` 与其线程工作区不同的 Session 以 `WORKSPACE_MISMATCH` 失败，而不是移动线程。
 - **辅助请求消耗 Codex 回合。** Session 标题与压缩作为临时 Codex 回合运行；部署可为走 Codex 路由的 profile 禁用这些插件。
+- **尚无录制会话快照。** Codex 每次运行都会分配线程 id，因此无密钥的快照通道无法重放已绑定的 Session；改由循环驱动的真实产品 spec 针对真实 app-server 固定转录。
 - **未登录的 Codex 在请求时失败。** 目录与每个回合都报告 `MISSING_CREDENTIAL` 并指出 `codex login`；插件绝不打开浏览器或存储令牌。
 
 <a id="dev-note"></a>

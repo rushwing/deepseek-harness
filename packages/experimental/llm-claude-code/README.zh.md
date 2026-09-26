@@ -140,6 +140,7 @@ Session 标题与压缩请求，以及没有 Session 的请求，作为一次全
 - **取消会终止回合。** 中止 dsh 回合会中止 SDK 查询及其 CLI 进程，而不是请 Claude Code 优雅停止；持久化的会话仍会在下一回合恢复。
 - **未登录的 Claude Code 报告为传输失败。** SDK 不暴露结构化的登录状态，因此目录与每个回合都报告 `TRANSPORT` 并附带 CLI 自己的“Not logged in”文本；插件绝不打开浏览器或存储令牌。
 - **会话缺失是推断的。** 恢复时在首个 `system/init` 之前失败的查询报告为 `PRODUCT_CONVERSATION_MISSING` 并以 CLI stderr 作为细节，因此恢复期间的启动失败也带同一 code。
+- **尚无录制会话快照。** Claude Code 每次运行都会分配会话 id，因此无密钥的快照通道无法重放已绑定的 Session；改由循环驱动的真实产品 spec 针对真实 CLI 固定转录。
 - **活动是叙述，不是事件。** 工具调用以推理行出现；Claude Code 动作的类型化 Session 事件与 Web 卡片延期。
 - **一个 Session 绑定一个工作区。** `cwd` 与其会话工作区不同的 Session 以 `WORKSPACE_MISMATCH` 失败，而不是移动会话。
 
