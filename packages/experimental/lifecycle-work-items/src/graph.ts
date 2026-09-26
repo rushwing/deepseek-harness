@@ -57,6 +57,12 @@ export interface ArtifactGraph {
   resolve(raw: unknown, kind: ArtifactKind): Ref
   /** The REQ a frontmatter reference names, or `undefined` when it does not resolve. */
   resolveReq(raw: unknown): Req | undefined
+  /** The TCs whose `linked_req` names the REQ, in id order. */
+  ownTcsOf(reqId: string): readonly Tc[]
+  /** The BUGs whose `linked_req` names the REQ, in id order. */
+  carriedBugsOf(reqId: string): readonly Bug[]
+  /** The BUGs whose `blocks_req` names the REQ, in id order. */
+  blockingBugsOf(reqId: string): readonly Bug[]
   /** The node loaded from a label, or `undefined` for shadowed and unknown files. */
   nodeFor(label: string): Artifact | undefined
 }
@@ -69,6 +75,16 @@ function pushTo(map: Map<string, string[]>, key: string, value: string): void {
 
 function sortedMap(map: Map<string, string[]>): Map<string, readonly string[]> {
   return new Map([...map].map(([key, values]) => [key, [...values].sort()]))
+}
+
+function nodesOf<T extends Artifact>(
+  ids: ReadonlyMap<string, readonly string[]>,
+  table: ReadonlyMap<string, T>,
+): (reqId: string) => readonly T[] {
+  return (reqId) => {
+    const listed = ids.get(reqId)
+    return listed === undefined ? [] : listed.flatMap(id => [...table.values()].filter(node => node.id === id))
+  }
 }
 
 function resolveIn(tables: Readonly<Record<ArtifactKind, ReadonlyMap<string, Artifact>>>, raw: unknown, kind: ArtifactKind): Ref {
@@ -151,6 +167,9 @@ export function loadGraph(source: WorkItemSource, options: ParseOptions): Artifa
   const rvOf = new Map([...rvs.values()].map(rv => [reqOfSameNumber(rv.id), rv]))
   const plOf = new Map([...pls.values()].map(pl => [reqOfSameNumber(pl.id), pl]))
   const byLabel = new Map(artifacts.map(node => [node.label, node]))
+  const sortedOwnTcs = sortedMap(ownTcs)
+  const sortedCarriedBugs = sortedMap(carriedBugs)
+  const sortedBlockingBugs = sortedMap(blockingBugs)
   return {
     tasksDir: source.tasksDir,
     reqs,
@@ -163,13 +182,16 @@ export function loadGraph(source: WorkItemSource, options: ParseOptions): Artifa
     broken,
     duplicates,
     acs,
-    ownTcs: sortedMap(ownTcs),
-    carriedBugs: sortedMap(carriedBugs),
-    blockingBugs: sortedMap(blockingBugs),
+    ownTcs: sortedOwnTcs,
+    carriedBugs: sortedCarriedBugs,
+    blockingBugs: sortedBlockingBugs,
     rvOf,
     plOf,
     resolve,
     resolveReq,
+    ownTcsOf: nodesOf(sortedOwnTcs, tcs),
+    carriedBugsOf: nodesOf(sortedCarriedBugs, bugs),
+    blockingBugsOf: nodesOf(sortedBlockingBugs, bugs),
     nodeFor: label => byLabel.get(label),
   }
 }

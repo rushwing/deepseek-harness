@@ -146,7 +146,7 @@ None
 - [PL-PLAT-009](../../plans/platform/PL-PLAT-009.md): contract changes, module placement, the new table version's key set and per-transition guards / effects, test support
 - [ADR-010](../../../../docs/adr/ADR-010-lifecycle-as-data.md) decisions 5 / 6 and Notes 8–10; [ADR-011](../../../../docs/adr/ADR-011-cross-vendor-evaluator.md): cross-vendor review seat
 - [REQ-PLAT-008](../../archive/done/REQ-PLAT-008.md): baseline of the static table, self-consistency and mirrors; [lifecycle.yml](../../../lifecycle.yml), [agent-registry.yml](../../../agent-registry.yml): machine truth
-- [harness/README §6](../../../README.md#6-gates): contract table of rule groups and applicable boundaries
+- [lifecycle guide §6](../../../GUIDE.md#6-gates): contract table of rule groups and applicable boundaries
 - [requirement-standard](../../../standards/requirement-standard.md) §4, [review-standard](../../../standards/review-standard.md) §4, [briefs](../../../standards/briefs.md), [agent-standard](../../../standards/agent-standard.md) §3: mirrors
 - [BUG-PLAT-003](../../bugs/platform/BUG-PLAT-003.md), [BUG-PLAT-004](../../bugs/platform/BUG-PLAT-004.md), [BUG-PLAT-005](../../bugs/platform/BUG-PLAT-005.md), [BUG-PLAT-006](../../bugs/platform/BUG-PLAT-006.md): carried defects
 - [GLOSSARY §4](../../../../GLOSSARY.md): transition evidence, transition segment, non-transition event, lifecycle-sensitive object, provider set

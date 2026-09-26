@@ -77,24 +77,7 @@ export interface LintContext extends LintInputs {
 
 const EXPECTATION_SEPARATOR = ':'
 
-/**
- * Render a value for a message: strings quoted with single quotes, everything else as JSON.
- * @param value - the value.
- * @returns the rendering.
- */
-export function quote(value: unknown): string {
-  if (typeof value === 'string') return `'${value}'`
-  return value === undefined ? 'undefined' : JSON.stringify(value)
-}
-
-/**
- * Render names for a message.
- * @param names - the names.
- * @returns `[a, b]`.
- */
-export function list(names: readonly string[]): string {
-  return `[${names.join(', ')}]`
-}
+export { list, quote, textOf } from '../format.ts'
 
 /**
  * Whether two lists hold the same items in the same order.
@@ -104,16 +87,6 @@ export function list(names: readonly string[]): string {
  */
 export function sameSequence(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((item, index) => item === right[index])
-}
-
-/**
- * The frontmatter value as text, empty when absent.
- * @param value - the frontmatter value.
- * @returns the text.
- */
-export function textOf(value: unknown): string {
-  if (value === undefined || value === null) return ''
-  return typeof value === 'string' ? value : JSON.stringify(value)
 }
 
 /**

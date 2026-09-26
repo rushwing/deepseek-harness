@@ -37,7 +37,7 @@ kind: "package-library"
 - `requiredGates(table, column, status)` 累加给定列（`with_tc`、`optional_no_tc`、`exempt`）中到 `status` 为止每个主链状态的 `pass_to_enter` 节；链外状态与未知列不产生任何结果。
 - `reachableStates(table, policy)` 从第一个主链状态沿前向迁移行走，仅通过该策略已登记的出口离开 `req_review`。
 - `sensitiveKinds(table)` 列出 `may_change` 可命名的种类：八个 REQ 字段（`req.<field>`）、`tc_status:<status>`、`bug_status:<status>`，以及每个评审门加上 `regression` 与 `external_review` 的 `rv:<section>`。
-- `statusIndex`、`legalReqStatuses`、`transitionById` 与 `signerOf` 读取表的主链位置、完整的 REQ 状态集合、单个迁移与评审门的签署者。
+- `statusIndex`、`legalReqStatuses`、`transitionById`、`signerOf` 与 `restoreRoles` 读取表的主链位置、完整的 REQ 状态集合、单个迁移、评审门的签署者，以及在每个恢复状态接手的角色。
 
 ### 加载 agent 注册表
 

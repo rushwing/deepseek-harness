@@ -8,7 +8,8 @@
 
 import { parseDocument } from 'yaml'
 
-const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/
+/** The frontmatter block: an opening `---` line, the YAML, and a closing `---` line, LF-separated. */
+export const FRONTMATTER_BLOCK = /^---\n([\s\S]*?)\n---\n/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
 /** A parsed frontmatter mapping. */
@@ -26,7 +27,7 @@ export type FrontmatterSplit =
  * @returns the mapping and the body with leading newlines removed, or the problem.
  */
 export function splitFrontmatter(text: string): FrontmatterSplit {
-  const match = FRONTMATTER.exec(text)
+  const match = FRONTMATTER_BLOCK.exec(text)
   if (match === null) return { problem: 'missing YAML frontmatter' }
   const document = parseDocument(String(match[1]), { uniqueKeys: true })
   const [error] = document.errors

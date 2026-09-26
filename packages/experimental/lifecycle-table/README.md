@@ -37,7 +37,7 @@ Read a file's text, call its loader with the file label that should prefix every
 - `requiredGates(table, column, status)` accumulates the `pass_to_enter` sections of every main-chain state up to `status` in the given column (`with_tc`, `optional_no_tc`, `exempt`); off-chain states and unknown columns yield nothing.
 - `reachableStates(table, policy)` walks forward transitions from the first main-chain state, leaving `req_review` only through the policy's registered exits.
 - `sensitiveKinds(table)` lists the kinds `may_change` may name: the eight REQ fields as `req.<field>`, `tc_status:<status>`, `bug_status:<status>`, and `rv:<section>` for every gate plus `regression` and `external_review`.
-- `statusIndex`, `legalReqStatuses`, `transitionById`, and `signerOf` read the table's main-chain positions, its complete REQ status set, one transition, and a gate's signer.
+- `statusIndex`, `legalReqStatuses`, `transitionById`, `signerOf`, and `restoreRoles` read the table's main-chain positions, its complete REQ status set, one transition, a gate's signer, and the role that takes over at each restore state.
 
 ### Load the agent registry
 

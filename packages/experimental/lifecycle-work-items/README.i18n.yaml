@@ -1,0 +1,58 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/lifecycle-work-items/README.md
+/:
+  en: 347063f381e637c8
+  zh: b9fe4ae2aed17484
+/deepseek-ai-dsh-experimental-lifecycle-work-items:
+  en: 7669196667c210bd
+  zh: 75ee8e8f7dde6c1a
+/deepseek-ai-dsh-experimental-lifecycle-work-items/summary:
+  en: b9529e31a3002454
+  zh: 39e0ad7c9c5cca70
+/deepseek-ai-dsh-experimental-lifecycle-work-items/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-experimental-lifecycle-work-items/use-this-package:
+  en: 35464566d853f9a2
+  zh: 5ef37a64de63b27e
+/deepseek-ai-dsh-experimental-lifecycle-work-items/use-this-package/load-the-graph:
+  en: b7050f510a2ef489
+  zh: ca84ef3c8527de2f
+/deepseek-ai-dsh-experimental-lifecycle-work-items/use-this-package/load-the-artifact-contract:
+  en: 73add1c4014af3e3
+  zh: af9adac553b6a3af
+/deepseek-ai-dsh-experimental-lifecycle-work-items/use-this-package/lint:
+  en: 17393760f1d4b12b
+  zh: 91a95859014a4032
+/deepseek-ai-dsh-experimental-lifecycle-work-items/use-this-package/judge-a-step:
+  en: 22c91288e275978f
+  zh: 55a1721888f38ecb
+/deepseek-ai-dsh-experimental-lifecycle-work-items/use-this-package/apply-effects-and-write:
+  en: 8bee927d3e7ee7a7
+  zh: 8939cc571def7732
+/deepseek-ai-dsh-experimental-lifecycle-work-items/understand-the-implementation:
+  en: 76fa320c714bfd04
+  zh: 9d627ede0b73bd74
+/deepseek-ai-dsh-experimental-lifecycle-work-items/understand-the-implementation/design-concept:
+  en: f3f7568873880fce
+  zh: 7748d137fb7336e7
+/deepseek-ai-dsh-experimental-lifecycle-work-items/understand-the-implementation/source-map:
+  en: e846e3e960ef6d34
+  zh: a4f9b14a8cce4dd5
+/deepseek-ai-dsh-experimental-lifecycle-work-items/further-exploration:
+  en: 474ac09ebc530a60
+  zh: 00183305aa3b86a9
+/deepseek-ai-dsh-experimental-lifecycle-work-items/model-experience:
+  en: 4cd40dd55cc81ba0
+  zh: 9eb47043990ef14a
+/deepseek-ai-dsh-experimental-lifecycle-work-items/model-experience/kv-cache-effect:
+  en: cfbac7b923f61545
+  zh: bcac2ad5946e894c
+/deepseek-ai-dsh-experimental-lifecycle-work-items/known-limitations-and-deferred-work:
+  en: a47ec3ed777696aa
+  zh: 1377290746b009fd
+/deepseek-ai-dsh-experimental-lifecycle-work-items/known-limitations-and-deferred-work/dev-note:
+  en: 090459221f3fe31d
+  zh: 607c2acf94c003a5

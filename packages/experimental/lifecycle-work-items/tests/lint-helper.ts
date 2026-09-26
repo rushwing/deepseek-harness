@@ -9,6 +9,7 @@ import {
   memorySource,
   parseOptionsOf,
   type ArtifactContract,
+  type ArtifactGraph,
   type FileProbe,
   type Violation,
 } from '@deepseek-ai/dsh-experimental-lifecycle-work-items'
@@ -68,6 +69,15 @@ export function loadTables(files: Readonly<Record<string, string>>): Loaded {
 /** The fixture workspace as workspace-relative path to file text. */
 export type Files = Record<string, string>
 
+/** The artifact graph of an in-memory workspace. */
+export function graphOf(files: Readonly<Record<string, string>>, contract: ArtifactContract): ArtifactGraph {
+  const tasks: Record<string, string> = {}
+  for (const [path, text] of Object.entries(files)) {
+    if (path.startsWith(`${TASKS}/`) && path.endsWith('.md')) tasks[path.slice(TASKS.length + 1)] = text
+  }
+  return loadGraph(memorySource(TASKS, tasks), parseOptionsOf(contract))
+}
+
 /** Lint the fixture workspace after an optional edit of its files. */
 export function lintWorkspace(
   edit?: (files: Files) => unknown,
@@ -76,11 +86,7 @@ export function lintWorkspace(
   const files = workspaceFiles()
   edit?.(files)
   const loaded = loadTables(files)
-  const tasks: Record<string, string> = {}
-  for (const [path, text] of Object.entries(files)) {
-    if (path.startsWith(`${TASKS}/`) && path.endsWith('.md')) tasks[path.slice(TASKS.length + 1)] = text
-  }
-  const graph = loadGraph(memorySource(TASKS, tasks), parseOptionsOf(loaded.contract))
+  const graph = graphOf(files, loaded.contract)
   return lint({
     graph,
     contract: loaded.contract,

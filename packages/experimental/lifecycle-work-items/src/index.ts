@@ -31,8 +31,23 @@ export {
   type ArtifactContractLoad,
 } from './contract.ts'
 export { DEFAULT_PARSE_OPTIONS } from './defaults.ts'
+export { editFrontmatter, planEffects, withdrawRegression, type EffectPlan, type EffectPlanInputs, type FileWrite, type StepDecisions } from './apply.ts'
+export { list, quote, textOf } from './format.ts'
 export { loadGraph, type ArtifactGraph, type Ref } from './graph.ts'
 export { lint } from './lint.ts'
+export {
+  PREDICATES,
+  changedReqs,
+  checkClauses,
+  checkEvent,
+  checkTransition,
+  evidence,
+  restorePairFor,
+  sensitiveDelta,
+  type Evidence,
+  type EvidenceInputs,
+  type Predicate,
+} from './predicates.ts'
 export { lintContext, type FileProbe, type LintContext, type LintInputs, type PathKind, type Violation } from './rules/context.ts'
 export {
   DEFAULT_REVIEW_VOCABULARY,
@@ -46,7 +61,7 @@ export {
   type ReviewVocabulary,
 } from './review.ts'
 export { directorySource, memorySource, type WorkItemSource } from './source.ts'
-export { asList, isIsoDate, positiveInt, scalar, splitFrontmatter, type Frontmatter, type FrontmatterSplit } from './frontmatter.ts'
+export { FRONTMATTER_BLOCK, asList, isIsoDate, positiveInt, scalar, splitFrontmatter, type Frontmatter, type FrontmatterSplit } from './frontmatter.ts'
 export {
   ARTIFACT_KINDS,
   acIdParts,
@@ -61,6 +76,7 @@ export {
   type ArtifactKind,
   type ArtifactLocation,
 } from './ids.ts'
+export { nodeWriterFs, writeAtomically, type WriterFs } from './writer.ts'
 export {
   codePointLength,
   duplicateHeadings,
