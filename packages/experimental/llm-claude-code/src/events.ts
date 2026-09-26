@@ -8,6 +8,7 @@
 
 import {
   bindingProjection,
+  type BindingProjectionDefinition,
   type ProductConversationBinding,
 } from '@deepseek-ai/dsh-experimental-llm-product-backend'
 
@@ -39,4 +40,5 @@ export const CLAUDE_CODE_SESSION_EVENT = 'claude-code/session'
 export const CLAUDE_CODE_SESSION_PROJECTION_KEY = 'claudeCodeSession'
 
 /** Folds `claude-code/session` events into the Session's current binding. */
-export const claudeCodeSessionProjection = bindingProjection(CLAUDE_CODE_SESSION_PROJECTION_KEY, CLAUDE_CODE_SESSION_EVENT)
+export const claudeCodeSessionProjection: BindingProjectionDefinition<typeof CLAUDE_CODE_SESSION_PROJECTION_KEY> =
+  bindingProjection(CLAUDE_CODE_SESSION_PROJECTION_KEY, CLAUDE_CODE_SESSION_EVENT)

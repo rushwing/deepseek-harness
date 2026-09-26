@@ -26,6 +26,7 @@ export {
 export {
   bindingProjection,
   productConversationBindingSchema,
+  type BindingProjectionDefinition,
   type ProductConversationBinding,
 } from './binding.ts'
 export {

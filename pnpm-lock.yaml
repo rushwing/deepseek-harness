@@ -7750,6 +7750,16 @@ importers:
         specifier: ^4.19.2
         version: 4.22.4
 
+  packages/experimental/lifecycle-table:
+    dependencies:
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
+    devDependencies:
+      '@deepseek-ai/dsh-brand':
+        specifier: workspace:*
+        version: link:../../util/brand
+
   packages/experimental/llm-claude-code:
     dependencies:
       '@deepseek-ai/dsh-agent-preset':

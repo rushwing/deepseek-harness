@@ -7,6 +7,7 @@
 
 import {
   bindingProjection,
+  type BindingProjectionDefinition,
   type ProductConversationBinding,
 } from '@deepseek-ai/dsh-experimental-llm-product-backend'
 
@@ -38,4 +39,5 @@ export const CODEX_THREAD_EVENT = 'codex/thread'
 export const CODEX_THREAD_PROJECTION_KEY = 'codexThread'
 
 /** Folds `codex/thread` events into the Session's current binding. */
-export const codexThreadProjection = bindingProjection(CODEX_THREAD_PROJECTION_KEY, CODEX_THREAD_EVENT)
+export const codexThreadProjection: BindingProjectionDefinition<typeof CODEX_THREAD_PROJECTION_KEY> =
+  bindingProjection(CODEX_THREAD_PROJECTION_KEY, CODEX_THREAD_EVENT)
