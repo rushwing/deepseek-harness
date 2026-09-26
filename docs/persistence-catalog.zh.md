@@ -336,7 +336,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'claude-code/session': ProductConversationBinding
 ```
 
-来源：[`packages/experimental/llm-claude-code/src/events.ts:24`](../packages/experimental/llm-claude-code/src/events.ts)
+来源：[`packages/experimental/llm-claude-code/src/events.ts:25`](../packages/experimental/llm-claude-code/src/events.ts)
 
 ### `codex/*`
 
@@ -356,7 +356,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'codex/thread': ProductConversationBinding
 ```
 
-来源：[`packages/experimental/llm-codex/src/events.ts:23`](../packages/experimental/llm-codex/src/events.ts)
+来源：[`packages/experimental/llm-codex/src/events.ts:24`](../packages/experimental/llm-codex/src/events.ts)
 
 ### `command/*`
 

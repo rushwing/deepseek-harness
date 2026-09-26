@@ -187,6 +187,8 @@ Every package below exports a Cordis plugin that a bundle patch can name in a Lo
 | `@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp` | yes | Experimental computer use through an installed Cua Driver MCP executable |
 | `@deepseek-ai/dsh-experimental-computer-use-cua-driver-native` | no | Experimental computer-use provider embedding the Cua Driver native npm SDK |
 | `@deepseek-ai/dsh-experimental-inspector` | yes | Experimental cross-realm CDP hub for Host debugging and Client Runtime inspection |
+| `@deepseek-ai/dsh-experimental-llm-claude-code` | yes | Claude Code conversation backend: an LLM provider route that runs each dsh Session's turns on one persistent Claude Code session through the official Agent SDK with native login, bridged approvals, and a durable session binding |
+| `@deepseek-ai/dsh-experimental-llm-codex` | yes | Codex conversation backend: an LLM provider route that runs each dsh Session's turns on one persistent Codex app-server thread with native login, bridged approvals, and a durable thread binding |
 | `@deepseek-ai/dsh-experimental-ptc-runtime-python` | yes | CPython subprocess implementation of the DeepSeek Harness PTC execution seam |
 | `@deepseek-ai/dsh-experimental-speech-to-text` | yes | Experimental speech recognition with independently selectable providers |
 | `@deepseek-ai/dsh-experimental-speech-to-text-sensevoice` | yes | Local SenseVoice ONNX transcription with a managed sherpa-onnx process |

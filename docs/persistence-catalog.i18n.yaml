@@ -54,14 +54,14 @@
   en: 2c0fa819361d0030
   zh: 2c0fa819361d0030
 /session-persistence-event-catalog/events/claude-code/claude-code-session-log-only:
-  en: b3b30bc3aa082ebf
-  zh: 510400a62b5be2e1
+  en: 8ec4565a52ad00c0
+  zh: e2cc83063a38db77
 /session-persistence-event-catalog/events/codex:
   en: c4cf9e40e0bed625
   zh: c4cf9e40e0bed625
 /session-persistence-event-catalog/events/codex/codex-thread-log-only:
-  en: 3b4b92e116c50dee
-  zh: 17b21c0b47530c25
+  en: f10bab42d91054d1
+  zh: 50ae8f3521c56347
 /session-persistence-event-catalog/events/command:
   en: 2cecb5b0ee955732
   zh: 2cecb5b0ee955732

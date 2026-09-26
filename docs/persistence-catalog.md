@@ -334,7 +334,7 @@ Source: [`packages/core/session/src/types.ts:341`](../packages/core/session/src/
 'claude-code/session': ProductConversationBinding
 ```
 
-Source: [`packages/experimental/llm-claude-code/src/events.ts:24`](../packages/experimental/llm-claude-code/src/events.ts)
+Source: [`packages/experimental/llm-claude-code/src/events.ts:25`](../packages/experimental/llm-claude-code/src/events.ts)
 
 ### `codex/*`
 
@@ -354,7 +354,7 @@ Source: [`packages/experimental/llm-claude-code/src/events.ts:24`](../packages/e
 'codex/thread': ProductConversationBinding
 ```
 
-Source: [`packages/experimental/llm-codex/src/events.ts:23`](../packages/experimental/llm-codex/src/events.ts)
+Source: [`packages/experimental/llm-codex/src/events.ts:24`](../packages/experimental/llm-codex/src/events.ts)
 
 ### `command/*`
 
