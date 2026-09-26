@@ -9,7 +9,7 @@ import {
 
 const agent = { id: 'session-1' } as Agent
 
-function harness(approve: 'allowed-once' | 'rejected' | 'unavailable' = 'allowed-once') {
+function harness(approve: 'allowed-once' | 'rejected' | 'cancelled' | 'unavailable' = 'allowed-once') {
   const threads = new ThreadRegistry()
   const approvals: ApprovalRequest[] = []
   const questions: AskUserQuestionRequest[] = []
@@ -47,16 +47,23 @@ describe('bridged routes', () => {
     expect(h.approvals).toEqual([{ agent, toolName: 'codex:command', reason: 'npm test', signal }])
   })
 
-  it('declines a command the human rejects, preferring cancel when Codex offers it', async () => {
-    const h = harness('rejected')
-    h.threads.set('thread-A', { agent, mode: 'bridge', signal })
-    expect(await h.handler({
+  it('declines a command the human rejects so the turn continues, and cancels only when the human cancelled the prompt', async () => {
+    const rejected = harness('rejected')
+    rejected.threads.set('thread-A', { agent, mode: 'bridge', signal })
+    const request = (availableDecisions: string[]) => ({
       method: 'item/commandExecution/requestApproval',
-      params: { threadId: 'thread-A', turnId: 't1', itemId: 'c1', reason: 'clean the build tree', availableDecisions: ['accept', 'cancel', 'decline'] },
+      params: { threadId: 'thread-A', turnId: 't1', itemId: 'c1', reason: 'clean the build tree', availableDecisions },
       threadId: 'thread-A',
       turnId: 't1',
-    })).toEqual({ decision: 'cancel' })
-    expect(h.approvals[0]).toMatchObject({ toolName: 'codex:command', reason: 'clean the build tree' })
+    })
+    expect(await rejected.handler(request(['accept', 'cancel', 'decline']))).toEqual({ decision: 'decline' })
+    expect(await rejected.handler(request(['accept', 'cancel']))).toEqual({ decision: 'decline' })
+    expect(rejected.approvals[0]).toMatchObject({ toolName: 'codex:command', reason: 'clean the build tree' })
+
+    const cancelled = harness('cancelled')
+    cancelled.threads.set('thread-A', { agent, mode: 'bridge', signal })
+    expect(await cancelled.handler(request(['accept', 'cancel', 'decline']))).toEqual({ decision: 'cancel' })
+    expect(await cancelled.handler(request(['accept', 'decline']))).toEqual({ decision: 'cancel' })
   })
 
   it('fails closed when the approval service cannot answer', async () => {

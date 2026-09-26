@@ -65,7 +65,7 @@ CLI 会把本包的 [`cordis.patch.yml`](cordis.patch.yml) 追加为 profile 层
 
 adapter 的 `stream()` 用共享的 [`llm-product-backend`](../llm-product-backend/README.zh.md) 辅助函数对请求分类：带有存活 Agent 的循环请求使用 Session 绑定的线程（不存在时启动一个并追加 `codex/thread`，重启后恢复它，Codex 不再拥有它时以 `PRODUCT_CONVERSATION_MISSING` 拒绝，Session 工作区改变时以 `WORKSPACE_MISMATCH` 拒绝），其他任何请求使用临时线程。`turn/start` 只携带末尾的用户消息以及请求的模型与推理力度。文本、推理、已完成条目与 token 用量经由 `ProductTurnStream` 流出；`turn/completed` 映射为 `stop`、`max-tokens`（上下文窗口耗尽）、`aborted`（Codex 中断了回合），或一个 `error` finish，其 code 跟随 Codex 的失败类别（`RATE_LIMIT`、`SERVER`、`TRANSPORT`、`ACCESS_POLICY`、`PRODUCT_ERROR`、`INVALID_RESULT`、`UNKNOWN`）。取消与空闲超时在得知回合 id 后立即发送 `turn/interrupt`，并等待 `disposeGraceMs` 让 Codex 自行完成，之后才放弃协议等待。
 
-绑定回合进行期间，线程连同其 Agent、路由模式与中止信号被登记为存活。服务端请求处理器对 `bridge` 线程的 `item/commandExecution/requestApproval`、`item/fileChange/requestApproval` 与 `item/permissions/requestApproval` 以工具名 `codex:command`、`codex:file-change`、`codex:permissions` 询问 `ctx.approval`（允许则接受或授予本回合所请求的权限；其他情况取消或拒绝），通过 `ctx.userQuestions` 按问题 id 回答 `item/tool/requestUserInput`，并拒绝 MCP elicitation。原生模式线程、临时线程与它不认识的线程得到无人值守的回答。
+绑定回合进行期间，线程连同其 Agent、路由模式与中止信号被登记为存活。服务端请求处理器对 `bridge` 线程的 `item/commandExecution/requestApproval`、`item/fileChange/requestApproval` 与 `item/permissions/requestApproval` 以工具名 `codex:command`、`codex:file-change`、`codex:permissions` 询问 `ctx.approval`（允许则接受或授予本回合所请求的权限；被拒绝或无人可答的请求拒绝该动作以让 Codex 继续，取消提示则取消回合），通过 `ctx.userQuestions` 按问题 id 回答 `item/tool/requestUserInput`，并拒绝 MCP elicitation。原生模式线程、临时线程与它不认识的线程得到无人值守的回答。
 
 不发布运行时不变量伴随物：插件的单个 effect 拥有路由、投影与进程，存活线程登记表由同一回合写入与清除，不存在可能分歧的独立观察。
 

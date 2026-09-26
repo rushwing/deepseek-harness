@@ -11,13 +11,12 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import {
   expectObject,
   expectString,
-  unattendedDecision,
   type CodexServerRequest,
   type CodexServerRequestHandler,
   type JsonObject,
 } from '@deepseek-ai/dsh-codex-app-server'
-import { approvalAllows, askApproval, askQuestions } from '@deepseek-ai/dsh-experimental-llm-product-backend'
-import type { ApprovalService } from '@deepseek-ai/dsh-user-approval'
+import { askApproval, askQuestions } from '@deepseek-ai/dsh-experimental-llm-product-backend'
+import type { ApprovalOutcome, ApprovalService } from '@deepseek-ai/dsh-user-approval'
 import type { AskUserQuestionItem, AskUserQuestionOption, UserQuestionService } from '@deepseek-ai/dsh-user-questions'
 import type { CodexRoutePermissionMode } from './config.ts'
 
@@ -74,6 +73,26 @@ export class ThreadRegistry {
 
 const ELICITATION_DECLINED = { action: 'decline', content: null, _meta: null }
 
+/**
+ * Map the human's answer to Codex's fixed decision vocabulary: an allowance
+ * accepts, an explicit cancellation of the prompt cancels the turn (Codex's
+ * own escape hatch), and a rejection or an unanswerable request declines the
+ * action so Codex reports the refusal to the model and continues. Codex's
+ * `availableDecisions` hint is a display suggestion, not a constraint, so the
+ * bridge does not consult it.
+ */
+function decisionFor(outcome: ApprovalOutcome): 'accept' | 'cancel' | 'decline' {
+  switch (outcome) {
+    case 'allowed-once':
+      return 'accept'
+    case 'cancelled':
+      return 'cancel'
+    case 'rejected':
+    case 'unavailable':
+      return 'decline'
+  }
+}
+
 function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
 }
@@ -117,25 +136,23 @@ export function createServerRequestHandler(
   threads: Pick<ThreadRegistry, 'get'>,
   services: BridgeServices,
 ): CodexServerRequestHandler {
-  async function approve(thread: LiveThread, toolName: string, reason: string | undefined): Promise<boolean> {
-    return approvalAllows(await askApproval(services.approval, {
+  async function ask(request: CodexServerRequest, toolName: string, reason: string | undefined): Promise<ApprovalOutcome> {
+    const thread = threads.get(request.threadId)
+    if (thread?.mode !== 'bridge') return 'unavailable'
+    return askApproval(services.approval, {
       agent: thread.agent,
       toolName,
       ...reason === undefined ? {} : { reason },
       signal: thread.signal,
-    }))
+    })
   }
 
   async function decide(request: CodexServerRequest, toolName: string, reason: string | undefined): Promise<JsonObject> {
-    const thread = threads.get(request.threadId)
-    const allowed = thread?.mode === 'bridge' && await approve(thread, toolName, reason)
-    return { decision: allowed ? 'accept' : unattendedDecision(request.params, SOURCE) }
+    return { decision: decisionFor(await ask(request, toolName, reason)) }
   }
 
   async function permissions(request: CodexServerRequest): Promise<JsonObject> {
-    const thread = threads.get(request.threadId)
-    const allowed = thread?.mode === 'bridge'
-      && await approve(thread, 'codex:permissions', optionalString(request.params.reason))
+    const allowed = await ask(request, 'codex:permissions', optionalString(request.params.reason)) === 'allowed-once'
     return { permissions: allowed ? expectObject(request.params.permissions, 'permissions', SOURCE) : {}, scope: 'turn' }
   }
 

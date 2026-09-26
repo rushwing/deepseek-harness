@@ -49,8 +49,8 @@ interface ProductConversationBinding {
 
 | 产品请求 | 桥接 | 允许时 | 其他情况 |
 |---|---|---|---|
-| Codex `item/commandExecution/requestApproval` | 以 `codex:command` 询问 `ctx.approval` | `accept` | 有则 `cancel`，否则 `decline` |
-| Codex `item/fileChange/requestApproval` | 以 `codex:file-change` 询问 `ctx.approval` | `accept` | `cancel` 或 `decline` |
+| Codex `item/commandExecution/requestApproval` | 以 `codex:command` 询问 `ctx.approval` | `accept` | `decline`（Codex 继续）；取消提示则取消回合 |
+| Codex `item/fileChange/requestApproval` | 以 `codex:file-change` 询问 `ctx.approval` | `accept` | `decline`；取消提示则取消回合 |
 | Codex `item/permissions/requestApproval` | 以 `codex:permissions` 询问 `ctx.approval` | 本回合所请求的权限 | 不授予权限 |
 | Codex `item/tool/requestUserInput` | 按问题 id 询问 `ctx.userQuestions` | 答案 | 无答案 |
 | Claude Code `canUseTool(name, input)` | 以 `claude-code:<name>` 询问 `ctx.approval` | 原样放行输入的 `allow` | `deny` |

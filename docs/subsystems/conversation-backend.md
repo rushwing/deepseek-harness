@@ -49,8 +49,8 @@ Routes carry a `permissionMode`. The default `bridge` mode forwards the product'
 
 | Product request | Bridge | Allowed | Otherwise |
 |---|---|---|---|
-| Codex `item/commandExecution/requestApproval` | `ctx.approval` as `codex:command` | `accept` | `cancel` when offered, else `decline` |
-| Codex `item/fileChange/requestApproval` | `ctx.approval` as `codex:file-change` | `accept` | `cancel` or `decline` |
+| Codex `item/commandExecution/requestApproval` | `ctx.approval` as `codex:command` | `accept` | `decline` (Codex continues); a cancelled prompt cancels the turn |
+| Codex `item/fileChange/requestApproval` | `ctx.approval` as `codex:file-change` | `accept` | `decline`; a cancelled prompt cancels the turn |
 | Codex `item/permissions/requestApproval` | `ctx.approval` as `codex:permissions` | the requested permissions for the turn | no permissions |
 | Codex `item/tool/requestUserInput` | `ctx.userQuestions` by question id | the answers | no answers |
 | Claude Code `canUseTool(name, input)` | `ctx.approval` as `claude-code:<name>` | `allow` with the unchanged input | `deny` |
