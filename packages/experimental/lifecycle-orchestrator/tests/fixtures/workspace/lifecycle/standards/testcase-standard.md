@@ -1,0 +1,3 @@
+# testcase-standard
+
+Fixture stub.

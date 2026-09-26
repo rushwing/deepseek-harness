@@ -526,6 +526,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Folds logged plan/mode state, flushes user selections at turn boundaries, renders deployment-owned guidance, registers /plan, and keeps the plan-exit schema stable across transitions.',
   },
   {
+    key: 'lifecycle',
+    pkg: 'experimental-lifecycle-orchestrator',
+    title: 'Lifecycle team read-only surface',
+    mode: 'core',
+    note: 'Reads a Session working directory\'s lifecycle tables and artifacts on every call: loads, lints, checks a role in, lists legal transitions, reports status, and parses the role briefs.',
+  },
+  {
     key: 'agentPresets',
     pkg: 'agent-preset-registry',
     title: 'Per-session agent composition',

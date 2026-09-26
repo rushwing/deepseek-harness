@@ -1,0 +1,3 @@
+# agent-standard
+
+Fixture stub.

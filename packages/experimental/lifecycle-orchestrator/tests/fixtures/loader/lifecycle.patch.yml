@@ -1,0 +1,16 @@
+# The orchestrator over the shipped headless profile. No model turn runs: the
+# driver scaffolds a lifecycle directory and lints it through the real tools.
+- id: headless-startup
+  disabled: true
+
+- id: headless-runner
+  disabled: true
+
+- id: session-persistence-jsonl
+  config:
+    root: './.sessions'
+    compression: none
+
+- insert:
+    - id: lifecycle-orchestrator
+      name: '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'

@@ -44,6 +44,7 @@ The [format references](persistence-changes/historical-formats/README.md) cover 
 | `event:hook/invoked` | event | `8a6e1ec9e8db346b0e02f027db73c07a94f067a26d40c1aef1abd09c47ce7ba0` | [`{ type: "hook/invoked" }`](#persistence-type-sha256-8a6e1ec9e8db346b0e02f027db73c07a94f067a26d40c1aef1abd09c47ce7ba0) |
 | `event:hook/result` | event | `e75916628f3f10c2d50658bd143052a46285fbf1a9a700ba54947614603d26b4` | [`{ type: "hook/result" }`](#persistence-type-sha256-e75916628f3f10c2d50658bd143052a46285fbf1a9a700ba54947614603d26b4) |
 | `event:image/offload` | event | `b222069eea2d768065161c1147b1f2c78c1b54328c84b3586ae5c8f91b8ed35e` | [`{ type: "image/offload" }`](#persistence-type-sha256-b222069eea2d768065161c1147b1f2c78c1b54328c84b3586ae5c8f91b8ed35e) |
+| `event:lifecycle/lint` | event | `aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12` | [`{ type: "lifecycle/lint" }`](#persistence-type-sha256-aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12) |
 | `event:llm/retry` | event | `525254db03b1d1e6b74cf55aced52817568331ac1f96c0818728910b6692e336` | [`{ type: "llm/retry" }`](#persistence-type-sha256-525254db03b1d1e6b74cf55aced52817568331ac1f96c0818728910b6692e336) |
 | `event:llm/retry-started` | event | `48e5c9861f16ac07e78cb7b5ae9dabdf7bb85c58baed5a51b4ad275050ea58e3` | [`{ type: "llm/retry-started" }`](#persistence-type-sha256-48e5c9861f16ac07e78cb7b5ae9dabdf7bb85c58baed5a51b4ad275050ea58e3) |
 | `event:model/selection` | event | `35203ba7ad5ef6f97d556b85df20ae98f04f09c65748cecdf8eefdb8b6405ffc` | [`{ type: "model/selection" }`](#persistence-type-sha256-35203ba7ad5ef6f97d556b85df20ae98f04f09c65748cecdf8eefdb8b6405ffc) |
@@ -665,6 +666,23 @@ Source: [`packages/hooks/hook-protocol/src/types.ts:31`](../packages/hooks/hook-
 ```
 
 Source: [`packages/compaction/compaction-image-offload/src/projection.ts:25`](../packages/compaction/compaction-image-offload/src/projection.ts)
+
+### `lifecycle/*`
+
+<a id="lifecyclelint--log-only"></a>
+
+#### `lifecycle/lint` — log-only
+
+```ts persistence-catalog
+/**
+ * A `lifecycle_lint` run: its scope (`all` or a REQ id), the violation
+ * count, and the count per rule. Log-only; the violations themselves are
+ * returned to the caller, not logged.
+ */
+'lifecycle/lint': LifecycleLintEvent
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/events.ts:24`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
 
 ### `llm/*`
 
@@ -2028,6 +2046,14 @@ SHA-256: `69d238a6e9b08d67f601b1825962963d8d3523cb69ebf6208c697dc5d058c199`
 SHA-256: `ad3b56aa2fc1ad4250e7399295d34a8eae592e1907e85852e2291b2e498a30bc`
 
 `"legacy"`
+
+<a id="persistence-type-sha256-0204c453c81a3728985df460c3183c0868a42ce148206cdbec28670ab756285b"></a>
+
+### `"lifecycle/lint"`
+
+SHA-256: `0204c453c81a3728985df460c3183c0868a42ce148206cdbec28670ab756285b`
+
+`"lifecycle/lint"`
 
 <a id="persistence-type-sha256-611cae9a3539733aa0c42f66035a7d90f19dcbbdfb5d9e3b628b13705253942d"></a>
 
@@ -3803,6 +3829,25 @@ Sources: [`packages/schedule/schedule/src/types.ts:185`](../packages/schedule/sc
 | `after` | not declared | `afterSeconds`: `number`; `id`: `string`; `prompt`: `string`; `scheduledAt`: `string` | [`LegacyAfterScheduleRecord`](#persistence-type-sha256-3fdf9582c3b5597df104d32d97dab6c6ee3a93794f3034ec6ada6272404ea27f) |
 | `at` | not declared | `id`: `string`; `prompt`: `string`; `scheduledAt`: `string` | [`LegacyAtScheduleRecord`](#persistence-type-sha256-b63b089a00b3b9357675b3e0c3d3e9aa4fdbda1fba9c91a6b0c59ffdbb89f505) |
 | `every` | not declared | `everySeconds`: `number`; `id`: `string`; `prompt`: `string`; `scheduledAt`: `string` | [`LegacyEveryScheduleRecord`](#persistence-type-sha256-a926dc71814edd01a4f041eb5fc766d153db3407ef4704e98f4c1b6527309ebb) |
+
+<a id="persistence-type-sha256-98613e41701f6f283bb544293e1e0ecc190faf053a73c99d515eabbabe2f1dbf"></a>
+
+<a id="persistence-type-lifecyclelintevent"></a>
+
+<a id="persistence-type-packagesexperimentallifecycle-orchestratorsrceventstslifecyclelintevent"></a>
+
+### `LifecycleLintEvent`
+
+SHA-256: `98613e41701f6f283bb544293e1e0ecc190faf053a73c99d515eabbabe2f1dbf`
+
+Sources: [`packages/experimental/lifecycle-orchestrator/src/events.ts:8`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+
+| Property | Presence | Type |
+|---|---|---|
+| `ruleCounts` | required | [`{}`](#persistence-type-sha256-51418d209d3ad7c6f8a841c0927ca89d93d3780afbcc83500045bcdaf5d25b7e) |
+| `scope` | required | `string` |
+| `version` | required | `1` |
+| `violationCount` | required | `number` |
 
 <a id="persistence-type-sha256-67d5f73ceae82f5265258142ad6cf172de2c1fef93ba551b7f0454e0a93bffe0"></a>
 
@@ -8115,6 +8160,22 @@ SHA-256: `b222069eea2d768065161c1147b1f2c78c1b54328c84b3586ae5c8f91b8ed35e`
 | `time` | required | `number` |
 | `type` | required | `"image/offload"` |
 
+<a id="persistence-type-sha256-aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12"></a>
+
+<a id="persistence-type-eventlifecyclelint"></a>
+
+### `{ type: "lifecycle/lint" }`
+
+SHA-256: `aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12`
+
+| Property | Presence | Type |
+|---|---|---|
+| `data` | required | [`LifecycleLintEvent`](#persistence-type-sha256-98613e41701f6f283bb544293e1e0ecc190faf053a73c99d515eabbabe2f1dbf) |
+| `ignorable` | optional | `true` |
+| `seq` | required | `number` |
+| `time` | required | `number` |
+| `type` | required | `"lifecycle/lint"` |
+
 <a id="persistence-type-sha256-525254db03b1d1e6b74cf55aced52817568331ac1f96c0818728910b6692e336"></a>
 
 <a id="persistence-type-eventllmretry"></a>
@@ -8843,6 +8904,16 @@ SHA-256: `0aa62ab51b36c0e64b134bd03ba8725d758744180a1a447da49beaad194f219f`
 | Property | Presence | Type |
 |---|---|---|
 | [`string`] | index signature | `unknown` (opaque) |
+
+<a id="persistence-type-sha256-51418d209d3ad7c6f8a841c0927ca89d93d3780afbcc83500045bcdaf5d25b7e"></a>
+
+### `{}`
+
+SHA-256: `51418d209d3ad7c6f8a841c0927ca89d93d3780afbcc83500045bcdaf5d25b7e`
+
+| Property | Presence | Type |
+|---|---|---|
+| [`string`] | index signature | `number` |
 
 <a id="persistence-type-sha256-529e0ccd0e34079ab4ff21ed87f810cee0388246263bf22e8aba5986b56fae05"></a>
 

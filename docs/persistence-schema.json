@@ -10404,6 +10404,105 @@
       }
     },
     {
+      "key": "event:lifecycle/lint",
+      "kind": "event",
+      "event": "lifecycle/lint",
+      "surface": false,
+      "digest": "aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 6,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 7,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "ruleCounts",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "scope",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "violationCount",
+                "type": 4,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [],
+            "indices": [
+              {
+                "key": 3,
+                "value": 4
+              }
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/lint"
+          }
+        ]
+      }
+    },
+    {
       "key": "event:llm/retry",
       "kind": "event",
       "event": "llm/retry",
@@ -21862,6 +21961,20 @@
           {
             "kind": "literal",
             "value": "runtime-context"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
+      "digest": "0204c453c81a3728985df460c3183c0868a42ce148206cdbec28670ab756285b",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "lifecycle/lint"
           }
         ]
       },
@@ -45393,6 +45506,34 @@
       "sources": []
     },
     {
+      "digest": "51418d209d3ad7c6f8a841c0927ca89d93d3780afbcc83500045bcdaf5d25b7e",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [],
+            "indices": [
+              {
+                "key": 1,
+                "value": 2
+              }
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
       "digest": "516da4cdd6d2f1e5ce488e648578ca51f40e458f707b803e5b24de870e799415",
       "schema": {
         "root": 0,
@@ -64704,6 +64845,68 @@
       ]
     },
     {
+      "digest": "98613e41701f6f283bb544293e1e0ecc190faf053a73c99d515eabbabe2f1dbf",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "ruleCounts",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "scope",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "violationCount",
+                "type": 3,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [],
+            "indices": [
+              {
+                "key": 2,
+                "value": 3
+              }
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          }
+        ]
+      },
+      "names": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts#LifecycleLintEvent"
+      ],
+      "sources": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts:8"
+      ]
+    },
+    {
       "digest": "9890113e97dd3541787bfe6704f2b223d3a890b5325ca0acae2b0398909b413e",
       "schema": {
         "root": 0,
@@ -70978,6 +71181,103 @@
       "sources": [
         "packages/feedback/message-feedback/src/types.ts:38"
       ]
+    },
+    {
+      "digest": "aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 6,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 7,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "ruleCounts",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "scope",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "violationCount",
+                "type": 4,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [],
+            "indices": [
+              {
+                "key": 3,
+                "value": 4
+              }
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/lint"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
     },
     {
       "digest": "aa93010d0e521ad7c42273f58d5c9b8bf1dfc94edf1b805a3971b364a35c1877",

@@ -49,6 +49,7 @@ One page per subsystem of the DeepSeek Harness: what it is, the data structures 
 | [voice-input.md](voice-input.md) | experimental named recognizers, transient audio and revision-guarded draft insertion |
 | [agent-team.md](agent-team.md) | Agent Teams: implicit Lead identity, named continuable teammates, durable peer mailbox, and shared task DAG |
 | [conversation-backend.md](conversation-backend.md) | conversation backends on external agent products: request classification, the Session binding, the permission bridge, and the shared failure taxonomy |
+| [lifecycle-team.md](lifecycle-team.md) | the lifecycle team: the workspace files, the `ctx.lifecycle` service and its tools, the three hard-stop checks, and the failure codes |
 | [web.md](web.md) | the web access seam: `WebSearchRequest`/`Result`, `WebFetchRequest`/`Result`, `WebFetchBody`, provider availability, `WebError` |
 | [spill.md](spill.md) | the spill storage seam: `SaveTextSpill`, `SpillOwner`/`SpillSource`, `SpillRef`, the branded `SpillLocator` |
 | [workflow.md](workflow.md) | the workflow seam: `WorkflowStartRequest`, `WorkflowMeta`, `WorkflowRun`/`Result`, the `workflow/*` event payloads, `WorkflowError` fatality |

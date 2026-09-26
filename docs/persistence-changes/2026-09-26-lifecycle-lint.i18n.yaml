@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for 2026-09-26-lifecycle-lint.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/persistence-changes/2026-09-26-lifecycle-lint.md
+/:
+  en: 3d5a424ae7d7e46b
+  zh: c22a8e4a62d8cc1a
+/2026-09-26-lifecycle-lint:
+  en: fa68258aa2e7c323
+  zh: 4ad8c8bde99abf7e
+/2026-09-26-lifecycle-lint/summary:
+  en: caa985ba219aadcc
+  zh: 54f2548d351500be
+/2026-09-26-lifecycle-lint/table-of-contents:
+  en: 6cf314a069ceb451
+  zh: 9adff678e9ecab3b
+/2026-09-26-lifecycle-lint/declaration:
+  en: 6907136f28e48c90
+  zh: 02f8298485f3d8e7
+/2026-09-26-lifecycle-lint/compatibility:
+  en: 97ad53ce608e9295
+  zh: 0fe21c227ffc8677
+/2026-09-26-lifecycle-lint/verification:
+  en: 0efe657dce08a77a
+  zh: 114d7c55d6389a0b
+/2026-09-26-lifecycle-lint/dev-note:
+  en: b75c8458928b72b9
+  zh: 003ba4e17b4b5269

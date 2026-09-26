@@ -1356,6 +1356,71 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'lifecycle',
+    summary: 'The lifecycle service and its registrations.',
+    description: 'The lifecycle service and its registrations. Every method reads the files under `<cwd>/<lifecycleDir>/` afresh; nothing is cached between calls.',
+    methods: [
+      {
+        signature: 'readonly dir: string',
+        description: 'The lifecycle directory relative to a Session\'s working directory.',
+        parameters: [],
+      },
+      {
+        signature: 'hasTables(cwd: string): boolean',
+        description: 'Whether the working directory carries a lifecycle table.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }],
+        returns: '`true` when `<cwd>/<dir>/lifecycle.yml` exists.',
+      },
+      {
+        signature: 'briefs(cwd: string): { readonly briefs: Briefs | undefined; readonly problems: readonly string[] }',
+        description: 'Load the role briefs of a workspace from `<dir>/standards/briefs.md`, checked against the table\'s role states and, with the registry\'s agent notes, scanned for the phrases the prompting gates forbid.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }],
+        returns: 'the briefs, or every problem (the tables\' problems first).',
+      },
+      {
+        signature: 'load(cwd: string): LifecycleLoad',
+        description: 'Load the four tables of a workspace.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }],
+        returns: 'the tables, or every problem that prevented them.',
+      },
+      {
+        signature: 'graph(cwd: string): ArtifactGraph',
+        description: 'The artifact graph of a workspace.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }],
+        returns: 'the graph of `<dir>/tasks/`.',
+        throws: ['`TABLES_INVALID` when the tables did not load.'],
+      },
+      {
+        signature: 'lint(cwd: string, reqId?: string): LintReport',
+        description: 'Lint the workspace\'s artifacts.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }, { name: 'reqId', description: 'when given, keep only the violations of that REQ\'s files.' }],
+        returns: 'the violations and their count per rule.',
+        throws: ['`TABLES_INVALID` or `UNKNOWN_REQ`.'],
+      },
+      {
+        signature: 'checkIn(cwd: string, request: CheckInRequest): CheckInResult',
+        description: 'Run the hard-stop checks for one caller on one REQ.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }, { name: 'request', description: 'who checks in, on which REQ, in which state, for which transition.' }],
+        returns: 'the three checks and the verdict.',
+        throws: ['`TABLES_INVALID` or `UNKNOWN_TRANSITION`.'],
+      },
+      {
+        signature: 'legalTransitions(cwd: string, reqId: string): LegalTransition[]',
+        description: 'The transitions the current owner of a REQ may take.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }, { name: 'reqId', description: 'the REQ.' }],
+        returns: 'the transitions in table order.',
+        throws: ['`TABLES_INVALID` or `UNKNOWN_REQ`.'],
+      },
+      {
+        signature: 'status(cwd: string, reqId?: string): LifecycleStatus',
+        description: 'The lifecycle position of one REQ or of every REQ.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }, { name: 'reqId', description: 'when given, report that REQ only.' }],
+        returns: 'the report.',
+        throws: ['`TABLES_INVALID` or `UNKNOWN_REQ`.'],
+      },
+    ],
+  },
+  {
     key: 'llm',
     summary: 'The abstract `llm` service: an adapter registry plus a streaming model-call API, interceptable via the `llm/stream` waterfall.',
     description: 'The abstract `llm` service: an adapter registry plus a streaming model-call API, interceptable via the `llm/stream` waterfall.',
@@ -4334,6 +4399,10 @@ export const EVENT_API: readonly EventApiEntry[] = [
 /** Shapes of every exported type the Service and Event signatures reference (transitively), sorted by name. */
 export const TYPE_API: readonly TypeApiEntry[] = [
   {
+    name: 'AcceptanceItem',
+    declaration: 'export interface AcceptanceItem {\n    readonly number: string;\n    readonly text: string;\n    readonly prefix: string;\n    readonly order: number;\n    readonly bold: boolean;\n    readonly head: string;\n    readonly wellFormed: boolean;\n    readonly label: string;\n}',
+  },
+  {
     name: 'AccountBonusBatch',
     declaration: 'export interface AccountBonusBatch {\n    readonly accountId: AccountUserId;\n    readonly bonuses: readonly AccountBonusNotification[];\n}',
   },
@@ -4472,6 +4541,30 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ArchiveSessionOptions',
     declaration: 'export interface ArchiveSessionOptions {\n    readonly stopActivity?: boolean;\n}',
+  },
+  {
+    name: 'Artifact',
+    declaration: 'export type Artifact = Req | Tc | Bug | Rv | Pl;',
+  },
+  {
+    name: 'ArtifactBase',
+    declaration: 'export interface ArtifactBase {\n    readonly id: string;\n    readonly label: string;\n    readonly relative: string;\n    readonly scopeDir: string;\n    readonly prefix: string;\n    readonly location: ArtifactLocation;\n    readonly live: boolean;\n    readonly archived: boolean;\n    readonly fm: Frontmatter;\n    readonly body: string;\n    readonly status: string;\n    readonly tool: string;\n}',
+  },
+  {
+    name: 'ArtifactContract',
+    declaration: 'export type ArtifactContract = z.infer<typeof contractSchema>;',
+  },
+  {
+    name: 'ArtifactGraph',
+    declaration: 'export interface ArtifactGraph {\n    readonly tasksDir: string;\n    readonly reqs: ReadonlyMap<string, Req>;\n    readonly tcs: ReadonlyMap<string, Tc>;\n    readonly bugs: ReadonlyMap<string, Bug>;\n    readonly rvs: ReadonlyMap<string, Rv>;\n    readonly pls: ReadonlyMap<string, Pl>;\n    readonly artifacts: readonly Artifact[];\n    readonly problems: readonly string[];\n    readonly broken: ReadonlyMap<string, string>;\n    readonly duplicates: ReadonlyMap<string, readonly string[]>;\n    readonly acs: ReadonlyMap<string, string>;\n    readonly ownTcs: ReadonlyMap<string, readonly string[]>;\n    readonly carriedBugs: ReadonlyMap<string, readonly string[]>;\n    readonly blockingBugs: ReadonlyMap<string, readonly string[]>;\n    readonly rvOf: ReadonlyMap<string, Rv>;\n    readonly plOf: ReadonlyMap<string, Pl>;\n    resolve(raw: unknown, kind: ArtifactKind): Ref;\n    resolveReq(raw: unknown): Req | undefined;\n    ownTcsOf(reqId: string): readonly Tc[];\n    carriedBugsOf(reqId: string): readonly Bug[];\n    blockingBugsOf(reqId: string): readonly Bug[];\n    nodeFor(label: string): Artifact | undefined;\n}',
+  },
+  {
+    name: 'ArtifactKind',
+    declaration: 'export type ArtifactKind = (typeof ARTIFACT_KINDS)[number];',
+  },
+  {
+    name: 'ArtifactLocation',
+    declaration: 'export type ArtifactLocation = \'live\' | `archive/${string}`;',
   },
   {
     name: 'AskUserQuestionAnswer',
@@ -4626,8 +4719,20 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type BrandedNumber<B extends string> = number & {\n    readonly [BRAND]: B;\n};',
   },
   {
+    name: 'Briefs',
+    declaration: 'export interface Briefs {\n    readonly intro: string;\n    readonly roleStates: Readonly<Record<string, BriefText>>;\n    readonly shared: SharedBriefText;\n}',
+  },
+  {
+    name: 'BriefText',
+    declaration: 'export interface BriefText {\n    readonly whenToUse: string;\n    readonly checks: string;\n    readonly read: string;\n    readonly write: string;\n    readonly style: string;\n    readonly checklist: string;\n    readonly prohibited: string;\n    readonly deliverable: string;\n}',
+  },
+  {
     name: 'BrowserUseProviderName',
     declaration: 'export type BrowserUseProviderName = Branded<\'BrowserUseProviderName\'>;',
+  },
+  {
+    name: 'Bug',
+    declaration: 'export interface Bug extends ArtifactBase {\n    readonly kind: \'BUG\';\n}',
   },
   {
     name: 'BundleInfo',
@@ -4640,6 +4745,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ChangeResult',
     declaration: 'export interface ChangeResult {\n    changed: boolean;\n    application: \'applied\' | \'restart-required\' | \'overridden\' | \'failed\' | \'cancelled\';\n    stage: \'install\' | \'enable\' | \'remove\';\n    target: string;\n    enabled?: boolean;\n    error?: ManagementError;\n    warnings?: string[];\n    packageResult?: PackageResult;\n    bundle?: string;\n    pendingBuilds?: string[];\n    approvedBuilds?: string[];\n    registries?: Registry[];\n    failedAt?: \'registry\' | \'spec-host\';\n}',
+  },
+  {
+    name: 'CheckInRequest',
+    declaration: 'export interface CheckInRequest {\n    readonly reqId: string;\n    readonly uid: string;\n    readonly state: string;\n    readonly transition?: string | undefined;\n}',
+  },
+  {
+    name: 'CheckInResult',
+    declaration: 'export interface CheckInResult {\n    readonly ok: boolean;\n    readonly exempt: boolean;\n    readonly checks: {\n        readonly c1: {\n            readonly ok: boolean;\n            readonly file: string | null;\n        };\n        readonly c2: {\n            readonly ok: boolean;\n            readonly expected: string | null;\n            readonly actual: string;\n        };\n        readonly c3: {\n            readonly ok: boolean;\n            readonly status: string | null;\n            readonly state: string;\n            readonly handles: string[];\n        };\n    };\n}',
   },
   {
     name: 'ClientArtifactBaseline',
@@ -5134,6 +5247,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface FrequencyTooHighError {\n    readonly code: \'frequency_too_high\';\n    readonly message: string;\n}',
   },
   {
+    name: 'Frontmatter',
+    declaration: 'export type Frontmatter = Readonly<Record<string, unknown>>;',
+  },
+  {
     name: 'FsDirEntry',
     declaration: 'export interface FsDirEntry {\n    name: string;\n    type: \'file\' | \'directory\' | \'other\';\n    target: FsTarget;\n    version?: FsVersion;\n    size?: number;\n}',
   },
@@ -5240,6 +5357,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'HostConnectionRpc',
     declaration: 'export interface HostConnectionRpc {\n    handle(channel: string, handler: ConnectionRpcHandler): () => Promise<void>;\n    intercept(channel: \'/api\', matches: ConnectionRpcEndpointMatcher, handler: ConnectionRpcHandler): () => Promise<void>;\n}',
+  },
+  {
+    name: 'IdScheme',
+    declaration: 'export interface IdScheme {\n    readonly scopes: Readonly<Record<string, string>>;\n}',
   },
   {
     name: 'ImageAttachmentLimits',
@@ -5488,6 +5609,38 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'KvUnitDescriptor',
     declaration: 'export interface KvUnitDescriptor {\n    readonly name: string;\n    readonly version: number;\n    readonly tables: readonly string[];\n    readonly hasGlobal: boolean;\n    readonly layout?: \'single\' | \'per-record\';\n    readonly compatibleVersions?: readonly number[];\n}',
+  },
+  {
+    name: 'LegalTransition',
+    declaration: 'export interface LegalTransition {\n    readonly id: string;\n    readonly actor: string;\n    readonly to: string;\n    readonly ownerAfter: string;\n    readonly human: boolean;\n}',
+  },
+  {
+    name: 'LifecycleEvent',
+    declaration: 'export interface LifecycleEvent {\n    readonly name: string;\n    readonly subjects: readonly string[];\n    readonly guards: readonly PredicateClause[];\n    readonly effects: readonly PredicateClause[];\n    readonly mayChange: readonly string[];\n}',
+  },
+  {
+    name: 'LifecycleLoad',
+    declaration: 'export interface LifecycleLoad {\n    readonly root: string;\n    readonly dir: string;\n    readonly tables: LifecycleTables | undefined;\n    readonly problems: readonly string[];\n}',
+  },
+  {
+    name: 'LifecycleStates',
+    declaration: 'export interface LifecycleStates {\n    readonly req: readonly string[];\n    readonly reqOffChain: readonly string[];\n    readonly tc: readonly string[];\n    readonly bug: readonly string[];\n}',
+  },
+  {
+    name: 'LifecycleStatus',
+    declaration: 'export interface LifecycleStatus {\n    readonly activeSet: string | null;\n    readonly reqs: ReqStatus[];\n}',
+  },
+  {
+    name: 'LifecycleTable',
+    declaration: 'export interface LifecycleTable {\n    readonly version: number;\n    readonly states: LifecycleStates;\n    readonly roles: readonly string[];\n    readonly gates: readonly ReviewGate[];\n    readonly exits: Readonly<Record<string, readonly TransitionId[]>>;\n    readonly passToEnter: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>;\n    readonly tcStatusByState: Readonly<Record<string, readonly string[]>>;\n    readonly restoreTargets: readonly RestoreTarget[];\n    readonly transitions: readonly Transition[];\n    readonly events: Readonly<Record<string, LifecycleEvent>>;\n    readonly predicates: PredicateVocabulary;\n}',
+  },
+  {
+    name: 'LifecycleTables',
+    declaration: 'export interface LifecycleTables {\n    readonly table: LifecycleTable;\n    readonly registry: AgentRegistry;\n    readonly idScheme: IdScheme;\n    readonly contract: ArtifactContract;\n}',
+  },
+  {
+    name: 'LintReport',
+    declaration: 'export interface LintReport {\n    readonly violations: readonly Violation[];\n    readonly counts: Readonly<Record<string, number>>;\n}',
   },
   {
     name: 'LlmAdapter',
@@ -5822,6 +5975,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface PermissionCatalog {\n    options: PresetOption[];\n    defaultOptions: PresetOption[];\n    defaultPreset: string;\n}',
   },
   {
+    name: 'Pl',
+    declaration: 'export interface Pl extends ArtifactBase {\n    readonly kind: \'PL\';\n}',
+  },
+  {
     name: 'PlatformSession',
     declaration: 'export interface PlatformSession {\n    readonly origin: string;\n    readonly token: string;\n    readonly userId: AccountUserId | null;\n    readonly embeddedPageDist?: string;\n    readonly requestHeaders?: Readonly<Record<string, string>>;\n}',
   },
@@ -5884,6 +6041,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'PostToolDecision',
     declaration: 'export type PostToolDecision = {\n    kind: \'accept\';\n    content?: ContentBlock[];\n    value?: never;\n    additionalContexts?: UserMessage[];\n} | {\n    kind: \'accept\';\n    value: JsonValue;\n    content?: never;\n    additionalContexts?: UserMessage[];\n} | {\n    kind: \'block\';\n    feedback: ContentBlock[];\n    additionalContexts?: UserMessage[];\n};',
+  },
+  {
+    name: 'PredicateClause',
+    declaration: 'export interface PredicateClause {\n    readonly name: string;\n    readonly args: Readonly<Record<string, unknown>>;\n}',
+  },
+  {
+    name: 'PredicateVocabulary',
+    declaration: 'export interface PredicateVocabulary {\n    readonly data: Readonly<Record<string, readonly string[]>>;\n    readonly code: readonly string[];\n}',
   },
   {
     name: 'PreparedAdapterCall',
@@ -6070,8 +6235,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RedactedSecret {\n    path: string[];\n    set: boolean;\n}',
   },
   {
+    name: 'Ref',
+    declaration: 'export interface Ref {\n    readonly raw: unknown;\n    readonly kind: ArtifactKind;\n    readonly resolved: string | undefined;\n    readonly reason: string;\n    readonly empty: boolean;\n}',
+  },
+  {
     name: 'Registry',
     declaration: 'export type Registry = string | null;',
+  },
+  {
+    name: 'RegressionLine',
+    declaration: 'export interface RegressionLine {\n    readonly raw: string;\n    readonly segments: readonly string[];\n    readonly wellFormed: boolean;\n    readonly when: string;\n    readonly uid: string;\n    readonly sample: string;\n    readonly tc: string;\n    readonly result: string;\n}',
   },
   {
     name: 'Reload',
@@ -6100,6 +6273,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ReplayEnvelope',
     declaration: 'export interface ReplayEnvelope {\n    response: unknown;\n    blocks?: readonly unknown[];\n}',
+  },
+  {
+    name: 'Req',
+    declaration: 'export interface Req extends ArtifactBase {\n    readonly kind: \'REQ\';\n    readonly acceptance: readonly AcceptanceItem[];\n    readonly v2: boolean;\n    readonly effectiveStatus: string;\n    readonly tcPolicy: string;\n    readonly acIds: readonly string[];\n}',
+  },
+  {
+    name: 'ReqStatus',
+    declaration: 'export interface ReqStatus {\n    readonly id: string;\n    readonly status: string;\n    readonly owner: string;\n    readonly ownerRole: string;\n    readonly reviewRound: number | null;\n    readonly tcPolicy: string;\n    readonly blocked: {\n        readonly reason: string;\n        readonly pendingBugs: string[];\n        readonly restoreState: string;\n        readonly restoreOwner: string;\n    } | null;\n    readonly seat: string | null;\n    readonly legalTransitions: LegalTransition[];\n}',
   },
   {
     name: 'RequestContext',
@@ -6158,8 +6339,20 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RestoredSessionOptions {\n    readonly seed: SessionEvent[];\n    readonly meta: SessionHeader;\n    readonly inheritedEventCount: SessionLogOffset;\n    readonly eventState: SessionSeedEventState;\n}',
   },
   {
+    name: 'RestoreTarget',
+    declaration: 'export interface RestoreTarget {\n    readonly via: TransitionId;\n    readonly state: string;\n    readonly owner: string;\n}',
+  },
+  {
     name: 'ResumeAgentOptions',
     declaration: 'export interface ResumeAgentOptions {\n    readonly resumeSessionId: SessionId;\n    readonly parentAgent?: Agent;\n    readonly agentOptions?: AgentOptions;\n    readonly signal?: AbortSignal;\n    readonly setup?: AgentSetup;\n}',
+  },
+  {
+    name: 'ReviewGate',
+    declaration: 'export interface ReviewGate {\n    readonly section: string;\n    readonly signer: string;\n}',
+  },
+  {
+    name: 'ReviewSection',
+    declaration: 'export interface ReviewSection {\n    readonly name: string;\n    readonly raw: string;\n    readonly firstItem: string;\n    readonly conclusions: readonly string[];\n    readonly verdict: string;\n    readonly round: number | undefined;\n    readonly signedDate: string;\n    readonly uid: string;\n    readonly conclusionOk: boolean;\n    readonly fields: Readonly<Record<string, string>>;\n    readonly fieldOrder: readonly string[];\n    readonly checks: readonly (readonly [\n        string,\n        string\n    ])[];\n    readonly topLines: readonly string[];\n    readonly exemptionReason: string;\n    readonly exemptionDeclared: boolean;\n    readonly deferredTcs: ReadonlySet<string>;\n}',
   },
   {
     name: 'RpcId',
@@ -6168,6 +6361,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'RunnerFailureRule',
     declaration: 'export interface RunnerFailureRule {\n    allowedExitCodes?: readonly number[];\n    fatalSignatures: readonly string[];\n    informationalLines?: readonly string[];\n}',
+  },
+  {
+    name: 'Rv',
+    declaration: 'export interface Rv extends ArtifactBase {\n    readonly kind: \'RV\';\n    readonly sections: Readonly<Record<string, ReviewSection>>;\n    readonly regression: readonly RegressionLine[];\n    readonly exemptionReason: string;\n    readonly exemptionDeclared: boolean;\n}',
   },
   {
     name: 'SandboxEnforcement',
@@ -6878,6 +7075,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SettingsSecretView {\n    path: string[];\n    set: boolean;\n}',
   },
   {
+    name: 'SharedBriefText',
+    declaration: 'export interface SharedBriefText {\n    readonly reviewChecklist: string;\n    readonly blockingAndRelease: string;\n    readonly deferredVerification: string;\n    readonly generalProhibitions: string;\n}',
+  },
+  {
     name: 'ShellExecRequest',
     declaration: 'export interface ShellExecRequest {\n    command: string;\n    workdir?: string | undefined;\n    timeoutMs?: number | undefined;\n    onExpiry?: ShellExpiryPolicy | undefined;\n    stdoutMaxBytes?: number | undefined;\n    signal?: AbortSignal | undefined;\n    stdin?: string | undefined;\n    env?: Record<string, string> | undefined;\n    dshEnv?: DshEnvironment | undefined;\n    sandboxPolicy?: SandboxExecutionPolicy | undefined;\n}',
   },
@@ -7302,6 +7503,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type TableValueOf<S extends DomainSpec, N extends keyof S[\'tables\']> = S[\'tables\'][N] extends DomainTableSpec<string, infer V> ? V : never;',
   },
   {
+    name: 'Tc',
+    declaration: 'export interface Tc extends ArtifactBase {\n    readonly kind: \'TC\';\n    readonly verifies: readonly string[];\n    readonly automatedOk: boolean;\n    readonly levelOk: boolean;\n    readonly derivedReq: string;\n    readonly numberMatches: boolean;\n    readonly wellFormed: boolean;\n}',
+  },
+  {
     name: 'TeamId',
     declaration: 'export type TeamId = Branded<\'TeamId\'>;',
   },
@@ -7598,6 +7803,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface TranscriptionRequest {\n    readonly audioBase64: string;\n    readonly providerId?: SpeechProviderId;\n    readonly language?: string;\n}',
   },
   {
+    name: 'Transition',
+    declaration: 'export interface Transition {\n    readonly id: TransitionId;\n    readonly from: TransitionSlot;\n    readonly actor: TransitionSlot;\n    readonly to: TransitionSlot;\n    readonly ownerAfter: TransitionSlot;\n    readonly exemptFromHardStop: boolean;\n    readonly exemptDeclared: boolean;\n    readonly subjects: readonly string[];\n    readonly guards: readonly PredicateClause[];\n    readonly effects: readonly PredicateClause[];\n    readonly mayChange: readonly string[];\n}',
+  },
+  {
+    name: 'TransitionId',
+    declaration: 'export type TransitionId = Branded<\'LifecycleTransitionId\'>;',
+  },
+  {
+    name: 'TransitionSlot',
+    declaration: 'export type TransitionSlot = {\n    readonly kind: \'name\';\n    readonly name: string;\n} | {\n    readonly kind: \'any-of\';\n    readonly states: readonly string[];\n} | {\n    readonly kind: \'special\';\n    readonly name: string;\n};',
+  },
+  {
     name: 'TurnEndCancelCause',
     declaration: 'export type TurnEndCancelCause = AgentCancelCause | {\n    readonly kind: \'legacy\';\n};',
   },
@@ -7724,6 +7941,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'VerifiedWebhookDelivery',
     declaration: 'export interface VerifiedWebhookDelivery<K extends string = string> {\n    readonly kind: K;\n    readonly source: WebhookSourceId;\n    readonly deliveryId: WebhookDeliveryId;\n    readonly event: WebhookEventOf<K>;\n    readonly receivedAt: number;\n}',
+  },
+  {
+    name: 'Violation',
+    declaration: 'export interface Violation {\n    readonly file: string;\n    readonly rule: string;\n    readonly message: string;\n}',
   },
   {
     name: 'WebBootBatch',

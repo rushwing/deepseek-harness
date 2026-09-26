@@ -1012,6 +1012,26 @@ export interface InspectorOptions {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-inspector -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-lifecycle-orchestrator -->
+<a id="deepseek-aidsh-experimental-lifecycle-orchestrator"></a>
+
+## `@deepseek-ai/dsh-experimental-lifecycle-orchestrator`
+
+- `inject`: `tools` · `systemPrompt`
+- `source`: [`packages/experimental/lifecycle-orchestrator/src/index.ts:65`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+```ts config-catalog
+/** Where the lifecycle files live. */
+export interface Config {
+  /**
+   * The directory, relative to the Session's working directory, that holds
+   * `lifecycle.yml`, `agent-registry.yml`, `artifact-contract.yml`, and `tasks/`.
+   */
+  lifecycleDir: string
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-lifecycle-orchestrator -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-llm-claude-code -->
 <a id="deepseek-aidsh-experimental-llm-claude-code"></a>
 
@@ -3377,7 +3397,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-system-prompt`
 
-- `source`: [`packages/core/system-prompt/src/index.ts:247`](../packages/core/system-prompt/src/index.ts)
+- `source`: [`packages/core/system-prompt/src/index.ts:248`](../packages/core/system-prompt/src/index.ts)
 
 ```ts config-catalog
 /** Plugin config: the deployment-authored fragment of the system prompt (see {@link Config.personaPrefix} for its contract). */

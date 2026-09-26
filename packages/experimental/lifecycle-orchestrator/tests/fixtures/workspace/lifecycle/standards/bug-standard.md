@@ -1,0 +1,3 @@
+# bug-standard
+
+Fixture stub.

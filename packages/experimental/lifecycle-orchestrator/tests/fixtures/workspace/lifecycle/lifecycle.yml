@@ -1,0 +1,489 @@
+---
+# Lifecycle table — the single machine truth of the lifecycle team's static
+# lifecycle. It registers the REQ / TC / BUG states, the abstract roles, the
+# review-gate signers, the req_review exits, the review sections that must PASS
+# to enter a state, the TC statuses allowed per REQ state, the T16 restore
+# targets, and the 21 transitions with their subjects, guards, effects, and the
+# lifecycle-sensitive kinds they may change.
+
+version: 2
+
+states:
+  req:
+    - draft
+    - req_review
+    - tc_design
+    - tc_review
+    - tc_impl
+    - tc_impl_review
+    - req_impl
+    - req_impl_review
+    - pr_draft
+    - done
+  req_off_chain: [blocked]
+  tc: [draft, reviewed, implemented, passing, failing]
+  bug: [open, in_progress, blocked, resolved, closed]
+
+roles: [planner, generator, evaluator, human]
+
+gates:
+  - { section: req_review, signer: evaluator }
+  - { section: tc_review, signer: generator }
+  - { section: tc_impl_review, signer: evaluator }
+  - { section: req_impl_review, signer: evaluator }
+
+exits:
+  required: [T03]
+  optional_with_tc: [T03]
+  optional_no_tc: [T03c]
+  exempt: [T03b]
+
+pass_to_enter:
+  with_tc: # required, and optional through T03
+    tc_design: [req_review]
+    tc_impl: [tc_review]
+    req_impl: [tc_impl_review]
+    pr_draft: [req_impl_review]
+    done: [req_impl_review]
+  optional_no_tc: # optional through T03c; the req_review section must state the no-TC reason
+    req_impl: [req_review]
+    pr_draft: [req_review, req_impl_review]
+    done: [req_review, req_impl_review]
+  exempt: # through T03b
+    pr_draft: [req_review]
+    done: [req_review]
+
+tc_status_by_state:
+  draft: [draft]
+  req_review: [draft]
+  tc_design: [draft]
+  tc_review: [draft]
+  tc_impl: [reviewed, implemented]
+  tc_impl_review: [reviewed, implemented]
+  req_impl: [reviewed, implemented, passing, failing]
+  req_impl_review: [reviewed, implemented, passing, failing]
+  pr_draft: [implemented, passing, failing]
+  done: [implemented, passing, failing]
+
+restore_targets:
+  - { via: T04, state: req_review, owner: planner }
+  - { via: T07, state: tc_design, owner: evaluator }
+  - { via: T10, state: tc_impl, owner: generator }
+  - { via: T12, state: req_impl, owner: generator }
+
+transitions:
+  - id: T01
+    from: draft
+    actor: human
+    to: req_review
+    owner_after: planner
+    subjects: ['^lifecycle: T01 — \S']
+    guards:
+      - req.status_in: { states: [draft] }
+      - req.owner_role_is: { role: human }
+    effects:
+      - req.status_to: { state: req_review }
+      - req.owner_role_to: { role: planner }
+    may_change: [req.status, req.owner]
+  - id: T02
+    from: req_review
+    actor: planner
+    to: req_review
+    owner_after: evaluator
+    subjects: ['^lifecycle: T02 — \S']
+    guards:
+      - req.status_in: { states: [req_review] }
+      - req.owner_role_is: { role: planner }
+    effects:
+      - req.status_to: { state: req_review }
+      - req.owner_role_to: { role: evaluator }
+      - req.pr_number_eq_event: { policy: exempt }
+    may_change: [req.status, req.owner, req.pr_number]
+  - id: T03
+    from: req_review
+    actor: evaluator
+    to: tc_design
+    owner_after: evaluator
+    subjects: ['^lifecycle: T03 — \S']
+    guards:
+      - req.status_in: { states: [req_review] }
+      - req.owner_role_is: { role: evaluator }
+      - req.pending_questions_empty: {}
+    effects:
+      - req.status_to: { state: tc_design }
+      - req.owner_role_to: { role: evaluator }
+      - req.counter_inc: { field: review_round }
+      - rv.gate_signed: { section: req_review, verdict: PASS }
+    may_change: [req.status, req.owner, req.review_round, 'rv:req_review']
+  - id: T03b
+    from: req_review
+    actor: evaluator
+    to: pr_draft
+    owner_after: human
+    subjects: ['^lifecycle: T03b — \S']
+    guards:
+      - req.status_in: { states: [req_review] }
+      - req.owner_role_is: { role: evaluator }
+      - req.no_carried_bugs: {}
+    effects:
+      - req.status_to: { state: pr_draft }
+      - req.owner_role_to: { role: human }
+      - req.counter_inc: { field: review_round }
+      - rv.gate_signed: { section: req_review, verdict: PASS }
+      - req.pr_number_eq_event: { policy: exempt }
+    may_change: [req.status, req.owner, req.review_round, req.pr_number, 'rv:req_review']
+  - id: T03c
+    from: req_review
+    actor: evaluator
+    to: req_impl
+    owner_after: generator
+    subjects: ['^lifecycle: T03c — \S']
+    guards:
+      - req.status_in: { states: [req_review] }
+      - req.owner_role_is: { role: evaluator }
+      - req.no_carried_bugs: {}
+    effects:
+      - req.status_to: { state: req_impl }
+      - req.owner_role_to: { role: generator }
+      - req.counter_inc: { field: review_round }
+      - rv.gate_signed: { section: req_review, verdict: PASS }
+    may_change: [req.status, req.owner, req.review_round, 'rv:req_review']
+  - id: T04
+    from: req_review
+    actor: evaluator
+    to: req_review
+    owner_after: planner
+    subjects: ['^lifecycle: T04 — \S']
+    guards:
+      - req.status_in: { states: [req_review] }
+      - req.owner_role_is: { role: evaluator }
+    effects:
+      - req.status_to: { state: req_review }
+      - req.owner_role_to: { role: planner }
+      - req.counter_inc: { field: review_round }
+      - rv.gate_signed: { section: req_review, verdict: REJECT }
+    may_change: [req.status, req.owner, req.review_round, 'rv:req_review']
+  - id: T05
+    from: tc_design
+    actor: evaluator
+    to: tc_review
+    owner_after: generator
+    subjects: ['^lifecycle: T05 — \S']
+    guards:
+      - req.status_in: { states: [tc_design] }
+      - req.owner_role_is: { role: evaluator }
+    effects:
+      - req.status_to: { state: tc_review }
+      - req.owner_role_to: { role: generator }
+    may_change: [req.status, req.owner]
+  - id: T06
+    from: tc_review
+    actor: generator
+    to: tc_impl
+    owner_after: generator
+    subjects: ['^lifecycle: T06 — \S']
+    guards:
+      - req.status_in: { states: [tc_review] }
+      - req.owner_role_is: { role: generator }
+    effects:
+      - req.status_to: { state: tc_impl }
+      - req.owner_role_to: { role: generator }
+      - rv.gate_signed: { section: tc_review, verdict: PASS }
+      - tc.status_to: { scope: own, to: reviewed, exclude_carried_origin: true }
+    may_change: [req.status, req.owner, 'rv:tc_review', 'tc_status:reviewed']
+  - id: T07
+    from: tc_review
+    actor: generator
+    to: tc_design
+    owner_after: evaluator
+    subjects: ['^lifecycle: T07 — \S']
+    guards:
+      - req.status_in: { states: [tc_review] }
+      - req.owner_role_is: { role: generator }
+    effects:
+      - req.status_to: { state: tc_design }
+      - req.owner_role_to: { role: evaluator }
+      - rv.gate_signed: { section: tc_review, verdict: REJECT }
+    may_change: [req.status, req.owner, 'rv:tc_review']
+  - id: T08
+    from: tc_impl
+    actor: generator
+    to: tc_impl_review
+    owner_after: evaluator
+    subjects: ['^lifecycle: T08 — \S']
+    guards:
+      - req.status_in: { states: [tc_impl] }
+      - req.owner_role_is: { role: generator }
+    effects:
+      - req.status_to: { state: tc_impl_review }
+      - req.owner_role_to: { role: evaluator }
+      - tc.status_to: { scope: own, to: implemented, optional: true }
+    may_change: [req.status, req.owner, 'tc_status:implemented']
+  - id: T09
+    from: tc_impl_review
+    actor: evaluator
+    to: req_impl
+    owner_after: generator
+    subjects: ['^lifecycle: T09 — \S']
+    guards:
+      - req.status_in: { states: [tc_impl_review] }
+      - req.owner_role_is: { role: evaluator }
+    effects:
+      - req.status_to: { state: req_impl }
+      - req.owner_role_to: { role: generator }
+      - rv.gate_signed: { section: tc_impl_review, verdict: PASS }
+    may_change: [req.status, req.owner, 'rv:tc_impl_review']
+  - id: T10
+    from: tc_impl_review
+    actor: evaluator
+    to: tc_impl
+    owner_after: generator
+    subjects: ['^lifecycle: T10 — \S']
+    guards:
+      - req.status_in: { states: [tc_impl_review] }
+      - req.owner_role_is: { role: evaluator }
+    effects:
+      - req.status_to: { state: tc_impl }
+      - req.owner_role_to: { role: generator }
+      - rv.gate_signed: { section: tc_impl_review, verdict: REJECT }
+    may_change: [req.status, req.owner, 'rv:tc_impl_review']
+  - id: T11
+    from: req_impl
+    actor: generator
+    to: req_impl_review
+    owner_after: evaluator
+    subjects: ['^lifecycle: T11 — \S']
+    guards:
+      - req.status_in: { states: [req_impl] }
+      - req.owner_role_is: { role: generator }
+      - carried_bugs_in: { states: [resolved, closed] }
+    effects:
+      - req.status_to: { state: req_impl_review }
+      - req.owner_role_to: { role: evaluator }
+      - req.pr_number_eq_event: {}
+    may_change: [req.status, req.owner, req.pr_number]
+  - id: T12
+    from: req_impl_review
+    actor: evaluator
+    to: req_impl
+    owner_after: generator
+    subjects: ['^lifecycle: T12 — \S']
+    guards:
+      - req.status_in: { states: [req_impl_review] }
+      - req.owner_role_is: { role: evaluator }
+    effects:
+      - req.status_to: { state: req_impl }
+      - req.owner_role_to: { role: generator }
+      - rv.gate_signed: { section: req_impl_review, verdict: REJECT }
+      - tc.status_to: { scope: own_and_carried, to: failing, optional: true }
+    may_change: [req.status, req.owner, 'rv:req_impl_review', 'tc_status:failing']
+  - id: T13
+    from: req_impl_review
+    actor: evaluator
+    to: pr_draft
+    owner_after: human
+    subjects: ['^lifecycle: T13 — \S']
+    guards:
+      - req.status_in: { states: [req_impl_review] }
+      - req.owner_role_is: { role: evaluator }
+      - carried_bugs_in: { states: [resolved, closed] }
+    effects:
+      - req.status_to: { state: pr_draft }
+      - req.owner_role_to: { role: human }
+      - rv.gate_signed: { section: req_impl_review, verdict: PASS }
+      - tc.status_to: { scope: own_and_carried, to: [passing, failing], optional: true }
+      - bug.status_to: { scope: carried, to: closed, optional: true }
+    may_change:
+      [
+        req.status,
+        req.owner,
+        'rv:req_impl_review',
+        'rv:regression',
+        'tc_status:passing',
+        'tc_status:failing',
+        'bug_status:closed',
+      ]
+  - id: T14
+    from: pr_draft
+    actor: human
+    to: done
+    owner_after: human
+    subjects: ['^lifecycle: T14 — \S']
+    guards:
+      - req.status_in: { states: [pr_draft] }
+      - req.owner_role_is: { role: human }
+      - carried_bugs_in: { states: [closed] }
+      - req.pending_bugs_empty: {}
+    effects:
+      - req.status_to: { state: done }
+      - req.owner_role_to: { role: human }
+    may_change: [req.status, req.owner]
+  - id: T15
+    from: { any_of: [req_review, tc_review, tc_impl_review, req_impl_review, pr_draft] }
+    actor: { special: current_owner }
+    to: blocked
+    owner_after: human
+    subjects: ['^lifecycle: T15 — \S']
+    guards:
+      # The actor is the current owner, so only the origin is checked.
+      - req.status_in: { states: [req_review, tc_review, tc_impl_review, req_impl_review, pr_draft] }
+    effects:
+      - req.status_to: { state: blocked }
+      - req.owner_role_to: { role: human }
+      - req.fields_set: { fields: [pending_bugs, blocked_reason] }
+      - req.restore_pair_set: {}
+      - req.counter_inc: { field: review_round, only_from: req_review }
+      - rv.gate_signed: { section: req_review, verdict: REJECT, only_from: req_review }
+    may_change:
+      [
+        req.status,
+        req.owner,
+        req.review_round,
+        'rv:req_review',
+        req.pending_bugs,
+        req.blocked_reason,
+        req.blocked_from_status,
+        req.blocked_from_owner,
+      ]
+  - id: T16
+    from: blocked
+    actor: human
+    to: { special: restore_state }
+    owner_after: { special: restore_owner }
+    subjects: ['^lifecycle: T16 — \S']
+    guards:
+      - req.status_in: { states: [blocked] }
+      - req.owner_role_is: { role: human }
+      - pending_bugs_in: { states: [closed], self_carried_states: [resolved, closed] }
+    effects:
+      - req.status_to: { state: restore_state }
+      - req.owner_role_to: { role: restore_owner }
+      - req.fields_cleared:
+          { fields: [pending_bugs, blocked_reason, blocked_from_status, blocked_from_owner] }
+      - tc.status_to: { scope: own, to: draft, only_restore: req_review, optional: true }
+      - bug.status_to: { scope: carried, from: closed, to: resolved, only_restore: req_review, optional: true }
+      - rv.regression_withdrawn: { only_restore: req_review }
+    may_change:
+      [
+        req.status,
+        req.owner,
+        req.pending_bugs,
+        req.blocked_reason,
+        req.blocked_from_status,
+        req.blocked_from_owner,
+        'rv:regression',
+        'tc_status:draft',
+        'bug_status:resolved',
+      ]
+  - id: T17
+    from: req_review
+    actor: planner
+    to: req_review
+    owner_after: human
+    subjects: ['^lifecycle: T17 — \S']
+    guards:
+      - req.status_in: { states: [req_review] }
+      - req.owner_role_is: { role: planner }
+    effects:
+      - req.status_to: { state: req_review }
+      - req.owner_role_to: { role: human }
+    may_change: [req.status, req.owner]
+  - id: T18
+    from: req_review
+    actor: human
+    to: req_review
+    owner_after: planner
+    subjects: ['^lifecycle: T18 — \S']
+    guards:
+      - req.status_in: { states: [req_review] }
+      - req.owner_role_is: { role: human }
+    effects:
+      - req.status_to: { state: req_review }
+      - req.owner_role_to: { role: planner }
+    may_change: [req.status, req.owner]
+  - id: T19
+    from: { any_of: [draft, req_review, tc_design, tc_review, tc_impl, tc_impl_review, req_impl, req_impl_review, pr_draft] }
+    actor: human
+    to: req_review
+    owner_after: planner
+    exempt_from_hard_stop: true
+    subjects: ['^lifecycle: T19 — \S']
+    guards:
+      - req.status_not_in: { states: [done, blocked] }
+    effects:
+      - req.status_to: { state: req_review }
+      - req.owner_role_to: { role: planner }
+      - tc.status_to: { scope: own, to: draft, optional: true }
+      - bug.status_to: { scope: carried, from: closed, to: resolved, optional: true }
+      - rv.regression_withdrawn: {}
+    may_change:
+      [req.status, req.owner, 'rv:regression', 'tc_status:draft', 'bug_status:resolved']
+
+# Non-transition events: commit types that leave the REQ status and owner
+# alone yet legitimately change other lifecycle-sensitive objects.
+events:
+  bug_fix:
+    subjects: ['^fix: BUG-[A-Z]+-\d{3} — \S']
+    req_unchanged: true
+    guards: []
+    effects:
+      - bug.status_to: { scope: any, to: [in_progress, resolved], optional: true }
+    may_change: ['bug_status:in_progress', 'bug_status:resolved']
+  bug_verify:
+    subjects: ['^verify: BUG-[A-Z]+-\d{3} — \S']
+    req_unchanged: true
+    guards: []
+    effects:
+      - bug.status_to: { scope: any, to: [resolved, closed], optional: true }
+    may_change: ['bug_status:resolved', 'bug_status:closed']
+  regression:
+    subjects: ['^lifecycle: regression — \S']
+    req_unchanged: true
+    guards: []
+    effects:
+      - tc.status_to: { scope: any, to: [passing, failing], optional: true }
+    may_change: ['rv:regression', 'tc_status:passing', 'tc_status:failing']
+  external_review:
+    subjects: ['^lifecycle: external review — \S']
+    req_unchanged: true
+    guards: []
+    effects:
+      - rv.section_changed: { section: external_review }
+    may_change: ['rv:external_review']
+  bug_redirect:
+    subjects: ['^lifecycle: redirect — \S']
+    req_unchanged: true
+    guards:
+      - req.status_in: { states: [blocked] }
+      - req.owner_role_is: { role: human }
+    effects:
+      - req.restore_pair_to: { state: req_review, owner: planner }
+    may_change: [req.blocked_from_status, req.blocked_from_owner]
+
+# Predicate vocabulary: the table references only registered names.
+#   data — pure data predicates, name → parameter names (empty list = no parameters).
+#   code — predicates only code can express, referenced by name.
+predicates:
+  data:
+    req.status_in: [states]
+    req.status_not_in: [states]
+    req.owner_role_is: [role]
+    req.pending_questions_empty: []
+    req.pending_bugs_empty: []
+    req.no_carried_bugs: []
+    req.status_to: [state]
+    req.owner_role_to: [role]
+    req.counter_inc: [field, only_from]
+    req.pr_number_eq_event: [policy]
+    req.fields_set: [fields]
+    req.fields_cleared: [fields]
+    req.restore_pair_to: [state, owner]
+    tc.status_to: [scope, to, exclude_carried_origin, optional, only_restore]
+    bug.status_to: [scope, from, to, optional, only_restore]
+    carried_bugs_in: [states]
+    pending_bugs_in: [states, self_carried_states]
+    rv.gate_signed: [section, verdict, only_from]
+    rv.section_changed: [section]
+    rv.regression_withdrawn: [only_restore]
+  code:
+    - req.restore_pair_set

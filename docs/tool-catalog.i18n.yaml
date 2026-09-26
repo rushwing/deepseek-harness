@@ -9,8 +9,8 @@
   en: 6cc2cd9ced70bb09
   zh: 1c0e6cb4ba2ed637
 /tool-schema-catalog/tool-package-map:
-  en: 72e2a375567f5850
-  zh: b51b8ea5b52814fd
+  en: f0bcf62b4a8f7f45
+  zh: 33f638024f2946bc
 /tool-schema-catalog/deepseek-ai-dsh-plugin-manager:
   en: e0143916bb634762
   zh: e0143916bb634762
@@ -66,8 +66,23 @@
   en: b500b530845e26a9
   zh: b500b530845e26a9
 /tool-schema-catalog/deepseek-ai-dsh-plan-mode/exit-plan-mode:
-  en: b410483c2bd0c1a1
-  zh: a07ceea6abf1dda3
+  en: 300566028e3089e5
+  zh: 59db09437e01fae1
+/tool-schema-catalog/deepseek-ai-dsh-experimental-lifecycle-orchestrator:
+  en: 6303a45dddff482f
+  zh: 6303a45dddff482f
+/tool-schema-catalog/deepseek-ai-dsh-experimental-lifecycle-orchestrator/lifecycle-check-in:
+  en: ff5f70395ea3846f
+  zh: 1ad2bb7261ab1eae
+/tool-schema-catalog/deepseek-ai-dsh-experimental-lifecycle-orchestrator/lifecycle-init:
+  en: 75e734a4d7ab843c
+  zh: e5aae4b3b45b77e4
+/tool-schema-catalog/deepseek-ai-dsh-experimental-lifecycle-orchestrator/lifecycle-lint:
+  en: cf19ac7533522f25
+  zh: 49f9af2f6254663e
+/tool-schema-catalog/deepseek-ai-dsh-experimental-lifecycle-orchestrator/lifecycle-status:
+  en: 6f5f83ba62ab5d65
+  zh: 536a25b4f3c66aa0
 /tool-schema-catalog/deepseek-ai-dsh-tool-bash:
   en: 408ff0a5189bd7ec
   zh: 408ff0a5189bd7ec

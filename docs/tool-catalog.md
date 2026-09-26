@@ -21,6 +21,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-tool-ask-user` | `ask_user_question` | `ctx.tools`, `ctx.userQuestions` | `tool/call`, `tool/result after a UI/provider answers the question` | - | ask_user_question pauses the tool call until the active UI provider returns a human answer. |
 | `@deepseek-ai/dsh-tools` | `run_code` | `ctx.tools`, `ctx.ptcRuntime (execution time)`, `ctx.systemPrompt` | `tool/call`, `one tool/ptc-dispatch-start + tool/ptc-dispatch pair per bridged sub-call`, `tool/result` | - | Owned by the tool registry as a reserved transport outside filterable capability layers under `mode: ptc` / `mode: both` (see the PTC mode Agent Note). Under `ptc` it is the registry's only wire contribution; the other visible capabilities are declared in a generated SDK section in the loaded runtime's language, and a program calls them through bindings scheduled under the native concurrency contract (submission-ordered starts and policy; concurrency-safe bodies overlap up to `maxParallelSubCalls`) that re-enter the complete guarded tool pipeline and link each nested execution to this outer result. |
 | `@deepseek-ai/dsh-plan-mode` | `exit_plan_mode` | `ctx.tools`, `ctx.systemPrompt`, `ctx.userQuestions (execution time, opportunistic)` | `tool/call`, `plan/mode inactive on an approved review`, `tool/result` | - | exit_plan_mode stays in the model-facing schema while planning is inactive so transitions add no tool-catalog churn on top of the plan-policy change. Its execute path rejects calls outside plan mode; in plan mode it presents the plan over the user-questions seam (approve / keep planning with feedback), and approval logs plan mode inactive at the step boundary. |
+| `@deepseek-ai/dsh-experimental-lifecycle-orchestrator` | `lifecycle_check_in`, `lifecycle_init`, `lifecycle_lint`, `lifecycle_status` | `ctx.tools`, `ctx.systemPrompt`, `ctx.llm and ctx.agentDefaultModel (lifecycle_init, opportunistic)`, `ctx.commands (opportunistic)` | `tool/call`, `tool/result`, `lifecycle/lint on every lifecycle_lint run` | - | The four lifecycle tools read the calling Session's working directory afresh on every call; lifecycle_init writes the English defaults and a registry seated on the routes the deployment has, and the other three never write artifacts. |
 | `@deepseek-ai/dsh-tool-bash` | `bash` | `ctx.tools`, `ctx.shell`, `ctx.systemPrompt`, `ctx.shellEnv`, `ctx.jobs for run_in_background and the job-backed foreground path` | `tool/call`, `tool/result` | - | The bash tool is the model-facing consumer of the bash executor seam. With a job registry composed every call registers with the generic `ctx.jobs` runtime as it starts, collected/stopped through the `job_*` tools from `@deepseek-ai/dsh-tool-jobs`; without one, or with `enableRunInBackground: false`, the tool registers a foreground-only schema without the `run_in_background` parameter. |
 | `@deepseek-ai/dsh-tool-present` | `present` | `ctx.tools`, `ctx.fs`, `ctx.sessionProjections` | `tool/call`, `deliverables/presented after a successful final result`, `tool/result` | - | Deliveries belong to the calling Session; Web ui-deliverables supplies source-file opening and cards. |
 | `@deepseek-ai/dsh-tool-pwsh` | `pwsh` | `ctx.tools`, `ctx.shell`, `ctx.systemPrompt`, `ctx.shellEnv`, `ctx.jobs for run_in_background and the job-backed foreground path` | `tool/call`, `tool/result` | - | The pwsh tool is the PowerShell-dialect consumer of the bash executor seam for Windows compositions (a PowerShell executor such as `@deepseek-ai/dsh-pwsh-local` backs `ctx.shell`); it mirrors the bash tool call-for-call minus sandbox controls — `run_in_background` runs register with the generic `ctx.jobs` runtime and are collected/stopped through the `job_*` tools, and the managed `DSH_*` environment comes from `@deepseek-ai/dsh-shell-env`. Each call runs in a fresh process (no persistent PTY session), with native `C:\...` paths and `$env:NAME` variables. |
@@ -591,6 +592,110 @@ Use only in plan mode. Present your plan for the user's review and, on approval,
 Source: [`packages/plan/plan-mode/src/index.ts`](../packages/plan/plan-mode/src/index.ts)
 
 exit_plan_mode stays in the model-facing schema while planning is inactive so transitions add no tool-catalog churn on top of the plan-policy change. Its execute path rejects calls outside plan mode; in plan mode it presents the plan over the user-questions seam (approve / keep planning with feedback), and approval logs plan mode inactive at the step boundary.
+
+<a id="deepseek-aidsh-experimental-lifecycle-orchestrator"></a>
+
+## `@deepseek-ai/dsh-experimental-lifecycle-orchestrator`
+
+### `lifecycle_check_in`
+
+Run the hard-stop checks before working on a REQ as a role: the REQ file exists, the caller uid is its owner, and the REQ is in the state the caller intends to work in. Name the intended transition to learn whether it is exempt from the owner and state checks.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "The REQ to work on."
+    },
+    "uid": {
+      "type": "string",
+      "description": "The registered uid of the caller, such as evaluator-002."
+    },
+    "state": {
+      "type": "string",
+      "description": "The REQ state the caller intends to work in."
+    },
+    "transition": {
+      "type": "string",
+      "description": "The transition the caller intends to take, such as T03."
+    }
+  },
+  "required": [
+    "reqId",
+    "uid",
+    "state"
+  ]
+}
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+### `lifecycle_init`
+
+Scaffold the lifecycle directory in the workspace: the lifecycle table, an agent registry seated on the available model routes, the artifact contract, and the id scheme; a full scaffold also writes the handbook, the standards, and the role briefs. Existing files are kept.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "scaffold": {
+      "type": "string",
+      "description": "minimal writes the four tables; full also writes GUIDE.md, standards/, and briefs. Default minimal.",
+      "enum": [
+        "minimal",
+        "full"
+      ]
+    },
+    "scopes": {
+      "type": "object",
+      "description": "Scope directory to id prefix (1 to 6 uppercase letters), such as { \"platform\": \"PLAT\" }. Default { \"core\": \"CORE\" }.",
+      "additionalProperties": true
+    }
+  }
+}
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+### `lifecycle_lint`
+
+Lint the lifecycle artifacts (REQ, TC, BUG, RV, PL) of the workspace against the lifecycle table, the agent registry, and the artifact contract, and list every violation with its file and rule. Scope to one REQ to check only that REQ and the artifacts bound to it.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "Limit the report to this REQ and its TCs, RV, PL, and BUGs; omit to lint the whole tree."
+    }
+  }
+}
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+### `lifecycle_status`
+
+Read the lifecycle position of one requirement (REQ) or of every REQ in the workspace: status, owner and owner role, review round, TC policy, blocked fields, the seat that acts next, and the transitions the current owner may take.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "A REQ id such as REQ-PLAT-010; omit to report every REQ."
+    }
+  }
+}
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+The four lifecycle tools read the calling Session's working directory afresh on every call; lifecycle_init writes the English defaults and a registry seated on the routes the deployment has, and the other three never write artifacts.
 
 <a id="deepseek-aidsh-tool-bash"></a>
 

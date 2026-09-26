@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for lifecycle-team.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/subsystems/lifecycle-team.md
+/lifecycle-team:
+  en: 0e75a1fe4ee8bf3c
+  zh: 87552bc3e254dd49
+/lifecycle-team/packages:
+  en: 92c8aa00a83b5aad
+  zh: f6a88c47f1c83664
+/lifecycle-team/files-in-a-workspace:
+  en: 831ac184abff2e60
+  zh: 48b186c5f5a9ae52
+/lifecycle-team/the-service-and-its-consumers:
+  en: 5e7a837d395de09e
+  zh: 9e80f8b255dfed36
+/lifecycle-team/the-three-checks:
+  en: 190ad95786387ecd
+  zh: c7eb0ce4ccf34844
+/lifecycle-team/failure-codes:
+  en: 13ec9b0c7b9a18ef
+  zh: 6fc92fc8b2928e1c

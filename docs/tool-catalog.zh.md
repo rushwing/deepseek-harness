@@ -25,6 +25,7 @@
 | `@deepseek-ai/dsh-tool-ask-user` | `ask_user_question` | `ctx.tools`、`ctx.userQuestions` | `tool/call`、`tool/result after a UI/provider answers the question` | - | ask_user_question 会暂停工具调用，直到当前 UI 提供方返回人类答案。 |
 | `@deepseek-ai/dsh-tools` | `run_code` | `ctx.tools`、`ctx.ptcRuntime (execution time)`、`ctx.systemPrompt` | `tool/call`、`one tool/ptc-dispatch-start + tool/ptc-dispatch pair per bridged sub-call`、`tool/result` | - | 在 `mode: ptc`／`mode: both` 下，它由工具注册表所有，作为可过滤能力层之外的保留传输机制（参见 PTC mode Agent Note）。在 `ptc` 下，它是注册表对协议格式（wire format）的唯一贡献；其他可见能力在使用已加载运行时语言生成的 SDK 章节中声明。程序通过 binding 调用这些能力，调用按照原生并发约定调度：启动顺序和策略遵循提交顺序，并发安全的函数体最多重叠执行 `maxParallelSubCalls` 个。调用会重新进入完整且受守卫保护的工具流水线，并将每个嵌套执行关联到此外层结果。 |
 | `@deepseek-ai/dsh-plan-mode` | `exit_plan_mode` | `ctx.tools`、`ctx.systemPrompt`、`ctx.userQuestions (execution time, opportunistic)` | `tool/call`、`plan/mode inactive on an approved review`、`tool/result` | - | 规划未激活时，exit_plan_mode 仍保留在面向模型的 schema 中，这样状态转换不会在规划策略变更之外额外造成工具目录变动。其执行路径会拒绝规划模式之外的调用；在规划模式下，它通过用户交互 seam 提交计划（批准／根据反馈继续规划），批准后会在步骤边界记录规划模式已停用。 |
+| `@deepseek-ai/dsh-experimental-lifecycle-orchestrator` | `lifecycle_check_in`、`lifecycle_init`、`lifecycle_lint`、`lifecycle_status` | `ctx.tools`、`ctx.systemPrompt`、`ctx.llm and ctx.agentDefaultModel (lifecycle_init, opportunistic)`、`ctx.commands (opportunistic)` | `tool/call`、`tool/result`、`lifecycle/lint on every lifecycle_lint run` | - | 四个 lifecycle 工具在每次调用时都重新读取调用方 Session 的工作目录；lifecycle_init 写入英文默认文件和一份按部署现有路由落座的注册表，其余三个从不写入工件。 |
 | `@deepseek-ai/dsh-tool-bash` | `bash` | `ctx.tools`、`ctx.shell`、`ctx.systemPrompt`、`ctx.shellEnv`、`ctx.jobs for run_in_background and the job-backed foreground path` | `tool/call`、`tool/result` | - | bash 工具是 bash 执行器 seam 面向模型的消费方。组合中有 job 注册表时，每次调用一启动就注册到通用 `ctx.jobs` 运行时，并通过 `job_*` 工具（来自 `@deepseek-ai/dsh-tool-jobs`）收集／停止；没有注册表或 `enableRunInBackground: false` 时，工具注册不带 `run_in_background` 参数的纯前台 schema。 |
 | `@deepseek-ai/dsh-tool-present` | `present` | `ctx.tools`, `ctx.fs`, `ctx.sessionProjections` | `tool/call`, `deliverables/presented 在成功的最终结果之后`, `tool/result` | - | 交付归调用方 Session 所有；Web ui-deliverables 提供源文件打开与卡片。 |
 | `@deepseek-ai/dsh-tool-pwsh` | `pwsh` | `ctx.tools`、`ctx.shell`、`ctx.systemPrompt`、`ctx.shellEnv`、`ctx.jobs for run_in_background and the job-backed foreground path` | `tool/call`、`tool/result` | - | pwsh 工具是 Windows 组合中 bash 执行器 seam 的 PowerShell 方言消费方（由 `@deepseek-ai/dsh-pwsh-local` 等 PowerShell 执行器为 `ctx.shell` 提供后端）；除沙箱接口外，它逐项对应 bash 工具调用。使用 `run_in_background` 的运行会注册到通用 `ctx.jobs` 运行时，并通过 `job_*` 工具收集／停止；托管的 `DSH_*` 环境来自 `@deepseek-ai/dsh-shell-env`。每次调用都在新进程中运行，不使用持久 PTY 会话。路径采用原生 `C:\...` 形式，变量采用 `$env:NAME`。 |
@@ -595,6 +596,110 @@ ask_user_question 会暂停工具调用，直到当前 UI 提供方返回人类�
 来源：[`packages/plan/plan-mode/src/index.ts`](../packages/plan/plan-mode/src/index.ts)
 
 规划未激活时，exit_plan_mode 仍保留在面向模型的 schema 中，这样状态转换不会在规划策略变更之外额外造成工具目录变动。其执行路径会拒绝规划模式之外的调用；在规划模式下，它通过用户交互 seam 提交计划（批准／根据反馈继续规划），批准后会在步骤边界记录规划模式已停用。
+
+<a id="deepseek-aidsh-experimental-lifecycle-orchestrator"></a>
+
+## `@deepseek-ai/dsh-experimental-lifecycle-orchestrator`
+
+### `lifecycle_check_in`
+
+以角色身份处理 REQ 之前运行硬停检查：REQ 文件存在、调用方 uid 是其 owner、REQ 处于调用方打算工作的状态。指明打算采取的迁移，可得知它是否免于 owner 与状态检查。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "The REQ to work on."
+    },
+    "uid": {
+      "type": "string",
+      "description": "The registered uid of the caller, such as evaluator-002."
+    },
+    "state": {
+      "type": "string",
+      "description": "The REQ state the caller intends to work in."
+    },
+    "transition": {
+      "type": "string",
+      "description": "The transition the caller intends to take, such as T03."
+    }
+  },
+  "required": [
+    "reqId",
+    "uid",
+    "state"
+  ]
+}
+```
+
+来源：[`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+### `lifecycle_init`
+
+在工作区搭建生命周期目录：生命周期表、按可用模型路由落座的 agent 注册表、工件契约与 id 方案；完整脚手架还写入手册、标准与角色简报。已存在的文件保留。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "scaffold": {
+      "type": "string",
+      "description": "minimal writes the four tables; full also writes GUIDE.md, standards/, and briefs. Default minimal.",
+      "enum": [
+        "minimal",
+        "full"
+      ]
+    },
+    "scopes": {
+      "type": "object",
+      "description": "Scope directory to id prefix (1 to 6 uppercase letters), such as { \"platform\": \"PLAT\" }. Default { \"core\": \"CORE\" }.",
+      "additionalProperties": true
+    }
+  }
+}
+```
+
+来源：[`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+### `lifecycle_lint`
+
+依据生命周期表、agent 注册表与工件契约对工作区的生命周期工件（REQ、TC、BUG、RV、PL）做 lint，并列出每条违规及其文件与规则。限定到一个 REQ 时只检查该 REQ 及绑定到它的工件。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "Limit the report to this REQ and its TCs, RV, PL, and BUGs; omit to lint the whole tree."
+    }
+  }
+}
+```
+
+来源：[`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+### `lifecycle_status`
+
+读取一个需求（REQ）或工作区内全部 REQ 的生命周期位置：状态、owner 与 owner 角色、评审轮次、TC 策略、blocked 字段、下一步行动的座位，以及当前 owner 可采取的迁移。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "A REQ id such as REQ-PLAT-010; omit to report every REQ."
+    }
+  }
+}
+```
+
+来源：[`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+四个 lifecycle 工具在每次调用时都重新读取调用方 Session 的工作目录；lifecycle_init 写入英文默认文件和一份按部署现有路由落座的注册表，其余三个从不写入工件。
 
 <a id="deepseek-aidsh-tool-bash"></a>
 
