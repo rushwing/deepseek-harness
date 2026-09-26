@@ -21,7 +21,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-tool-ask-user` | `ask_user_question` | `ctx.tools`, `ctx.userQuestions` | `tool/call`, `tool/result after a UI/provider answers the question` | - | ask_user_question pauses the tool call until the active UI provider returns a human answer. |
 | `@deepseek-ai/dsh-tools` | `run_code` | `ctx.tools`, `ctx.ptcRuntime (execution time)`, `ctx.systemPrompt` | `tool/call`, `one tool/ptc-dispatch-start + tool/ptc-dispatch pair per bridged sub-call`, `tool/result` | - | Owned by the tool registry as a reserved transport outside filterable capability layers under `mode: ptc` / `mode: both` (see the PTC mode Agent Note). Under `ptc` it is the registry's only wire contribution; the other visible capabilities are declared in a generated SDK section in the loaded runtime's language, and a program calls them through bindings scheduled under the native concurrency contract (submission-ordered starts and policy; concurrency-safe bodies overlap up to `maxParallelSubCalls`) that re-enter the complete guarded tool pipeline and link each nested execution to this outer result. |
 | `@deepseek-ai/dsh-plan-mode` | `exit_plan_mode` | `ctx.tools`, `ctx.systemPrompt`, `ctx.userQuestions (execution time, opportunistic)` | `tool/call`, `plan/mode inactive on an approved review`, `tool/result` | - | exit_plan_mode stays in the model-facing schema while planning is inactive so transitions add no tool-catalog churn on top of the plan-policy change. Its execute path rejects calls outside plan mode; in plan mode it presents the plan over the user-questions seam (approve / keep planning with feedback), and approval logs plan mode inactive at the step boundary. |
-| `@deepseek-ai/dsh-experimental-lifecycle-orchestrator` | `lifecycle_check_in`, `lifecycle_init`, `lifecycle_lint`, `lifecycle_status` | `ctx.tools`, `ctx.systemPrompt`, `ctx.llm and ctx.agentDefaultModel (lifecycle_init, opportunistic)`, `ctx.commands (opportunistic)` | `tool/call`, `tool/result`, `lifecycle/lint on every lifecycle_lint run` | - | The four lifecycle tools read the calling Session's working directory afresh on every call; lifecycle_init writes the English defaults and a registry seated on the routes the deployment has, and the other three never write artifacts. |
+| `@deepseek-ai/dsh-experimental-lifecycle-orchestrator` | `lifecycle_check_in`, `lifecycle_init`, `lifecycle_lint`, `lifecycle_run`, `lifecycle_status`, `lifecycle_transition` | `ctx.tools`, `ctx.systemPrompt`, `ctx.subagents`, `ctx.llm and ctx.agentDefaultModel (lifecycle_init, opportunistic)`, `ctx.userQuestions (lifecycle_run, opportunistic)`, `ctx.commands (opportunistic)` | `tool/call`, `tool/result`, `lifecycle/lint on every lifecycle_lint run`, `lifecycle/transition on every applied step`, `lifecycle/step and lifecycle/human-decision during lifecycle_run` | - | The six lifecycle tools read the calling Session's working directory afresh on every call. lifecycle_init writes the English defaults and a registry seated on the routes the deployment has; lifecycle_transition and lifecycle_run rewrite artifact frontmatter through the table's effects and are refused to delegated callers; the other three never write artifacts. |
 | `@deepseek-ai/dsh-tool-bash` | `bash` | `ctx.tools`, `ctx.shell`, `ctx.systemPrompt`, `ctx.shellEnv`, `ctx.jobs for run_in_background and the job-backed foreground path` | `tool/call`, `tool/result` | - | The bash tool is the model-facing consumer of the bash executor seam. With a job registry composed every call registers with the generic `ctx.jobs` runtime as it starts, collected/stopped through the `job_*` tools from `@deepseek-ai/dsh-tool-jobs`; without one, or with `enableRunInBackground: false`, the tool registers a foreground-only schema without the `run_in_background` parameter. |
 | `@deepseek-ai/dsh-tool-present` | `present` | `ctx.tools`, `ctx.fs`, `ctx.sessionProjections` | `tool/call`, `deliverables/presented after a successful final result`, `tool/result` | - | Deliveries belong to the calling Session; Web ui-deliverables supplies source-file opening and cards. |
 | `@deepseek-ai/dsh-tool-pwsh` | `pwsh` | `ctx.tools`, `ctx.shell`, `ctx.systemPrompt`, `ctx.shellEnv`, `ctx.jobs for run_in_background and the job-backed foreground path` | `tool/call`, `tool/result` | - | The pwsh tool is the PowerShell-dialect consumer of the bash executor seam for Windows compositions (a PowerShell executor such as `@deepseek-ai/dsh-pwsh-local` backs `ctx.shell`); it mirrors the bash tool call-for-call minus sandbox controls — `run_in_background` runs register with the generic `ctx.jobs` runtime and are collected/stopped through the `job_*` tools, and the managed `DSH_*` environment comes from `@deepseek-ai/dsh-shell-env`. Each call runs in a fresh process (no persistent PTY session), with native `C:\...` paths and `$env:NAME` variables. |
@@ -677,6 +677,31 @@ Lint the lifecycle artifacts (REQ, TC, BUG, RV, PL) of the workspace against the
 
 Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
 
+### `lifecycle_run`
+
+Drive one requirement (REQ) through the lifecycle: each step spawns a fresh role child seated by the agent registry, fences its edits to its own artifacts, judges its transition proposal against the lifecycle table, applies the effects, and lints; the human decides at the human-owned states. Stops when the REQ is done or blocked, a human decision is pending, a step is rejected or fails, the tree lints red, or the step ceiling is reached. Use it only when asked to drive a REQ.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "The REQ to drive, such as REQ-PLAT-010."
+    },
+    "maxSteps": {
+      "type": "integer",
+      "description": "A step ceiling below the configured maximum; a higher value is capped."
+    }
+  },
+  "required": [
+    "reqId"
+  ]
+}
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
 ### `lifecycle_status`
 
 Read the lifecycle position of one requirement (REQ) or of every REQ in the workspace: status, owner and owner role, review round, TC policy, blocked fields, the seat that acts next, and the transitions the current owner may take.
@@ -695,7 +720,50 @@ Read the lifecycle position of one requirement (REQ) or of every REQ in the work
 
 Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
 
-The four lifecycle tools read the calling Session's working directory afresh on every call; lifecycle_init writes the English defaults and a registry seated on the routes the deployment has, and the other three never write artifacts.
+### `lifecycle_transition`
+
+Apply one lifecycle transition (such as T01) or lifecycle event (such as bug_fix) to a requirement (REQ) by hand: the guards are checked, the effects rewrite the frontmatter and statuses, and the result is linted; a red result writes nothing. Returns the suggested commit subject; the human commits.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "reqId": {
+      "type": "string",
+      "description": "The REQ to move, such as REQ-PLAT-010."
+    },
+    "transition": {
+      "type": "string",
+      "description": "The transition id, such as T01. Name exactly one of transition and event."
+    },
+    "event": {
+      "type": "string",
+      "description": "The lifecycle event name, such as bug_fix."
+    },
+    "summary": {
+      "type": "string",
+      "description": "One sentence for the commit subject after \"lifecycle: <id> — \"."
+    },
+    "decisions": {
+      "type": "object",
+      "description": "Choices for effects that admit several values: { fields: {...}, tcStatuses: { \"TC-ID\": \"status\" }, bugStatuses: { \"BUG-ID\": \"status\" } }.",
+      "additionalProperties": true
+    },
+    "pr": {
+      "type": "integer",
+      "description": "The pull-request number the step carries, when the transition records one."
+    }
+  },
+  "required": [
+    "reqId",
+    "summary"
+  ]
+}
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+
+The six lifecycle tools read the calling Session's working directory afresh on every call. lifecycle_init writes the English defaults and a registry seated on the routes the deployment has; lifecycle_transition and lifecycle_run rewrite artifact frontmatter through the table's effects and are refused to delegated callers; the other three never write artifacts.
 
 <a id="deepseek-aidsh-tool-bash"></a>
 

@@ -1,0 +1,455 @@
+{
+  "formatVersion": 2,
+  "roots": [
+    {
+      "key": "event:lifecycle/human-decision",
+      "kind": "event",
+      "event": "lifecycle/human-decision",
+      "surface": false,
+      "digest": "48fb95a97608ec4ee57d36ec254d971848ca24a6c3e78531dc2a9ac8f6a69ccc",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 11,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 12,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 12,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 13,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "answer",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "options",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 10,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              3,
+              4
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 4
+          },
+          {
+            "kind": "union",
+            "types": [
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "answered"
+          },
+          {
+            "kind": "literal",
+            "value": "requested"
+          },
+          {
+            "kind": "literal",
+            "value": "unavailable"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/human-decision"
+          }
+        ]
+      }
+    },
+    {
+      "key": "event:lifecycle/step",
+      "kind": "event",
+      "event": "lifecycle/step",
+      "surface": false,
+      "digest": "79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 12,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 13,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 13,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 14,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "childSessionId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "effort",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "reason",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "role",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "route",
+                "type": 10,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "uid",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 11,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              3,
+              4
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "union",
+            "types": [
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "completed"
+          },
+          {
+            "kind": "literal",
+            "value": "failed"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          },
+          {
+            "kind": "literal",
+            "value": "started"
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "model",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 4,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/step"
+          }
+        ]
+      }
+    },
+    {
+      "key": "event:lifecycle/transition",
+      "kind": "event",
+      "event": "lifecycle/transition",
+      "surface": false,
+      "digest": "38dd837416051d2e59692a3cd2555bce702e66a3279eb6f9957b61cd1e0bdf82",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 8,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 9,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "actorUid",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "eventName",
+                "type": 2,
+                "optional": true
+              },
+              {
+                "name": "files",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "from",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "ownerAfter",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "ownerBefore",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reviewRound",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "to",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 7,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 2
+          },
+          {
+            "kind": "union",
+            "types": [
+              5,
+              6
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/transition"
+          }
+        ]
+      }
+    }
+  ],
+  "types": []
+}

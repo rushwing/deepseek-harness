@@ -3,14 +3,14 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/experimental/lifecycle-orchestrator/README.md
 /:
-  en: 91d11fe0d70209f3
-  zh: aa4961f27432908b
+  en: 38e8b45b77bd6391
+  zh: bd5f528b168bb779
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator:
   en: 1ffef012258d0391
   zh: 8678b1c1fff8239e
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/summary:
-  en: 3391ed64092845d4
-  zh: 9ce9c282ae785f44
+  en: 6f7f0e638e60733b
+  zh: 118c003482058b20
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/table-of-contents:
   en: 518dd682f4009bb4
   zh: 9f181aac7ade8525
@@ -18,14 +18,17 @@
   en: 1ca29db3a41ee4fa
   zh: b0b7247e72fff346
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/use-this-plugin/configuration:
-  en: b23710d42e997b86
-  zh: bb72d82021124cf6
+  en: 9bef110f370e318c
+  zh: 8c7e45784ae37e0f
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/use-this-plugin/scaffold-a-workspace:
   en: 75d8ab04fd64fcff
   zh: 6b58dd6bc7976fa7
-/deepseek-ai-dsh-experimental-lifecycle-orchestrator/use-this-plugin/read-a-workspace:
-  en: 67c7250efdf9d1ab
-  zh: 57d411c97f09bdf3
+/deepseek-ai-dsh-experimental-lifecycle-orchestrator/use-this-plugin/read-move-and-drive-a-workspace:
+  en: 889d919ee3d0a54c
+  zh: 2c6691ae18fee95d
+/deepseek-ai-dsh-experimental-lifecycle-orchestrator/use-this-plugin/write-scopes:
+  en: 05ffd861f2d36236
+  zh: 5b5e08e7706edf3f
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/use-this-plugin/briefs:
   en: 8f15ea8a90fb2b52
   zh: 52f69e4d86c0ecdc
@@ -33,11 +36,11 @@
   en: b52bcac58443813f
   zh: c9b86728cdb27cd4
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/understand-the-implementation/design-concept:
-  en: ba8fadd5f04aa86b
-  zh: 49a852ebb75bb687
+  en: 35828c10778755d0
+  zh: 38db34f9d0400592
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/understand-the-implementation/source-map:
-  en: 38f41334b2cd7dec
-  zh: e8131dc568d062c1
+  en: 6647fae121647844
+  zh: 147797c41218ff67
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/further-exploration:
   en: a62ae55101196473
   zh: e34a04fa0989c5ee
@@ -48,14 +51,14 @@
   en: 1e523899c3880ad4
   zh: 050edaf37e183b99
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/model-experience/lifecycle-policy-system-prompt/what-the-model-sees:
-  en: a5abde2be1cd88c3
-  zh: b22ad8ea93771ae0
+  en: 2f9515713222ff22
+  zh: 9be03b159160308e
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/model-experience/lifecycle-policy-system-prompt/what-the-model-sees/verbatim-text-for-this-field-with-lifecycle-as-the-directory:
   en: 434b7001d0219f06
   zh: 6a0a368a9f198579
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/model-experience/lifecycle-policy-system-prompt/token-effect:
-  en: db7bbc2b43468a06
-  zh: a11053f421b4f16a
+  en: 94d551ba089cb606
+  zh: 1f38142fc02ce0b4
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/model-experience/lifecycle-policy-system-prompt/kv-cache-effect:
   en: 8eb2c0127b61a7b1
   zh: 82f92895db1718b0
@@ -63,11 +66,11 @@
   en: 208adff1caf29c16
   zh: b0b64bc9aeca4351
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/model-experience/lifecycle-tool-schemas/what-the-model-sees:
-  en: f9a4aac199deae88
-  zh: 7378b78906982162
+  en: f1305f75f9cb6ad9
+  zh: c964d6309b5f82e2
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/model-experience/lifecycle-tool-schemas/token-effect:
-  en: b3e92effbcd54382
-  zh: add50295a97a1c1f
+  en: 3d61c54972945a17
+  zh: bf54a8d323fe640c
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/model-experience/lifecycle-tool-schemas/kv-cache-effect:
   en: e314ee1fa576327c
   zh: 2582262156941d62
@@ -84,8 +87,8 @@
   en: fa18a3e3dbb9448c
   zh: 40f102261fec38e3
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/known-limitations-and-deferred-work:
-  en: 415afde48a6f8343
-  zh: bf9c42166df9bfcc
+  en: 66cfa52a848f9d21
+  zh: 171de638e95448fa
 /deepseek-ai-dsh-experimental-lifecycle-orchestrator/known-limitations-and-deferred-work/dev-note:
-  en: 0e15dd0f56d62708
-  zh: fe7906cd9987b092
+  en: 02a0ab97b0ad14b2
+  zh: eae45b1064fc3222

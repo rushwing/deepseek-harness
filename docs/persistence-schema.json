@@ -10404,6 +10404,140 @@
       }
     },
     {
+      "key": "event:lifecycle/human-decision",
+      "kind": "event",
+      "event": "lifecycle/human-decision",
+      "surface": false,
+      "digest": "48fb95a97608ec4ee57d36ec254d971848ca24a6c3e78531dc2a9ac8f6a69ccc",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 11,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 12,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 12,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 13,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "answer",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "options",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 10,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              3,
+              4
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 4
+          },
+          {
+            "kind": "union",
+            "types": [
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "answered"
+          },
+          {
+            "kind": "literal",
+            "value": "requested"
+          },
+          {
+            "kind": "literal",
+            "value": "unavailable"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/human-decision"
+          }
+        ]
+      }
+    },
+    {
       "key": "event:lifecycle/lint",
       "kind": "event",
       "event": "lifecycle/lint",
@@ -10498,6 +10632,321 @@
           {
             "kind": "literal",
             "value": "lifecycle/lint"
+          }
+        ]
+      }
+    },
+    {
+      "key": "event:lifecycle/step",
+      "kind": "event",
+      "event": "lifecycle/step",
+      "surface": false,
+      "digest": "79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 12,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 13,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 13,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 14,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "childSessionId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "effort",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "reason",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "role",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "route",
+                "type": 10,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "uid",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 11,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              3,
+              4
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "union",
+            "types": [
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "completed"
+          },
+          {
+            "kind": "literal",
+            "value": "failed"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          },
+          {
+            "kind": "literal",
+            "value": "started"
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "model",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 4,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/step"
+          }
+        ]
+      }
+    },
+    {
+      "key": "event:lifecycle/transition",
+      "kind": "event",
+      "event": "lifecycle/transition",
+      "surface": false,
+      "digest": "38dd837416051d2e59692a3cd2555bce702e66a3279eb6f9957b61cd1e0bdf82",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 8,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 9,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "actorUid",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "eventName",
+                "type": 2,
+                "optional": true
+              },
+              {
+                "name": "files",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "from",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "ownerAfter",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "ownerBefore",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reviewRound",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "to",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 7,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 2
+          },
+          {
+            "kind": "union",
+            "types": [
+              5,
+              6
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/transition"
           }
         ]
       }
@@ -22127,6 +22576,20 @@
       ]
     },
     {
+      "digest": "06278c66c19c3c899ae0a1aee2b78ad28e9c72363a6705f1b7a6216c2748d8fb",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "lifecycle/human-decision"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
       "digest": "0657d3ca5ac4e7bf79b00bcf860b1c7159d01a9da137497221ec2f1776e365f7",
       "schema": {
         "root": 0,
@@ -22176,6 +22639,7 @@
         "packages/subagent/tool-subagent/src/model-selection.ts#AllowedModelRoute"
       ],
       "sources": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts:47",
         "packages/session/session-title/src/types.ts:20",
         "packages/subagent/tool-subagent/src/model-selection.ts:9"
       ]
@@ -22686,6 +23150,141 @@
       "names": [],
       "sources": [
         "packages/core/session/src/types.ts:204"
+      ]
+    },
+    {
+      "digest": "0a612057ab3c676e7c031234e68aaee225df8ab71b4e665f0b2f1cf592f9bce0",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "childSessionId",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "effort",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "reason",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "role",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "route",
+                "type": 9,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "uid",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 10,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              2,
+              3
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "union",
+            "types": [
+              5,
+              6,
+              7,
+              8
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "completed"
+          },
+          {
+            "kind": "literal",
+            "value": "failed"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          },
+          {
+            "kind": "literal",
+            "value": "started"
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "model",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 3,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          }
+        ]
+      },
+      "names": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts#LifecycleStepEvent"
+      ],
+      "sources": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts:38"
       ]
     },
     {
@@ -35252,6 +35851,20 @@
       ]
     },
     {
+      "digest": "33e25239410f7da6f3f4ccec64a0de70f490cfcb6acad021ecc5d702c8c860ab",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "lifecycle/step"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
       "digest": "34d1ab5c5df378186d6054b1a1beea9a41e41965d6f336f0bc0025c441a82e66",
       "schema": {
         "root": 0,
@@ -35753,6 +36366,143 @@
       "sources": [
         "packages/llm/llm/src/assistant-stream.ts:35"
       ]
+    },
+    {
+      "digest": "38dd837416051d2e59692a3cd2555bce702e66a3279eb6f9957b61cd1e0bdf82",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 8,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 9,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "actorUid",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "eventName",
+                "type": 2,
+                "optional": true
+              },
+              {
+                "name": "files",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "from",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "ownerAfter",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "ownerBefore",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reviewRound",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "to",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 7,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 2
+          },
+          {
+            "kind": "union",
+            "types": [
+              5,
+              6
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/transition"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
     },
     {
       "digest": "390eed1028aba02774f14408647acec10ec5516e97d4f15ecde2b9989d5a69f2",
@@ -36768,6 +37518,36 @@
           {
             "kind": "literal",
             "value": "feedback/message-delete"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
+      "digest": "3f3787d6b055fb74dbbe2816c591adc501c7f044cf55bdaa694fa20c05611e21",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "union",
+            "types": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "answered"
+          },
+          {
+            "kind": "literal",
+            "value": "requested"
+          },
+          {
+            "kind": "literal",
+            "value": "unavailable"
           }
         ]
       },
@@ -44191,6 +44971,138 @@
           {
             "kind": "literal",
             "value": "team/message/delivered"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
+      "digest": "48fb95a97608ec4ee57d36ec254d971848ca24a6c3e78531dc2a9ac8f6a69ccc",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 11,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 12,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 12,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 13,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "answer",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "options",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 6,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 10,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              3,
+              4
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 4
+          },
+          {
+            "kind": "union",
+            "types": [
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "answered"
+          },
+          {
+            "kind": "literal",
+            "value": "requested"
+          },
+          {
+            "kind": "literal",
+            "value": "unavailable"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/human-decision"
           }
         ]
       },
@@ -60156,6 +61068,205 @@
       ]
     },
     {
+      "digest": "799231ac91869a6695666505343003905638e1b4d11349bff953d4dbfe3191ba",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "union",
+            "types": [
+              1,
+              2
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
+      "digest": "79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "data",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ignorable",
+                "type": 12,
+                "optional": true
+              },
+              {
+                "name": "seq",
+                "type": 13,
+                "optional": false
+              },
+              {
+                "name": "time",
+                "type": 13,
+                "optional": false
+              },
+              {
+                "name": "type",
+                "type": 14,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "childSessionId",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "effort",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "reason",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "role",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "route",
+                "type": 10,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "uid",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 11,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              3,
+              4
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "union",
+            "types": [
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "completed"
+          },
+          {
+            "kind": "literal",
+            "value": "failed"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          },
+          {
+            "kind": "literal",
+            "value": "started"
+          },
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "model",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "provider",
+                "type": 4,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          },
+          {
+            "kind": "literal",
+            "value": true
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": "lifecycle/step"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
       "digest": "79ddc907312f97cf9553d4841e8b3fc937097bd8d97900a790efad3c05255e99",
       "schema": {
         "root": 0,
@@ -63282,6 +64393,20 @@
       "sources": []
     },
     {
+      "digest": "85d6d96ff884297410ec0026bdacba835f10e56cbcc5a3b9d670739f4aa0494b",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "answered"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
       "digest": "85f9b505b7bdff1f61845c4cea8f36fd0fde1b62facbe87d8924d1d27e616f3a",
       "schema": {
         "root": 0,
@@ -64408,6 +65533,108 @@
       "sources": []
     },
     {
+      "digest": "90ab8b331721d984cbab576df59c86893354e03fbfebc9d563cb59959e115520",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "actorUid",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "eventName",
+                "type": 1,
+                "optional": true
+              },
+              {
+                "name": "files",
+                "type": 2,
+                "optional": false
+              },
+              {
+                "name": "from",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ownerAfter",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "ownerBefore",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "reviewRound",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "to",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 6,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 1
+          },
+          {
+            "kind": "union",
+            "types": [
+              4,
+              5
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "number"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          }
+        ]
+      },
+      "names": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts#LifecycleTransitionEvent"
+      ],
+      "sources": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts:18"
+      ]
+    },
+    {
       "digest": "930a6567a10bb62ddd157bd8abdf4b182810c8c3b49d91309b3b009a5fed9731",
       "schema": {
         "root": 0,
@@ -64905,6 +66132,20 @@
       "sources": [
         "packages/experimental/lifecycle-orchestrator/src/events.ts:8"
       ]
+    },
+    {
+      "digest": "986da13a236032abd7bf7cc58736d9b8080dc9277a42d93d7afdf0a6fce0e75c",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "requested"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
     },
     {
       "digest": "9890113e97dd3541787bfe6704f2b223d3a890b5325ca0acae2b0398909b413e",
@@ -74361,6 +75602,99 @@
       "sources": []
     },
     {
+      "digest": "bc56c002fd16bd926f7f209d8b34e99763bac5f449e6433b93a4e180f7ed322d",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "object",
+            "properties": [
+              {
+                "name": "answer",
+                "type": 1,
+                "optional": false
+              },
+              {
+                "name": "options",
+                "type": 4,
+                "optional": false
+              },
+              {
+                "name": "phase",
+                "type": 5,
+                "optional": false
+              },
+              {
+                "name": "reqId",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "state",
+                "type": 3,
+                "optional": false
+              },
+              {
+                "name": "version",
+                "type": 9,
+                "optional": false
+              }
+            ],
+            "indices": []
+          },
+          {
+            "kind": "union",
+            "types": [
+              2,
+              3
+            ]
+          },
+          {
+            "kind": "primitive",
+            "type": "null"
+          },
+          {
+            "kind": "primitive",
+            "type": "string"
+          },
+          {
+            "kind": "array",
+            "element": 3
+          },
+          {
+            "kind": "union",
+            "types": [
+              6,
+              7,
+              8
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "answered"
+          },
+          {
+            "kind": "literal",
+            "value": "requested"
+          },
+          {
+            "kind": "literal",
+            "value": "unavailable"
+          },
+          {
+            "kind": "literal",
+            "value": 1
+          }
+        ]
+      },
+      "names": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts#LifecycleHumanDecisionEvent"
+      ],
+      "sources": [
+        "packages/experimental/lifecycle-orchestrator/src/events.ts:57"
+      ]
+    },
+    {
       "digest": "bcf0caf62d964b2fcf5404bd5c909cfa9a21c3f3c96e6b7e36d9e33565223825",
       "schema": {
         "root": 0,
@@ -74671,6 +76005,20 @@
       "sources": [
         "packages/llm/llm-retry/src/types.ts:16"
       ]
+    },
+    {
+      "digest": "c1e1622166f57c10c79f9f47b5f300a3b2f42e4fd198ebb4a2290f223c0cf4ac",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "started"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
     },
     {
       "digest": "c1f0f17b6493b85db6453bb30e01b208d703731b25bc1e68e5d4fc72eea9cdea",
@@ -78885,6 +80233,41 @@
       "sources": []
     },
     {
+      "digest": "d604d43922b490b94ff5238c11984f4b22f5dfd2c82bffe2a8f386e07d8dd993",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "union",
+            "types": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          {
+            "kind": "literal",
+            "value": "completed"
+          },
+          {
+            "kind": "literal",
+            "value": "failed"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          },
+          {
+            "kind": "literal",
+            "value": "started"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
       "digest": "d63b8b8ffad9c02fd80c43a17df4f240c1fe8118ecca9de34f9d5871838ab5b9",
       "schema": {
         "root": 0,
@@ -82143,6 +83526,20 @@
           {
             "kind": "literal",
             "value": "image/gif"
+          }
+        ]
+      },
+      "names": [],
+      "sources": []
+    },
+    {
+      "digest": "de68fb257a09264ee8ed06b23bcd044061d347c0526f944a692d57a0e938e910",
+      "schema": {
+        "root": 0,
+        "nodes": [
+          {
+            "kind": "literal",
+            "value": "lifecycle/transition"
           }
         ]
       },

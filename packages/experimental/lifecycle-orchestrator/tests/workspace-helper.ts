@@ -6,6 +6,7 @@ import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import { unsupportedInbox } from '@deepseek-ai/dsh-agent-loop-testkit'
 import { SESSION_FORMAT_VERSION, Session, SessionId } from '@deepseek-ai/dsh-session'
+import SubagentRuntime from '@deepseek-ai/dsh-subagent'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
 import LifecycleService from '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'
@@ -66,17 +67,27 @@ export async function setup(lifecycleDir = 'lifecycle'): Promise<Context> {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  await ctx.plugin(SubagentRuntime, {})
   await ctx.plugin(LifecycleService, { lifecycleDir })
   return ctx
 }
 
 /** A complete Agent whose Session was created in `cwd`, or without a working directory. */
-export function agentAt(ctx: Context, cwd: string | undefined, id = 'lifecycle-agent'): Agent {
+/** Session header facts a test agent may carry beyond its working directory. */
+export interface AgentHeader {
+  readonly origin?: 'subagent'
+  readonly delegationDepth?: number
+  readonly parentSession?: SessionId
+}
+
+export function agentAt(ctx: Context, cwd: string | undefined, id = 'lifecycle-agent', header: AgentHeader = {}): Agent {
   const scope = ctx.plugin(() => {})
   const sessionId = SessionId(id)
   const session = cwd === undefined
     ? Session.create(sessionId)
-    : Session.create(sessionId, undefined, { version: SESSION_FORMAT_VERSION, id: sessionId, createdAt: 0, cwd, isSeeded: false })
+    : Session.create(sessionId, undefined, {
+      version: SESSION_FORMAT_VERSION, id: sessionId, createdAt: 0, cwd, isSeeded: false, ...header,
+    })
   return {
     id: sessionId,
     options: {},

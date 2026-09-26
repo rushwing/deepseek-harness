@@ -287,13 +287,20 @@ const TOOL_PACKAGES: ToolPackage[] = [
     pkg: '@deepseek-ai/dsh-experimental-lifecycle-orchestrator',
     dir: 'lifecycle-orchestrator',
     source: 'packages/experimental/lifecycle-orchestrator/src/index.ts',
-    requires: ['ctx.tools', 'ctx.systemPrompt', 'ctx.llm and ctx.agentDefaultModel (lifecycle_init, opportunistic)', 'ctx.commands (opportunistic)'],
-    writes: ['tool/call', 'tool/result', 'lifecycle/lint on every lifecycle_lint run'],
+    requires: [
+      'ctx.tools', 'ctx.systemPrompt', 'ctx.subagents', 'ctx.llm and ctx.agentDefaultModel (lifecycle_init, opportunistic)',
+      'ctx.userQuestions (lifecycle_run, opportunistic)', 'ctx.commands (opportunistic)',
+    ],
+    writes: [
+      'tool/call', 'tool/result', 'lifecycle/lint on every lifecycle_lint run', 'lifecycle/transition on every applied step',
+      'lifecycle/step and lifecycle/human-decision during lifecycle_run',
+    ],
     async mount(ctx) {
+      await ctx.plugin(SubagentRuntime)
       await ctx.plugin(LifecycleService, { lifecycleDir: 'lifecycle' })
     },
     note:
-      'The four lifecycle tools read the calling Session\'s working directory afresh on every call; lifecycle_init writes the English defaults and a registry seated on the routes the deployment has, and the other three never write artifacts.',
+      'The six lifecycle tools read the calling Session\'s working directory afresh on every call. lifecycle_init writes the English defaults and a registry seated on the routes the deployment has; lifecycle_transition and lifecycle_run rewrite artifact frontmatter through the table\'s effects and are refused to delegated callers; the other three never write artifacts.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-bash',

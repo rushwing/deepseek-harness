@@ -44,7 +44,10 @@ The [format references](persistence-changes/historical-formats/README.md) cover 
 | `event:hook/invoked` | event | `8a6e1ec9e8db346b0e02f027db73c07a94f067a26d40c1aef1abd09c47ce7ba0` | [`{ type: "hook/invoked" }`](#persistence-type-sha256-8a6e1ec9e8db346b0e02f027db73c07a94f067a26d40c1aef1abd09c47ce7ba0) |
 | `event:hook/result` | event | `e75916628f3f10c2d50658bd143052a46285fbf1a9a700ba54947614603d26b4` | [`{ type: "hook/result" }`](#persistence-type-sha256-e75916628f3f10c2d50658bd143052a46285fbf1a9a700ba54947614603d26b4) |
 | `event:image/offload` | event | `b222069eea2d768065161c1147b1f2c78c1b54328c84b3586ae5c8f91b8ed35e` | [`{ type: "image/offload" }`](#persistence-type-sha256-b222069eea2d768065161c1147b1f2c78c1b54328c84b3586ae5c8f91b8ed35e) |
+| `event:lifecycle/human-decision` | event | `48fb95a97608ec4ee57d36ec254d971848ca24a6c3e78531dc2a9ac8f6a69ccc` | [`{ type: "lifecycle/human-decision" }`](#persistence-type-sha256-48fb95a97608ec4ee57d36ec254d971848ca24a6c3e78531dc2a9ac8f6a69ccc) |
 | `event:lifecycle/lint` | event | `aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12` | [`{ type: "lifecycle/lint" }`](#persistence-type-sha256-aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12) |
+| `event:lifecycle/step` | event | `79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8` | [`{ type: "lifecycle/step" }`](#persistence-type-sha256-79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8) |
+| `event:lifecycle/transition` | event | `38dd837416051d2e59692a3cd2555bce702e66a3279eb6f9957b61cd1e0bdf82` | [`{ type: "lifecycle/transition" }`](#persistence-type-sha256-38dd837416051d2e59692a3cd2555bce702e66a3279eb6f9957b61cd1e0bdf82) |
 | `event:llm/retry` | event | `525254db03b1d1e6b74cf55aced52817568331ac1f96c0818728910b6692e336` | [`{ type: "llm/retry" }`](#persistence-type-sha256-525254db03b1d1e6b74cf55aced52817568331ac1f96c0818728910b6692e336) |
 | `event:llm/retry-started` | event | `48e5c9861f16ac07e78cb7b5ae9dabdf7bb85c58baed5a51b4ad275050ea58e3` | [`{ type: "llm/retry-started" }`](#persistence-type-sha256-48e5c9861f16ac07e78cb7b5ae9dabdf7bb85c58baed5a51b4ad275050ea58e3) |
 | `event:model/selection` | event | `35203ba7ad5ef6f97d556b85df20ae98f04f09c65748cecdf8eefdb8b6405ffc` | [`{ type: "model/selection" }`](#persistence-type-sha256-35203ba7ad5ef6f97d556b85df20ae98f04f09c65748cecdf8eefdb8b6405ffc) |
@@ -669,6 +672,21 @@ Source: [`packages/compaction/compaction-image-offload/src/projection.ts:25`](..
 
 ### `lifecycle/*`
 
+<a id="lifecyclehuman-decision--log-only"></a>
+
+#### `lifecycle/human-decision` — log-only
+
+```ts persistence-catalog
+/**
+ * A human decision `lifecycle_run` requested at a human-owned REQ state:
+ * `requested` before the question, then `answered` with the choice or
+ * `unavailable` when no answerer could be reached. Log-only.
+ */
+'lifecycle/human-decision': LifecycleHumanDecisionEvent
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/events.ts:82`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+
 <a id="lifecyclelint--log-only"></a>
 
 #### `lifecycle/lint` — log-only
@@ -682,7 +700,39 @@ Source: [`packages/compaction/compaction-image-offload/src/projection.ts:25`](..
 'lifecycle/lint': LifecycleLintEvent
 ```
 
-Source: [`packages/experimental/lifecycle-orchestrator/src/events.ts:24`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+Source: [`packages/experimental/lifecycle-orchestrator/src/events.ts:95`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+
+<a id="lifecyclestep--log-only"></a>
+
+#### `lifecycle/step` — log-only
+
+```ts persistence-catalog
+/**
+ * A `lifecycle_run` step by a role child: appended with `phase: started`
+ * before the child spawns and again with `completed`, `rejected`, or
+ * `failed` after it is disposed. Log-only; a resumed driver re-reads the
+ * files and never replays a step.
+ */
+'lifecycle/step': LifecycleStepEvent
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/events.ts:76`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+
+<a id="lifecycletransition--log-only"></a>
+
+#### `lifecycle/transition` — log-only
+
+```ts persistence-catalog
+/**
+ * A transition or lifecycle event that `lifecycle_transition` or the
+ * driver applied: the REQ, the step, the status and owner before and
+ * after, the acting uid, and the files rewritten. Log-only; a resumed
+ * driver re-reads the files and never replays this event.
+ */
+'lifecycle/transition': LifecycleTransitionEvent
+```
+
+Source: [`packages/experimental/lifecycle-orchestrator/src/events.ts:89`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
 
 ### `llm/*`
 
@@ -1417,6 +1467,14 @@ SHA-256: `142c37d302aa22a0a57915b5255939d3ca91c1811ca13fddcf84cf76ea00758a`
 
 `"always"`
 
+<a id="persistence-type-sha256-85d6d96ff884297410ec0026bdacba835f10e56cbcc5a3b9d670739f4aa0494b"></a>
+
+### `"answered"`
+
+SHA-256: `85d6d96ff884297410ec0026bdacba835f10e56cbcc5a3b9d670739f4aa0494b`
+
+`"answered"`
+
 <a id="persistence-type-sha256-e438a9d4fb883b3e4a8d9fc8913aa1550ed50eb384bfbf943100a5605b537498"></a>
 
 ### `"append"`
@@ -2047,6 +2105,14 @@ SHA-256: `ad3b56aa2fc1ad4250e7399295d34a8eae592e1907e85852e2291b2e498a30bc`
 
 `"legacy"`
 
+<a id="persistence-type-sha256-06278c66c19c3c899ae0a1aee2b78ad28e9c72363a6705f1b7a6216c2748d8fb"></a>
+
+### `"lifecycle/human-decision"`
+
+SHA-256: `06278c66c19c3c899ae0a1aee2b78ad28e9c72363a6705f1b7a6216c2748d8fb`
+
+`"lifecycle/human-decision"`
+
 <a id="persistence-type-sha256-0204c453c81a3728985df460c3183c0868a42ce148206cdbec28670ab756285b"></a>
 
 ### `"lifecycle/lint"`
@@ -2054,6 +2120,22 @@ SHA-256: `ad3b56aa2fc1ad4250e7399295d34a8eae592e1907e85852e2291b2e498a30bc`
 SHA-256: `0204c453c81a3728985df460c3183c0868a42ce148206cdbec28670ab756285b`
 
 `"lifecycle/lint"`
+
+<a id="persistence-type-sha256-33e25239410f7da6f3f4ccec64a0de70f490cfcb6acad021ecc5d702c8c860ab"></a>
+
+### `"lifecycle/step"`
+
+SHA-256: `33e25239410f7da6f3f4ccec64a0de70f490cfcb6acad021ecc5d702c8c860ab`
+
+`"lifecycle/step"`
+
+<a id="persistence-type-sha256-de68fb257a09264ee8ed06b23bcd044061d347c0526f944a692d57a0e938e910"></a>
+
+### `"lifecycle/transition"`
+
+SHA-256: `de68fb257a09264ee8ed06b23bcd044061d347c0526f944a692d57a0e938e910`
+
+`"lifecycle/transition"`
 
 <a id="persistence-type-sha256-611cae9a3539733aa0c42f66035a7d90f19dcbbdfb5d9e3b628b13705253942d"></a>
 
@@ -2359,6 +2441,14 @@ SHA-256: `3e0eff5946255ff05d88a10839c60305135801f97794ea48d409f8503303317e`
 
 `"request/header"`
 
+<a id="persistence-type-sha256-986da13a236032abd7bf7cc58736d9b8080dc9277a42d93d7afdf0a6fce0e75c"></a>
+
+### `"requested"`
+
+SHA-256: `986da13a236032abd7bf7cc58736d9b8080dc9277a42d93d7afdf0a6fce0e75c`
+
+`"requested"`
+
 <a id="persistence-type-sha256-5bd310104cfe448e530beb11422d2f791e2e32e8e95fdc528a15f9ca693dae75"></a>
 
 ### `"resource-cost"`
@@ -2510,6 +2600,14 @@ SHA-256: `1922cd79a70806c17758185a6ef0458bc1fb3900363906733421c16414da2509`
 SHA-256: `6f9e00383836275e46c0a9915767f9bb561be5fc30aae490174908a93e99a912`
 
 `"snapshot"`
+
+<a id="persistence-type-sha256-c1e1622166f57c10c79f9f47b5f300a3b2f42e4fd198ebb4a2290f223c0cf4ac"></a>
+
+### `"started"`
+
+SHA-256: `c1e1622166f57c10c79f9f47b5f300a3b2f42e4fd198ebb4a2290f223c0cf4ac`
+
+`"started"`
 
 <a id="persistence-type-sha256-c219efbdfd53b836786202ab4532913d555798f0a8615a4e9629736e3799fb70"></a>
 
@@ -3830,6 +3928,27 @@ Sources: [`packages/schedule/schedule/src/types.ts:185`](../packages/schedule/sc
 | `at` | not declared | `id`: `string`; `prompt`: `string`; `scheduledAt`: `string` | [`LegacyAtScheduleRecord`](#persistence-type-sha256-b63b089a00b3b9357675b3e0c3d3e9aa4fdbda1fba9c91a6b0c59ffdbb89f505) |
 | `every` | not declared | `everySeconds`: `number`; `id`: `string`; `prompt`: `string`; `scheduledAt`: `string` | [`LegacyEveryScheduleRecord`](#persistence-type-sha256-a926dc71814edd01a4f041eb5fc766d153db3407ef4704e98f4c1b6527309ebb) |
 
+<a id="persistence-type-sha256-bc56c002fd16bd926f7f209d8b34e99763bac5f449e6433b93a4e180f7ed322d"></a>
+
+<a id="persistence-type-lifecyclehumandecisionevent"></a>
+
+<a id="persistence-type-packagesexperimentallifecycle-orchestratorsrceventstslifecyclehumandecisionevent"></a>
+
+### `LifecycleHumanDecisionEvent`
+
+SHA-256: `bc56c002fd16bd926f7f209d8b34e99763bac5f449e6433b93a4e180f7ed322d`
+
+Sources: [`packages/experimental/lifecycle-orchestrator/src/events.ts:57`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+
+| Property | Presence | Type |
+|---|---|---|
+| `answer` | required | [`union (2 variants)`](#persistence-type-sha256-799231ac91869a6695666505343003905638e1b4d11349bff953d4dbfe3191ba) |
+| `options` | required | [`string[]`](#persistence-type-sha256-93c33d9687613293f8c95d46c4d922fe9ceae83b84c384beff5c3315abe005f2) |
+| `phase` | required | [`union (3 variants)`](#persistence-type-sha256-3f3787d6b055fb74dbbe2816c591adc501c7f044cf55bdaa694fa20c05611e21) |
+| `reqId` | required | `string` |
+| `state` | required | `string` |
+| `version` | required | `1` |
+
 <a id="persistence-type-sha256-98613e41701f6f283bb544293e1e0ecc190faf053a73c99d515eabbabe2f1dbf"></a>
 
 <a id="persistence-type-lifecyclelintevent"></a>
@@ -3848,6 +3967,58 @@ Sources: [`packages/experimental/lifecycle-orchestrator/src/events.ts:8`](../pac
 | `scope` | required | `string` |
 | `version` | required | `1` |
 | `violationCount` | required | `number` |
+
+<a id="persistence-type-sha256-0a612057ab3c676e7c031234e68aaee225df8ab71b4e665f0b2f1cf592f9bce0"></a>
+
+<a id="persistence-type-lifecyclestepevent"></a>
+
+<a id="persistence-type-packagesexperimentallifecycle-orchestratorsrceventstslifecyclestepevent"></a>
+
+### `LifecycleStepEvent`
+
+SHA-256: `0a612057ab3c676e7c031234e68aaee225df8ab71b4e665f0b2f1cf592f9bce0`
+
+Sources: [`packages/experimental/lifecycle-orchestrator/src/events.ts:38`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+
+| Property | Presence | Type |
+|---|---|---|
+| `childSessionId` | required | [`union (2 variants)`](#persistence-type-sha256-799231ac91869a6695666505343003905638e1b4d11349bff953d4dbfe3191ba) |
+| `effort` | required | `string` |
+| `phase` | required | [`union (4 variants)`](#persistence-type-sha256-d604d43922b490b94ff5238c11984f4b22f5dfd2c82bffe2a8f386e07d8dd993) |
+| `provider` | required | `string` |
+| `reason` | required | [`union (2 variants)`](#persistence-type-sha256-799231ac91869a6695666505343003905638e1b4d11349bff953d4dbfe3191ba) |
+| `reqId` | required | `string` |
+| `role` | required | `string` |
+| `route` | required | [`SessionTitleModelIdentity`](#persistence-type-sha256-07e1a58c58b593f507b8e7f25723bb0aa42baae6e00f5ecfddf28cb1e64d3235) |
+| `state` | required | `string` |
+| `uid` | required | `string` |
+| `version` | required | `1` |
+
+<a id="persistence-type-sha256-90ab8b331721d984cbab576df59c86893354e03fbfebc9d563cb59959e115520"></a>
+
+<a id="persistence-type-lifecycletransitionevent"></a>
+
+<a id="persistence-type-packagesexperimentallifecycle-orchestratorsrceventstslifecycletransitionevent"></a>
+
+### `LifecycleTransitionEvent`
+
+SHA-256: `90ab8b331721d984cbab576df59c86893354e03fbfebc9d563cb59959e115520`
+
+Sources: [`packages/experimental/lifecycle-orchestrator/src/events.ts:18`](../packages/experimental/lifecycle-orchestrator/src/events.ts)
+
+| Property | Presence | Type |
+|---|---|---|
+| `actorUid` | required | `string` |
+| `eventName` | optional | `string` |
+| `files` | required | [`string[]`](#persistence-type-sha256-93c33d9687613293f8c95d46c4d922fe9ceae83b84c384beff5c3315abe005f2) |
+| `from` | required | `string` |
+| `id` | required | `string` |
+| `ownerAfter` | required | `string` |
+| `ownerBefore` | required | `string` |
+| `reqId` | required | `string` |
+| `reviewRound` | required | [`OptionalSessionSeq`](#persistence-type-sha256-3bd652ebfa8726b3ce3937a4f1bd2759e02f86b3a08a20f9e41a8513656fbc5f) |
+| `to` | required | `string` |
+| `version` | required | `1` |
 
 <a id="persistence-type-sha256-67d5f73ceae82f5265258142ad6cf172de2c1fef93ba551b7f0454e0a93bffe0"></a>
 
@@ -4587,7 +4758,7 @@ Sources: [`packages/session/session-title-llm/src/index.ts:34`](../packages/sess
 
 SHA-256: `07e1a58c58b593f507b8e7f25723bb0aa42baae6e00f5ecfddf28cb1e64d3235`
 
-Sources: [`packages/session/session-title/src/types.ts:20`](../packages/session/session-title/src/types.ts) · [`packages/subagent/tool-subagent/src/model-selection.ts:9`](../packages/subagent/tool-subagent/src/model-selection.ts)
+Sources: [`packages/experimental/lifecycle-orchestrator/src/events.ts:47`](../packages/experimental/lifecycle-orchestrator/src/events.ts) · [`packages/session/session-title/src/types.ts:20`](../packages/session/session-title/src/types.ts) · [`packages/subagent/tool-subagent/src/model-selection.ts:9`](../packages/subagent/tool-subagent/src/model-selection.ts)
 
 | Property | Presence | Type |
 |---|---|---|
@@ -5511,6 +5682,17 @@ One of:
 - `"fork"`
 - `"fresh"`
 
+<a id="persistence-type-sha256-799231ac91869a6695666505343003905638e1b4d11349bff953d4dbfe3191ba"></a>
+
+### `union (2 variants)`
+
+SHA-256: `799231ac91869a6695666505343003905638e1b4d11349bff953d4dbfe3191ba`
+
+One of:
+
+- `null`
+- `string`
+
 <a id="persistence-type-sha256-9947aa5938fe19a895298da412917acbf9ffb5093a73ab8baa257e6ae9e63a07"></a>
 
 ### `union (2 variants)`
@@ -5521,6 +5703,18 @@ One of:
 
 - [`{ compactionId, llmStreamCall, maxTokens?, model, … }`](#persistence-type-sha256-a99ec0993c62c058e50af9f68922202a3b54f5e259bc2abf1915a73381d2316d)
 - [`{ compactionId, maxTokens?, model, provider, … }`](#persistence-type-sha256-576a2de8355eb09850963ff5953420b172e274d9283666eb7d889097db120796)
+
+<a id="persistence-type-sha256-3f3787d6b055fb74dbbe2816c591adc501c7f044cf55bdaa694fa20c05611e21"></a>
+
+### `union (3 variants)`
+
+SHA-256: `3f3787d6b055fb74dbbe2816c591adc501c7f044cf55bdaa694fa20c05611e21`
+
+One of:
+
+- `"answered"`
+- `"requested"`
+- `"unavailable"`
 
 <a id="persistence-type-sha256-5776e5553ff2dfe3f5bc202dbb1e7c9f93e35a531aebb7764c23b2b6153b2ccc"></a>
 
@@ -5559,6 +5753,19 @@ One of:
 - `"completed"`
 - `"in_progress"`
 - `"pending"`
+
+<a id="persistence-type-sha256-d604d43922b490b94ff5238c11984f4b22f5dfd2c82bffe2a8f386e07d8dd993"></a>
+
+### `union (4 variants)`
+
+SHA-256: `d604d43922b490b94ff5238c11984f4b22f5dfd2c82bffe2a8f386e07d8dd993`
+
+One of:
+
+- `"completed"`
+- `"failed"`
+- `"rejected"`
+- `"started"`
 
 <a id="persistence-type-sha256-62e6a429ff3f390a46ac39fb468692032f42936ca0db19b53454184189401379"></a>
 
@@ -8160,6 +8367,22 @@ SHA-256: `b222069eea2d768065161c1147b1f2c78c1b54328c84b3586ae5c8f91b8ed35e`
 | `time` | required | `number` |
 | `type` | required | `"image/offload"` |
 
+<a id="persistence-type-sha256-48fb95a97608ec4ee57d36ec254d971848ca24a6c3e78531dc2a9ac8f6a69ccc"></a>
+
+<a id="persistence-type-eventlifecyclehuman-decision"></a>
+
+### `{ type: "lifecycle/human-decision" }`
+
+SHA-256: `48fb95a97608ec4ee57d36ec254d971848ca24a6c3e78531dc2a9ac8f6a69ccc`
+
+| Property | Presence | Type |
+|---|---|---|
+| `data` | required | [`LifecycleHumanDecisionEvent`](#persistence-type-sha256-bc56c002fd16bd926f7f209d8b34e99763bac5f449e6433b93a4e180f7ed322d) |
+| `ignorable` | optional | `true` |
+| `seq` | required | `number` |
+| `time` | required | `number` |
+| `type` | required | `"lifecycle/human-decision"` |
+
 <a id="persistence-type-sha256-aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12"></a>
 
 <a id="persistence-type-eventlifecyclelint"></a>
@@ -8175,6 +8398,38 @@ SHA-256: `aa82fb8e21b73d642ae6b9a68b755914d1fe70751708c2ef71b3502b941a3a12`
 | `seq` | required | `number` |
 | `time` | required | `number` |
 | `type` | required | `"lifecycle/lint"` |
+
+<a id="persistence-type-sha256-79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8"></a>
+
+<a id="persistence-type-eventlifecyclestep"></a>
+
+### `{ type: "lifecycle/step" }`
+
+SHA-256: `79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8`
+
+| Property | Presence | Type |
+|---|---|---|
+| `data` | required | [`LifecycleStepEvent`](#persistence-type-sha256-0a612057ab3c676e7c031234e68aaee225df8ab71b4e665f0b2f1cf592f9bce0) |
+| `ignorable` | optional | `true` |
+| `seq` | required | `number` |
+| `time` | required | `number` |
+| `type` | required | `"lifecycle/step"` |
+
+<a id="persistence-type-sha256-38dd837416051d2e59692a3cd2555bce702e66a3279eb6f9957b61cd1e0bdf82"></a>
+
+<a id="persistence-type-eventlifecycletransition"></a>
+
+### `{ type: "lifecycle/transition" }`
+
+SHA-256: `38dd837416051d2e59692a3cd2555bce702e66a3279eb6f9957b61cd1e0bdf82`
+
+| Property | Presence | Type |
+|---|---|---|
+| `data` | required | [`LifecycleTransitionEvent`](#persistence-type-sha256-90ab8b331721d984cbab576df59c86893354e03fbfebc9d563cb59959e115520) |
+| `ignorable` | optional | `true` |
+| `seq` | required | `number` |
+| `time` | required | `number` |
+| `type` | required | `"lifecycle/transition"` |
 
 <a id="persistence-type-sha256-525254db03b1d1e6b74cf55aced52817568331ac1f96c0818728910b6692e336"></a>
 

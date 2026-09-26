@@ -44,7 +44,7 @@ describe('lifecycle orchestrator public Loader composition', () => {
     expect(report.lint).toEqual({ violations: [], counts: {} })
     expect(report.status).toEqual({ activeSet: 'default', reqs: [] })
     expect(report.lintEvents).toEqual([{ version: 1, scope: 'all', violationCount: 0, ruleCounts: {} }])
-    expect(report.before).toEqual({ tools: ['lifecycle_check_in', 'lifecycle_init', 'lifecycle_lint', 'lifecycle_status'], section: 'present', commands: ['lifecycle'], service: 'present' })
+    expect(report.before).toEqual({ tools: ['lifecycle_check_in', 'lifecycle_init', 'lifecycle_lint', 'lifecycle_run', 'lifecycle_status', 'lifecycle_transition'], section: 'present', commands: ['lifecycle'], service: 'present' })
     expect(report.after).toEqual({ tools: [], commands: [], service: 'absent' })
   }, PRODUCTION_PROFILE_TEST_TIMEOUT_MS)
 })

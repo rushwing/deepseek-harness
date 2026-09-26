@@ -6,6 +6,7 @@ import Loader from '@deepseek-ai/cordis-plugin-loader'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
+import SubagentRuntime from '@deepseek-ai/dsh-subagent'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
 import * as module from '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'
@@ -37,6 +38,8 @@ describe('the lifecycle tools', () => {
     expect(parameters('lifecycle_status')).toEqual(['reqId'])
     expect(parameters('lifecycle_check_in')).toEqual(['reqId', 'uid', 'state', 'transition'])
     expect(parameters('lifecycle_lint')).toEqual(['reqId'])
+    expect(parameters('lifecycle_transition')).toEqual(['reqId', 'transition', 'event', 'summary', 'decisions', 'pr'])
+    expect(parameters('lifecycle_run')).toEqual(['reqId', 'maxSteps'])
   })
 
   it('reports a REQ, checks a role in, and lints with a logged lifecycle/lint event', async () => {
@@ -181,6 +184,7 @@ describe('plugin lifetime and export shape', () => {
     const ctx = new Context()
     await ctx.plugin(SystemPrompt)
     await ctx.plugin(ToolRuntime)
+    await ctx.plugin(SubagentRuntime, {})
     const fiber = await ctx.plugin(LifecycleService, { lifecycleDir: 'lifecycle' })
     const root = await workspace()
     const agent = agentAt(ctx, root, 'lifetime')
@@ -194,9 +198,19 @@ describe('plugin lifetime and export shape', () => {
 
   it('default-exports the service class with its injections and a schemastery Config', () => {
     expect(module.default).toBe(LifecycleService)
-    expect(LifecycleService.inject).toEqual(['tools', 'systemPrompt'])
+    expect(LifecycleService.inject).toEqual(['tools', 'systemPrompt', 'subagents'])
     expect(Loader.prototype.unwrapExports(module)).toBe(LifecycleService)
-    expect(LifecycleService.Config()).toEqual({ lifecycleDir: 'lifecycle' })
-    expect(() => new LifecycleService(new Context(), { lifecycleDir: ' ' })).toThrow('lifecycleDir must name a directory')
+    expect(LifecycleService.Config()).toEqual({
+      lifecycleDir: 'lifecycle',
+      maxStepsPerRun: 8,
+      delegationToolNames: ['subagent', 'workflow', 'ralph', 'spawn_teammate', 'send_message', 'interrupt_agent'],
+      humanDecisions: 'ask',
+      stepTimeoutMs: 1_800_000,
+      proposalChannel: 'auto',
+      subagentProvider: 'spawn',
+    })
+    expect(() => new LifecycleService(new Context(), { ...LifecycleService.Config(), subagentProvider: ' ' })).toThrow('subagentProvider must name')
+    expect(() => new LifecycleService(new Context(), { ...LifecycleService.Config(), delegationToolNames: ['subagent', ''] })).toThrow('blank name')
+    expect(() => new LifecycleService(new Context(), { ...LifecycleService.Config(), lifecycleDir: ' ' })).toThrow('lifecycleDir must name a directory')
   })
 })

@@ -8,7 +8,17 @@
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 
 /** The stable failure codes of the lifecycle service. */
-export type LifecycleErrorCode = 'NO_WORKSPACE' | 'TABLES_INVALID' | 'UNKNOWN_REQ' | 'UNKNOWN_TRANSITION' | 'NO_BRIEF' | 'NO_ROUTE' | 'INVALID_SCOPE'
+export type LifecycleErrorCode =
+  | 'NO_WORKSPACE'
+  | 'TABLES_INVALID'
+  | 'UNKNOWN_REQ'
+  | 'UNKNOWN_TRANSITION'
+  | 'NO_BRIEF'
+  | 'NO_ROUTE'
+  | 'INVALID_SCOPE'
+  | 'INVALID_REQUEST'
+  | 'DELEGATED_CALLER'
+  | 'NO_PROVIDER'
 
 /**
  * A lifecycle failure: no workspace, tables that did not load, an unknown REQ,

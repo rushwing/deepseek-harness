@@ -40,6 +40,15 @@
     },
     {
       "path": "../lifecycle-work-items"
+    },
+    {
+      "path": "../../subagent/subagent"
+    },
+    {
+      "path": "../../interaction/user-questions"
+    },
+    {
+      "path": "../../util/values"
     }
   ]
 }

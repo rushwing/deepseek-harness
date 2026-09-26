@@ -1017,8 +1017,8 @@ export interface InspectorOptions {
 
 ## `@deepseek-ai/dsh-experimental-lifecycle-orchestrator`
 
-- `inject`: `tools` · `systemPrompt`
-- `source`: [`packages/experimental/lifecycle-orchestrator/src/index.ts:65`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+- `inject`: `tools` · `systemPrompt` · `subagents`
+- `source`: [`packages/experimental/lifecycle-orchestrator/src/index.ts:84`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
 
 ```ts config-catalog
 /** Where the lifecycle files live. */
@@ -1028,6 +1028,18 @@ export interface Config {
    * `lifecycle.yml`, `agent-registry.yml`, `artifact-contract.yml`, and `tasks/`.
    */
   lifecycleDir: string
+  /** The most steps one `lifecycle_run` takes; a call may only lower it. */
+  maxStepsPerRun: number
+  /** Tools denied to role children so a child never delegates; names absent from a deployment are ignored. */
+  delegationToolNames: string[]
+  /** `ask` uses the user-questions service when composed and stops otherwise; `stop` never asks. */
+  humanDecisions: 'ask' | 'stop'
+  /** Abort a role child after this long; the step fails and nothing is applied. */
+  stepTimeoutMs: number
+  /** `auto` requests structured output when the provider supports it, else reads the trailing fenced JSON; `text` always reads the text. */
+  proposalChannel: 'auto' | 'text'
+  /** The subagent provider that runs role children. */
+  subagentProvider: string
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-lifecycle-orchestrator -->

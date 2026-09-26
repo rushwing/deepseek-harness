@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import LlmRuntime, { LlmAdapter, ToolCallId, type GenerateOptions, type LlmModelInfo, type StreamChunk } from '@deepseek-ai/dsh-llm'
+import SubagentRuntime from '@deepseek-ai/dsh-subagent'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
 import LifecycleService, { LIFECYCLE_TABLE, handlesOf } from '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'
@@ -44,6 +45,7 @@ async function mount(options: MountOptions = {}): Promise<Mounted> {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  await ctx.plugin(SubagentRuntime, {})
   if (options.products !== undefined) {
     await ctx.plugin(LlmRuntime)
     ctx.llm.registerAdapter(Object.keys(options.products), new CatalogAdapter(options.products))

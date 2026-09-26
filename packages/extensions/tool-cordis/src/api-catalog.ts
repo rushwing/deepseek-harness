@@ -1366,6 +1366,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
+        signature: 'readonly config: Config',
+        description: 'The resolved configuration.',
+        parameters: [],
+      },
+      {
         signature: 'hasTables(cwd: string): boolean',
         description: 'Whether the working directory carries a lifecycle table.',
         parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }],
@@ -1410,6 +1415,19 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }, { name: 'reqId', description: 'the REQ.' }],
         returns: 'the transitions in table order.',
         throws: ['`TABLES_INVALID` or `UNKNOWN_REQ`.'],
+      },
+      {
+        signature: 'transition(cwd: string, request: TransitionRequest): Promise<TransitionResult>',
+        description: 'Apply one transition or lifecycle event to a REQ by hand: guards judged on the current tree, effects written atomically, the step and the REQ family linted, and every file restored when the result is red.',
+        parameters: [{ name: 'cwd', description: 'the absolute workspace directory.' }, { name: 'request', description: 'the REQ, the step, the summary, and the decisions.' }],
+        returns: 'what was applied, or the violations with nothing written.',
+      },
+      {
+        signature: 'async run(agent: Agent, request: RunRequest, signal: AbortSignal): Promise<RunResult>',
+        description: 'Drive one REQ through fresh role children from the agent\'s Session working directory, logging every step, transition, and human decision to the agent\'s Session.',
+        parameters: [{ name: 'agent', description: 'the root agent that drives; its Session must have a working directory.' }, { name: 'request', description: 'the REQ and the optional step ceiling.' }, { name: 'signal', description: 'abort cancels the running child and ends the run.' }],
+        returns: 'the run report.',
+        throws: ['LifecycleError `NO_WORKSPACE` without a working directory; the driver\'s own codes otherwise.'],
       },
       {
         signature: 'status(cwd: string, reqId?: string): LifecycleStatus',
@@ -6363,6 +6381,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RunnerFailureRule {\n    allowedExitCodes?: readonly number[];\n    fatalSignatures: readonly string[];\n    informationalLines?: readonly string[];\n}',
   },
   {
+    name: 'RunRequest',
+    declaration: 'export interface RunRequest {\n    readonly reqId: string;\n    readonly maxSteps?: number | undefined;\n}',
+  },
+  {
     name: 'Rv',
     declaration: 'export interface Rv extends ArtifactBase {\n    readonly kind: \'RV\';\n    readonly sections: Readonly<Record<string, ReviewSection>>;\n    readonly regression: readonly RegressionLine[];\n    readonly exemptionReason: string;\n    readonly exemptionDeclared: boolean;\n}',
   },
@@ -7295,6 +7317,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type SshStreamEndpoint = z.infer<typeof streamEndpointSchema>;',
   },
   {
+    name: 'StepDecisions',
+    declaration: 'export interface StepDecisions {\n    readonly fields?: Readonly<Record<string, unknown>>;\n    readonly tcStatuses?: Readonly<Record<string, string>>;\n    readonly bugStatuses?: Readonly<Record<string, string>>;\n}',
+  },
+  {
     name: 'StorageBackend',
     declaration: 'export interface StorageBackend {\n    readonly kv?: KvFacet;\n    close(): Promise<void>;\n}',
   },
@@ -7809,6 +7835,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TransitionId',
     declaration: 'export type TransitionId = Branded<\'LifecycleTransitionId\'>;',
+  },
+  {
+    name: 'TransitionRequest',
+    declaration: 'export interface TransitionRequest {\n    readonly reqId: string;\n    readonly transition?: string | undefined;\n    readonly event?: string | undefined;\n    readonly summary: string;\n    readonly decisions?: StepDecisions | undefined;\n    readonly pr?: number | undefined;\n}',
+  },
+  {
+    name: 'TransitionResult',
+    declaration: 'export interface TransitionResult {\n    readonly kind: \'transition\' | \'event\';\n    readonly applied: boolean;\n    readonly reqId: string;\n    readonly id: string;\n    readonly from: string;\n    readonly to: string;\n    readonly actorUid: string;\n    readonly ownerBefore: string;\n    readonly ownerAfter: string;\n    readonly reviewRound: number | null;\n    readonly files: string[];\n    readonly suggestedCommitSubject: string;\n    readonly violations: string[];\n}',
   },
   {
     name: 'TransitionSlot',

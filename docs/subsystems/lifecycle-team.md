@@ -25,11 +25,13 @@ The lifecycle team runs a requirement through a fixed state machine with three r
 
 ## The service and its consumers
 
-`ctx.lifecycle` reads a Session's working directory afresh on every call: `load(cwd)` returns the four tables or every problem, `graph(cwd)` the artifact graph, `lint(cwd, reqId?)` the violations of the tree or of one REQ's family, `checkIn(cwd, request)` the three hard-stop checks, `legalTransitions(cwd, reqId)` what the current owner may take, `status(cwd, reqId?)` the report the tools render, and `briefs(cwd)` the parsed role briefs with the banned-phrase scan over briefs and registry notes.
+`ctx.lifecycle` reads a Session's working directory afresh on every call: `load(cwd)` returns the four tables or every problem, `graph(cwd)` the artifact graph, `lint(cwd, reqId?)` the violations of the tree or of one REQ's family, `checkIn(cwd, request)` the three hard-stop checks, `legalTransitions(cwd, reqId)` what the current owner may take, `status(cwd, reqId?)` the report the tools render, `briefs(cwd)` the parsed role briefs with the banned-phrase scan over briefs and registry notes, `transition(cwd, request)` one transition or lifecycle event applied through the table's effects and judged as a complete step, and `run(agent, request, signal)` the driver that carries one REQ through fresh role children.
 
-The model sees `lifecycle_init`, `lifecycle_status`, `lifecycle_check_in`, and `lifecycle_lint`, and, in a Session whose working directory carries `lifecycle.yml`, the `lifecycle:policy` section at prompt order 700. Users get `/lifecycle status [REQ-ID] | lint [REQ-ID]` when a command registry is composed. Every `lifecycle_lint` run appends a `lifecycle/lint` event to the calling Session.
+The model sees `lifecycle_init`, `lifecycle_status`, `lifecycle_check_in`, `lifecycle_lint`, `lifecycle_transition`, and `lifecycle_run`, and, in a Session whose working directory carries `lifecycle.yml`, the `lifecycle:policy` section at prompt order 700; role children see the three read-only tools and their brief. Users get `/lifecycle status [REQ-ID] | lint [REQ-ID]` when a command registry is composed. Every `lifecycle_lint` run appends a `lifecycle/lint` event to the calling Session; every applied step appends `lifecycle/transition`; a run appends `lifecycle/step` around each role child and `lifecycle/human-decision` around each question to the human. All four are log-only: a resumed driver re-reads the files.
 
-The returned records are the orchestrator's `LifecycleLoad`, `LintReport`, `CheckInRequest` and `CheckInResult`, `LegalTransition`, `LifecycleStatus`, and `Briefs` types, and the work-items `ArtifactGraph`; each is a plain object computed from the files in that call and holds no handle to them.
+One run step re-reads the tree, stops on `done` or `blocked`, stops `lint-red` when the REQ family is red, and otherwise acts for the owner. A human owner is offered the legal transitions through `userQuestions` (`needs-human` when nobody answers or the answer is Stop). A role owner gets a fresh one-shot child from the configured subagent provider, seated by the registry: the route and per-state effort as `agentOptions`, delegation tools and the orchestrator's writing tools denied, depth capped, and the rendered brief as its first message. The child hands back a proposal (structured output or the last fenced JSON block) naming a transition or event, a summary, decisions, and a pull-request number. The driver diffs the tree against the child's write scope (the artifact kinds its role writes at that state, bound to the REQ), judges the proposal's guards on the pre-step tree, plans and writes the effects atomically, moves a REQ that reached `done` to `tasks/archive/done/`, judges the step as a whole, lints the family, and logs the transition; a rejected or failed step restores every byte and stops the run. A tool guard keyed by the driver Session refuses out-of-scope `write`, `edit`, and `str_replace_editor` calls while the step runs; the diff is the enforcement of record for shell and product-native writes.
+
+The returned records are the orchestrator's `LifecycleLoad`, `LintReport`, `CheckInRequest` and `CheckInResult`, `LegalTransition`, `LifecycleStatus`, `TransitionRequest` and `TransitionResult`, `RunRequest` and `RunResult`, and `Briefs` types, and the work-items `ArtifactGraph`; each is a plain object computed from the files in that call and holds no handle to them.
 
 ## The three checks
 
@@ -44,6 +46,9 @@ Before any role works on a REQ: C1, the REQ file exists; C2, the caller's uid is
 | `UNKNOWN_REQ`, `UNKNOWN_TRANSITION`, `NO_BRIEF` | the named REQ, transition id, or role × state does not exist |
 | `NO_ROUTE` | `lifecycle_init` found no model route to seat the roles, or a product route advertises no models |
 | `INVALID_SCOPE` | a scope prefix is not 1 to 6 uppercase letters |
+| `INVALID_REQUEST` | a step names neither or both of transition and event, its summary is blank, or `maxSteps` is not a positive integer |
+| `DELEGATED_CALLER` | a role child called `lifecycle_transition` or `lifecycle_run`; children hand back proposals instead |
+| `NO_PROVIDER` | the configured `subagentProvider` is not registered |
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -119,6 +124,28 @@ checkIn(cwd: string, request: CheckInRequest): CheckInResult
 legalTransitions(cwd: string, reqId: string): LegalTransition[]
 
 /**
+ * Apply one transition or lifecycle event to a REQ by hand: guards judged
+ * on the current tree, effects written atomically, the step and the REQ
+ * family linted, and every file restored when the result is red.
+ * @param cwd - the absolute workspace directory.
+ * @param request - the REQ, the step, the summary, and the decisions.
+ * @returns what was applied, or the violations with nothing written.
+ */
+transition(cwd: string, request: TransitionRequest): Promise<TransitionResult>
+
+/**
+ * Drive one REQ through fresh role children from the agent's Session
+ * working directory, logging every step, transition, and human decision
+ * to the agent's Session.
+ * @param agent - the root agent that drives; its Session must have a working directory.
+ * @param request - the REQ and the optional step ceiling.
+ * @param signal - abort cancels the running child and ends the run.
+ * @returns the run report.
+ * @throws LifecycleError `NO_WORKSPACE` without a working directory; the driver's own codes otherwise.
+ */
+async run(agent: Agent, request: RunRequest, signal: AbortSignal): Promise<RunResult>
+
+/**
  * The lifecycle position of one REQ or of every REQ.
  * @param cwd - the absolute workspace directory.
  * @param reqId - when given, report that REQ only.
@@ -127,6 +154,8 @@ legalTransitions(cwd: string, reqId: string): LegalTransition[]
  */
 status(cwd: string, reqId?: string): LifecycleStatus
 ```
+
+Types: [Agent](core.md)
 
 Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../../packages/experimental/lifecycle-orchestrator/src/index.ts)
 <!-- END GENERATED cordis-surface -->

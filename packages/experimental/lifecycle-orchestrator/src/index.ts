@@ -13,15 +13,22 @@ import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { brandString } from '@deepseek-ai/dsh-brand'
+import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { CommandDefinitionId } from '@deepseek-ai/dsh-commands'
+import type {} from '@deepseek-ai/dsh-subagent'
 import type { ArtifactGraph } from '@deepseek-ai/dsh-experimental-lifecycle-work-items'
 import { bannedPhrasesIn, parseBriefs, type Briefs } from './briefs/parse.ts'
 import { LifecycleError } from './errors.ts'
 import { renderLint, renderStatus } from './render.ts'
 import { policyText } from './section.ts'
 import { checkInTool, lintTool, statusTool } from './tools.ts'
+import { runLifecycle, type RunRequest, type RunResult } from './driver.ts'
 import { initTool } from './tools/init.ts'
+import { runTool } from './tools/run.ts'
+import { transitionTool } from './tools/transition.ts'
+import { WriteGuard } from './write-guard.ts'
 import {
+  applyStep,
   checkIn,
   graphOf,
   legalTransitions,
@@ -34,6 +41,8 @@ import {
   type LifecycleLoad,
   type LifecycleStatus,
   type LintReport,
+  type TransitionRequest,
+  type TransitionResult,
 } from './workspace.ts'
 
 export { BANNED_PHRASES, bannedPhrasesIn, parseBriefs, type BriefText, type Briefs, type BriefsParse, type SharedBriefText } from './briefs/parse.ts'
@@ -43,7 +52,15 @@ export { GUIDE, STANDARDS } from './defaults/standards.ts'
 export { ARTIFACT_CONTRACT, LIFECYCLE_TABLE } from './defaults/tables.ts'
 export { LifecycleError, type LifecycleErrorCode } from './errors.ts'
 export { handlesOf, planRegistry, type Handles, type RegistryPlan, type SeatedRoute } from './tools/init.ts'
-export type { LifecycleLintEvent } from './events.ts'
+export type { LifecycleHumanDecisionEvent, LifecycleLintEvent, LifecycleStepEvent, LifecycleTransitionEvent } from './events.ts'
+export { decisionsOf, isRecord, renderTransition, requireRoot, transitionEvent } from './tools/transition.ts'
+export { actorOf, runLifecycle, type Actor, type DriverDeps, type RunRequest, type RunResult, type RunStep, type RunStop } from './driver.ts'
+export { renderRun } from './tools/run.ts'
+export { PROPOSAL_SCHEMA, parseProposal, type ParsedProposal, type Proposal } from './proposal.ts'
+export { WRITE_KINDS, denialOf, unboundBug, writeScope, type WriteScope } from './scope.ts'
+export { WriteGuard, type StepCell } from './write-guard.ts'
+export { STOP, decideWithHuman, type HumanDecision, type HumanRequest } from './human.ts'
+export { diffTree, restoreTree, snapshotTree, type Tree, type TreeDiff } from './tree.ts'
 export type {
   CheckInRequest,
   CheckInResult,
@@ -53,6 +70,8 @@ export type {
   LifecycleTables,
   LintReport,
   ReqStatus,
+  TransitionRequest,
+  TransitionResult,
 } from './workspace.ts'
 
 declare module '@deepseek-ai/cordis' {
@@ -68,6 +87,18 @@ export interface Config {
    * `lifecycle.yml`, `agent-registry.yml`, `artifact-contract.yml`, and `tasks/`.
    */
   lifecycleDir: string
+  /** The most steps one `lifecycle_run` takes; a call may only lower it. */
+  maxStepsPerRun: number
+  /** Tools denied to role children so a child never delegates; names absent from a deployment are ignored. */
+  delegationToolNames: string[]
+  /** `ask` uses the user-questions service when composed and stops otherwise; `stop` never asks. */
+  humanDecisions: 'ask' | 'stop'
+  /** Abort a role child after this long; the step fails and nothing is applied. */
+  stepTimeoutMs: number
+  /** `auto` requests structured output when the provider supports it, else reads the trailing fenced JSON; `text` always reads the text. */
+  proposalChannel: 'auto' | 'text'
+  /** The subagent provider that runs role children. */
+  subagentProvider: string
 }
 
 const TABLE_FILE = 'lifecycle.yml'
@@ -83,24 +114,41 @@ const ALL = 'all'
  * under `<cwd>/<lifecycleDir>/` afresh; nothing is cached between calls.
  */
 export class LifecycleService extends Service {
-  static inject = ['tools', 'systemPrompt']
+  static inject = ['tools', 'systemPrompt', 'subagents']
 
   /** Schemastery configuration of the orchestrator. */
-  static Config: z<Config> = z.object({
+  static Config = z.object({
     lifecycleDir: z.string().default('lifecycle'),
+    maxStepsPerRun: z.number().step(1).min(1).default(8),
+    delegationToolNames: z.array(z.string()).default(['subagent', 'workflow', 'ralph', 'spawn_teammate', 'send_message', 'interrupt_agent']),
+    humanDecisions: z.union(['ask', 'stop']).default('ask'),
+    stepTimeoutMs: z.number().step(1).min(1).default(1_800_000),
+    proposalChannel: z.union(['auto', 'text']).default('auto'),
+    subagentProvider: z.string().default('spawn'),
   })
 
   /** The lifecycle directory relative to a Session's working directory. */
   readonly dir: string
 
-  constructor(ctx: Context, config: Config = { lifecycleDir: 'lifecycle' }) {
+  /** The resolved configuration. */
+  readonly config: Config
+
+  private readonly guard: WriteGuard
+
+  constructor(ctx: Context, config: Config) {
     if (config.lifecycleDir.trim() === '') throw new Error('lifecycleDir must name a directory relative to the Session working directory')
+    if (config.subagentProvider.trim() === '') throw new Error('subagentProvider must name a registered subagent provider')
+    if (config.delegationToolNames.some(name => name.trim() === '')) throw new Error('delegationToolNames must not contain a blank name')
     super(ctx, 'lifecycle')
     this.dir = config.lifecycleDir
+    this.config = config
+    this.guard = new WriteGuard(ctx)
     ctx.tools.register(initTool(this, ctx))
+    ctx.tools.register(runTool(this))
     ctx.tools.register(statusTool(this))
     ctx.tools.register(checkInTool(this))
     ctx.tools.register(lintTool(this))
+    ctx.tools.register(transitionTool(this))
     ctx.systemPrompt.section({
       name: 'lifecycle:policy',
       order: ctx.systemPrompt.getSectionOrder('LIFECYCLE_POLICY'),
@@ -217,6 +265,35 @@ export class LifecycleService extends Service {
    */
   legalTransitions(cwd: string, reqId: string): LegalTransition[] {
     return legalTransitions(this.load(cwd), reqId)
+  }
+
+  /**
+   * Apply one transition or lifecycle event to a REQ by hand: guards judged
+   * on the current tree, effects written atomically, the step and the REQ
+   * family linted, and every file restored when the result is red.
+   * @param cwd - the absolute workspace directory.
+   * @param request - the REQ, the step, the summary, and the decisions.
+   * @returns what was applied, or the violations with nothing written.
+   */
+  transition(cwd: string, request: TransitionRequest): Promise<TransitionResult> {
+    const load = this.load(cwd)
+    return applyStep(cwd, load, graphOf(load), request)
+  }
+
+  /**
+   * Drive one REQ through fresh role children from the agent's Session
+   * working directory, logging every step, transition, and human decision
+   * to the agent's Session.
+   * @param agent - the root agent that drives; its Session must have a working directory.
+   * @param request - the REQ and the optional step ceiling.
+   * @param signal - abort cancels the running child and ends the run.
+   * @returns the run report.
+   * @throws LifecycleError `NO_WORKSPACE` without a working directory; the driver's own codes otherwise.
+   */
+  async run(agent: Agent, request: RunRequest, signal: AbortSignal): Promise<RunResult> {
+    const cwd = agent.session.header.cwd
+    if (cwd === undefined) throw new LifecycleError('NO_WORKSPACE', 'lifecycle_run needs a Session with a working directory')
+    return await runLifecycle({ ctx: this.ctx, service: this, config: this.config, guard: this.guard }, agent, cwd, request, signal)
   }
 
   /**
