@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -273,6 +273,23 @@ describe('lifecycle_run edge paths', () => {
     expect(actorOf(registry, 'generator-001', 'tc_impl')).toMatchObject({ route: { provider: 'claude-code', model: 'opus' }, effort: 'high' })
     expect(() => actorOf(registry, 'human-001', 'draft')).toThrow('not a registered role agent with a route')
     expect(() => actorOf(registry, 'nobody-001', 'draft')).toThrow('not a registered role agent with a route')
+  })
+
+  it('sends no reasoning effort for a role agent whose registry entry declares none', async () => {
+    const { ctx, agent, provider } = await setupDriver(happyPathChildren().slice(0, 1), {
+      answers: ['T01'],
+      config: { maxStepsPerRun: 2 },
+      prepare: async (workspace) => {
+        const path = join(workspace, 'lifecycle', 'agent-registry.yml')
+        const text = await readFile(path, 'utf8')
+        await writeFile(path, text.replace('    effort: xhigh\n', ''), 'utf8')
+      },
+    })
+    const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(result.steps.map(step => step.transition)).toEqual(['T01', 'T02'])
+    expect(provider.requests[0]?.agentOptions).toEqual({ provider: 'claude-code', model: 'opus' })
+    const started = agent.session.snapshotEvents().find(event => event.type === 'lifecycle/step')
+    expect(started?.data).toMatchObject({ uid: 'planner-001', effort: null })
   })
 
   it('propagates a provider that fails to start', async () => {

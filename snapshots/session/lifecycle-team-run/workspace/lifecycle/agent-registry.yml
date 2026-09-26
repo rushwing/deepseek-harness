@@ -1,0 +1,45 @@
+---
+# Agent registry scaffolded by lifecycle_init: the single truth of role <-> route.
+# Each agent's `handles` equals the states lifecycle.yml derives for its role.
+
+version: 1
+
+roles:
+  planner: "Expand a requirement into scope, technical direction, and task decomposition without implementation detail"
+  generator: "Implement iteratively against the specification (test code, product code, documents) and self-check before delivery"
+  evaluator: "Independent quality gate: write the test-case text that fixes acceptance, review every stage, and run the gates"
+  human: "Human orchestrator: scope approval, final merge, unblocking, and model selection"
+
+provider_sets:
+  default:
+    kind: same_vendor
+    planner: planner-001
+    generator: generator-001
+    evaluator: evaluator-001
+
+active_set: default
+
+agents:
+  - uid: planner-001
+    role: planner
+    vendor: deepseek-official
+    route: { provider: deepseek-official, model: deepseek-v4-flash }
+    fallbacks: []
+    handles: [ req_review ]
+  - uid: generator-001
+    role: generator
+    vendor: deepseek-official
+    route: { provider: deepseek-official, model: deepseek-v4-flash }
+    fallbacks: []
+    handles: [ tc_review, tc_impl, req_impl ]
+  - uid: evaluator-001
+    role: evaluator
+    vendor: deepseek-official
+    route: { provider: deepseek-official, model: deepseek-v4-flash }
+    fallbacks: []
+    handles: [ req_review, tc_design, tc_impl_review, req_impl_review ]
+
+  - uid: human-001
+    role: human
+    description: "Human orchestrator: scope approval, final merge, unblocking, and model selection"
+    handles: [ draft, req_review, pr_draft, done, blocked ]

@@ -1,0 +1,20 @@
+# This scenario owns the `lifecycle` composition. The harness layers the shared
+# headless patch (`text-turn/cordis.yml`) underneath, so this file carries only
+# what makes the composition different: the two plugins of the optional
+# lifecycle team bundle, which the shipped profile offers switched off.
+- insert:
+    - id: lifecycle-orchestrator
+      name: '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'
+      config:
+        lifecycleDir: lifecycle
+        maxStepsPerRun: 8
+        humanDecisions: ask
+        stepTimeoutMs: 1800000
+        proposalChannel: auto
+        subagentProvider: spawn
+
+    - id: lifecycle-model-fallback
+      name: '@deepseek-ai/dsh-experimental-lifecycle-model-fallback'
+      config:
+        lifecycleDir: lifecycle
+        maxHops: 2

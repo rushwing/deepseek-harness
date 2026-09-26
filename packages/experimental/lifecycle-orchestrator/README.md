@@ -31,7 +31,7 @@ This plugin gives a Session the lifecycle team. `ctx.lifecycle` loads the tables
 |---|---|---|
 | `lifecycleDir` | `lifecycle` | The directory, relative to the Session's working directory, that holds `lifecycle.yml`, `agent-registry.yml`, `artifact-contract.yml`, `tasks/`, and `standards/`. A blank value fails at load. |
 | `maxStepsPerRun` | `8` | The most steps one `lifecycle_run` takes; a call's `maxSteps` may only lower it. |
-| `delegationToolNames` | `subagent`, `workflow`, `ralph`, `spawn_teammate`, `send_message`, `interrupt_agent` | Tools denied to role children so a child never delegates; the orchestrator's own `lifecycle_run`, `lifecycle_transition`, and `lifecycle_init` are always denied too. Names a deployment does not compose deny nothing. A blank name fails at load. |
+| `delegationToolNames` | `subagent`, `subagent_fork`, `workflow`, `ralph`, `spawn_teammate`, `send_message`, `interrupt_agent` | Tools denied to role children so a child never delegates; the orchestrator's own `lifecycle_run`, `lifecycle_transition`, and `lifecycle_init` are always denied too. Names a deployment does not compose are left out of the restriction, which refuses unknown tools. A blank name fails at load. |
 | `humanDecisions` | `ask` | `ask` puts a human-owned REQ's legal transitions to the `userQuestions` service when it is composed and answers, else stops with `needs-human`; `stop` never asks. |
 | `stepTimeoutMs` | `1800000` | A role child is aborted after this long; the step fails and nothing is applied. |
 | `proposalChannel` | `auto` | `auto` requests structured output from providers that support it and otherwise reads the last fenced ```json block of the child's final text; `text` always reads the text. |
@@ -126,15 +126,12 @@ In a Session whose working directory carries `<lifecycleDir>/lifecycle.yml`, the
 ##### Verbatim text for this field, with `lifecycle` as the directory
 
 ```markdown
-This workspace runs the lifecycle team process from `lifecycle/`. Requirements (REQ), test cases (TC), bugs (BUG), review records (RV), and design plans (PL) live under `lifecycle/tasks/`; their standards live under `lifecycle/standards/`.
-Use `lifecycle_status` to read a REQ's state, owner, and legal transitions, `lifecycle_check_in` before working on a REQ as a role, and `lifecycle_lint` before handing artifacts over.
-Never edit `status`, `owner`, `review_round`, `pending_bugs`, or the `blocked_*` frontmatter fields by hand: lifecycle transitions move them.
-Use `lifecycle_run` only when asked to drive a REQ; it spawns one role child per step and applies the proposed transitions. `lifecycle_transition` applies one transition or lifecycle event the human decided.
+This workspace runs the lifecycle team process from `lifecycle/`. Requirements (REQ), test cases (TC), bugs (BUG), review records (RV), and design plans (PL) live under `lifecycle/tasks/`; their standards live under `lifecycle/standards/`. Use `lifecycle_status` to read a REQ's state, owner, and legal transitions, `lifecycle_check_in` before working on a REQ as a role, and `lifecycle_lint` before handing artifacts over. Never edit `status`, `owner`, `review_round`, `pending_bugs`, or the `blocked_*` frontmatter fields by hand: lifecycle transitions move them. Use `lifecycle_run` only when asked to drive a REQ; it spawns one role child per step and applies the proposed transitions. `lifecycle_transition` applies one transition or lifecycle event the human decided.
 ```
 
 #### Token effect
 
-Four fixed sentences on every request of a lifecycle workspace; zero elsewhere.
+One paragraph of five fixed sentences on every request of a lifecycle workspace; zero elsewhere.
 
 #### KV Cache effect
 
@@ -182,7 +179,7 @@ These limits define what the read-only surface does not do. They are current pac
 - **Human decisions choose a transition only** — the human picks one legal transition id or Stop; transitions that need decisions (such as `T15`'s blocking fields) are proposed by the current owner's child or applied by hand through `lifecycle_transition`.
 - **No recorded-session snapshot yet** — the driver has unit coverage and a Loader composition test; the authored `snapshots/session/lifecycle-team-run/` case lands with the profile bundle that owns its composition.
 - **One lifecycle directory per Session** — the directory is a plugin-wide setting; two workspaces with different layouts need two deployments.
-- **Scaffold routes are product-shaped** — `lifecycle_init` recognises `claude-code` and `codex` routes for a cross-vendor set and seats everything else on the default model with `effort: high`; efforts are validated against the route when a step first resolves it, not at scaffold time.
+- **Scaffold routes are product-shaped** — `lifecycle_init` recognises `claude-code` and `codex` routes for a cross-vendor set with the efforts those products advertise, and seats everything else on the default model without an effort, so the adapter default applies; an effort is validated against its route when a step first resolves it, not at scaffold time.
 - **English defaults only** — the scaffold writes the English table, contract, standards, and briefs; a team translates or edits them in the workspace.
 
 <a id="dev-note"></a>

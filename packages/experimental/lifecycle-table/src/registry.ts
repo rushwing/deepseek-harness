@@ -103,14 +103,13 @@ function parseAgent(entry: unknown, table: LifecycleTable, derived: Readonly<Rec
   if (role === HUMAN_ROLE) return ok(common)
   if (!isRoute(entry.route)) return fail(`${uid}: route { provider, model } is required for a ${role}`)
   if (typeof entry.vendor !== 'string') return fail(`${uid}: vendor is required for a ${role}`)
-  if (entry.effort === undefined) return fail(`${uid}: effort is required for a ${role}`)
-  const effort = parseEffort(uid, entry.effort, states)
-  if (!effort.ok) return fail(effort.problem)
+  const effort = entry.effort === undefined ? undefined : parseEffort(uid, entry.effort, states)
+  if (effort !== undefined && !effort.ok) return fail(effort.problem)
   return ok({
     ...common,
     vendor: entry.vendor,
     route: { provider: entry.route.provider, model: entry.route.model },
-    effort: effort.value,
+    ...(effort === undefined ? {} : { effort: effort.value }),
   })
 }
 
@@ -290,7 +289,8 @@ export function seatFor(registry: AgentRegistry, role: string, state: string): A
  * The reasoning effort an agent works with at a state.
  * @param agent - a registered agent.
  * @param state - the REQ status.
- * @returns the per-state effort, else the default, else `undefined` for agents without efforts (humans).
+ * @returns the per-state effort, else the default, else `undefined` for agents without efforts (humans and routes
+ * whose adapter default applies).
  */
 export function effortFor(agent: RegisteredAgent, state: string): ReasoningEffort | undefined {
   return agent.effort === undefined ? undefined : agent.effort[state] ?? agent.effort[DEFAULT_EFFORT_KEY]

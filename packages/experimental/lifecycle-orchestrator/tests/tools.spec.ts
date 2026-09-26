@@ -203,7 +203,7 @@ describe('plugin lifetime and export shape', () => {
     expect(LifecycleService.Config()).toEqual({
       lifecycleDir: 'lifecycle',
       maxStepsPerRun: 8,
-      delegationToolNames: ['subagent', 'workflow', 'ralph', 'spawn_teammate', 'send_message', 'interrupt_agent'],
+      delegationToolNames: ['subagent', 'subagent_fork', 'workflow', 'ralph', 'spawn_teammate', 'send_message', 'interrupt_agent'],
       humanDecisions: 'ask',
       stepTimeoutMs: 1_800_000,
       proposalChannel: 'auto',

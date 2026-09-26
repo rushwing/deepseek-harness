@@ -68,13 +68,15 @@ interface Route {
   readonly vendor: string
 }
 
-function agentYaml(uid: string, role: string, route: Route, fallbacks: readonly Route[], handles: readonly string[]): string {
+function agentYaml(
+  uid: string, role: string, route: Route, fallbacks: readonly Route[], handles: readonly string[], effort?: string,
+): string {
   const lines = [
     `  - uid: ${uid}`,
     `    role: ${role}`,
     `    vendor: ${route.vendor}`,
     `    route: { provider: ${route.provider}, model: ${route.model} }`,
-    `    effort: ${EFFORT}`,
+    ...(effort === undefined ? [] : [`    effort: ${effort}`]),
   ]
   if (fallbacks.length === 0) lines.push('    fallbacks: []')
   else {
@@ -147,7 +149,7 @@ function crossVendorPlan(claude: Route, codex: Route): RegistryPlan {
   const handles = handlesOf(LIFECYCLE_TABLE)
   const seat = (ordinal: string, route: Route, fallback: Route): { uid: string; yaml: string }[] => handles.roles.map(([role, states]) => {
     const uid = `${role}-${ordinal}`
-    return { uid, yaml: agentYaml(uid, role, route, [fallback], states) }
+    return { uid, yaml: agentYaml(uid, role, route, [fallback], states, EFFORT) }
   })
   const anthropic = seat('001', claude, codex)
   const openai = seat('002', codex, claude)

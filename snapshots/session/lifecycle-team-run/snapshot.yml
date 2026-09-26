@@ -1,0 +1,12 @@
+version: 1
+scenario: lifecycle-team-run
+profile: headless
+composition: lifecycle
+recording: authored
+header:
+  class: lifecycle
+  pin: true
+  childSystemPrompts: [1]
+  childToolSchemas: [1]
+workspace:
+  final: true

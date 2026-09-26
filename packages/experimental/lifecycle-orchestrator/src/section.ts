@@ -17,5 +17,5 @@ export function policyText(dir: string): string {
     'Never edit `status`, `owner`, `review_round`, `pending_bugs`, or the `blocked_*` frontmatter fields by hand: lifecycle transitions move them.',
     'Use `lifecycle_run` only when asked to drive a REQ; it spawns one role child per step and applies the proposed transitions. '
       + '`lifecycle_transition` applies one transition or lifecycle event the human decided.',
-  ].join('\n')
+  ].join(' ')
 }

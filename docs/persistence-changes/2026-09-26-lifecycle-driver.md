@@ -9,7 +9,7 @@ English | [中文](2026-09-26-lifecycle-driver.zh.md)
 
 ## Summary
 
-The lifecycle orchestrator (`@deepseek-ai/dsh-experimental-lifecycle-orchestrator`) declares three more log-only Session events for the driver: `lifecycle/transition` records every transition or lifecycle event applied to a REQ (by `lifecycle_transition` or by `lifecycle_run`), `lifecycle/step` records each role-child step of a run when it starts and when it completes, is rejected, or fails, and `lifecycle/human-decision` records each question the run put to the human and its outcome. Adding ordinary event types is a same-version change.
+The lifecycle orchestrator (`@deepseek-ai/dsh-experimental-lifecycle-orchestrator`) declares three more log-only Session events for the driver: `lifecycle/transition` records every transition or lifecycle event applied to a REQ (by `lifecycle_transition` or by `lifecycle_run`), `lifecycle/step` records each role-child step of a run when it starts and when it completes, is rejected, or fails, carrying the seated route and the registry effort or `null` when the route's adapter default applies, and `lifecycle/human-decision` records each question the run put to the human and its outcome. Adding ordinary event types is a same-version change.
 
 ## Table of Contents
 
@@ -32,7 +32,7 @@ changes:
     decision: same-version
   - root: "event:lifecycle/step"
     previous: null
-    after: "79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8"
+    after: "26669fca3823364a59d8566fd716cf13faef5ff93ca0056c00b69704f38fa4be"
     decision: same-version
   - root: "event:lifecycle/transition"
     previous: null

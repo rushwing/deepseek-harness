@@ -9,7 +9,7 @@ kind: persistence-change
 
 ## 概述
 
-生命周期 orchestrator（`@deepseek-ai/dsh-experimental-lifecycle-orchestrator`）为驱动器再声明三个只记录的 Session 事件：`lifecycle/transition` 记录对 REQ 应用的每次迁移或生命周期事件（由 `lifecycle_transition` 或 `lifecycle_run` 应用），`lifecycle/step` 在一次运行的每个角色子代步骤开始以及完成、被拒或失败时各记录一次，`lifecycle/human-decision` 记录运行向人类提出的每个问题及其结果。新增普通事件类型是同版本变更。
+生命周期 orchestrator（`@deepseek-ai/dsh-experimental-lifecycle-orchestrator`）为驱动器再声明三个只记录的 Session 事件：`lifecycle/transition` 记录对 REQ 应用的每次迁移或生命周期事件（由 `lifecycle_transition` 或 `lifecycle_run` 应用），`lifecycle/step` 在一次运行的每个角色子代步骤开始以及完成、被拒或失败时各记录一次，携带落座的路由以及注册表 effort（路由使用 adapter 默认值时为 `null`），`lifecycle/human-decision` 记录运行向人类提出的每个问题及其结果。新增普通事件类型是同版本变更。
 
 ## 目录
 
@@ -32,7 +32,7 @@ changes:
     decision: same-version
   - root: "event:lifecycle/step"
     previous: null
-    after: "79a6b8ef5e72dba9e286465f4d3a2c898be65fa906fe141f1a786bb499ba38c8"
+    after: "26669fca3823364a59d8566fd716cf13faef5ff93ca0056c00b69704f38fa4be"
     decision: same-version
   - root: "event:lifecycle/transition"
     previous: null

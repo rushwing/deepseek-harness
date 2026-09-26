@@ -140,6 +140,7 @@ describe('lifecycle_init', () => {
     expect(load.problems).toEqual([])
     expect(load.tables?.idScheme.scopes).toEqual({ platform: 'PLAT', 'canonical-bom': 'CBOM' })
     expect(load.tables?.registry.agents.map(agent => String(agent.uid))).toEqual(['planner-001', 'generator-001', 'evaluator-001', 'human-001'])
+    expect(await readFile(join(mounted.root, 'lifecycle', 'agent-registry.yml'), 'utf8')).not.toContain('effort:')
     expect(mounted.ctx.lifecycle.briefs(mounted.root).problems).toEqual([])
     const again = await init(mounted, { scaffold: 'full' })
     if (again.isError) throw new Error('init failed')

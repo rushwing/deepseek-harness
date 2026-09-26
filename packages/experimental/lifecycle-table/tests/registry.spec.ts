@@ -43,6 +43,14 @@ function registry(text = registryText): AgentRegistry {
 }
 
 describe('loadAgentRegistry on the English fixture', () => {
+  it('accepts a role agent without an effort and reports none for it', () => {
+    const loaded = registry(edited((doc) => { delete agent(doc, 'planner-002').effort }))
+    const planner = loaded.agents.find(entry => String(entry.uid) === 'planner-002')
+    if (planner === undefined) throw new Error('fixture has no planner-002')
+    expect(planner.effort).toBeUndefined()
+    expect(effortFor(planner, 'req_review')).toBeUndefined()
+  })
+
   it('loads every agent with its declared route, vendor, effort, fallbacks, and handles', () => {
     const loaded = registry()
     expect(loaded.activeSet).toBe('mixed')
@@ -105,7 +113,6 @@ describe('loadAgentRegistry names each violation', () => {
     ['a uid whose prefix is not its role', (doc) => { agent(doc, 'planner-002').role = 'generator'; agent(doc, 'planner-002').handles = ['tc_review', 'tc_impl', 'req_impl']; delete (doc.provider_sets as Yaml).openai }, /planner-002: uid prefix 'planner' is not its role 'generator'/],
     ['a non-human agent without a route', (doc) => { delete agent(doc, 'planner-002').route }, /planner-002: route \{ provider, model \} is required for a planner/],
     ['a non-human agent without a vendor', (doc) => { delete agent(doc, 'planner-002').vendor }, /planner-002: vendor is required for a planner/],
-    ['a non-human agent without an effort', (doc) => { delete agent(doc, 'planner-002').effort }, /planner-002: effort is required for a planner/],
     ['an illegal effort', (doc) => { agent(doc, 'planner-002').effort = 'turbo' }, /planner-002: effort 'turbo' is not one of low, medium, high, xhigh, max/],
     ['a per-state effort without a default', (doc) => { agent(doc, 'planner-002').effort = { req_review: 'high' } }, /planner-002: a per-state effort must declare default/],
     ['a per-state effort keyed by a non-state', (doc) => { agent(doc, 'planner-002').effort = { default: 'high', lunch: 'low' } }, /planner-002: effort key 'lunch' is not a registered state/],

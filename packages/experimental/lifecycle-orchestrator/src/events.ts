@@ -42,10 +42,11 @@ export interface LifecycleStepEvent {
   readonly uid: string
   readonly role: string
   readonly state: string
-  /** The subagent provider that ran the child, and the model route and effort the registry seated. */
+  /** The subagent provider that ran the child, and the model route the registry seated. */
   readonly provider: string
   readonly route: { readonly provider: string; readonly model: string }
-  readonly effort: string
+  /** The registry effort at the state, or `null` when the route's adapter default applied. */
+  readonly effort: string | null
   /** The child Session id once the child started; `null` on the `started` record. */
   readonly childSessionId: string | null
   readonly phase: 'started' | 'completed' | 'rejected' | 'failed'

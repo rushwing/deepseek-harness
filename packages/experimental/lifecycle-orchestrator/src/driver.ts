@@ -89,11 +89,12 @@ export interface DriverDeps {
   readonly guard: WriteGuard
 }
 
-/** A registered role agent with the route and effort the registry loader guarantees for a role. */
+/** A registered role agent with the route the registry loader guarantees for a role, and its effort at the state when it declares one. */
 export interface Actor {
   readonly agent: RegisteredAgent
   readonly route: AgentRoute
-  readonly effort: ReasoningEffort
+  /** `undefined` when the registry declares no effort: the route's adapter default applies. */
+  readonly effort: ReasoningEffort | undefined
 }
 
 interface Run {
@@ -128,7 +129,7 @@ interface StepIdentity {
   readonly state: string
   readonly provider: string
   readonly route: { readonly provider: string; readonly model: string }
-  readonly effort: string
+  readonly effort: string | null
 }
 
 const HUMAN = 'human'
@@ -141,23 +142,20 @@ const COMPLETED = 'completed'
 const OWN_TOOLS: readonly string[] = ['lifecycle_run', 'lifecycle_transition', 'lifecycle_init']
 
 /**
- * The registered agent behind a REQ owner, with the route and effort the
- * registry loader requires of every non-human role.
+ * The registered agent behind a REQ owner, with the route the registry
+ * loader requires of every non-human role and its effort at the state.
  * @param registry - the loaded registry.
  * @param uid - the owner uid.
  * @param state - the REQ state, which selects the per-state effort.
  * @returns the actor.
- * @throws LifecycleError `TABLES_INVALID` for an unregistered uid, a human, or an agent without an effort for the state.
+ * @throws LifecycleError `TABLES_INVALID` for an unregistered uid or a human.
  */
 export function actorOf(registry: AgentRegistry, uid: string, state: string): Actor {
   const agent = registry.agents.find(entry => String(entry.uid) === uid)
   if (agent === undefined || agent.route === undefined) {
     throw new LifecycleError('TABLES_INVALID', `${uid} is not a registered role agent with a route`)
   }
-  const effort = effortFor(agent, state)
-  /* v8 ignore next -- the registry loader requires a default effort for every role agent */
-  if (effort === undefined) throw new LifecycleError('TABLES_INVALID', `${uid} declares no reasoning effort for ${state}`)
-  return { agent, route: agent.route, effort }
+  return { agent, route: agent.route, effort: effortFor(agent, state) }
 }
 
 function requireProvider(ctx: Context, name: string): SubagentProvider {
@@ -184,8 +182,24 @@ function stepEvent(identity: StepIdentity, childSessionId: string | null, phase:
   return { version: 1, ...identity, childSessionId, phase, reason }
 }
 
+/**
+ * The tools a role child may not call: the configured delegation tools and
+ * the orchestrator's own writing tools, limited to the tools the deployment
+ * registers because the restriction refuses unknown names.
+ * @param deps - the composed services and configuration.
+ * @returns the registered tool names to deny.
+ */
+export function deniedTools(deps: Pick<DriverDeps, 'ctx' | 'config'>): string[] {
+  const registered = new Set(deps.ctx.tools.schemas().map(schema => schema.name))
+  return [...deps.config.delegationToolNames, ...OWN_TOOLS].filter(name => registered.has(name))
+}
+
 function agentOptionsOf(actor: Actor): AgentOptions {
-  return { provider: actor.route.provider, model: actor.route.model, reasoningEffort: brandString<ReasoningEffortId>(actor.effort) }
+  return {
+    provider: actor.route.provider,
+    model: actor.route.model,
+    ...(actor.effort === undefined ? {} : { reasoningEffort: brandString<ReasoningEffortId>(actor.effort) }),
+  }
 }
 
 /**
@@ -308,7 +322,7 @@ async function runChild(run: Run, actor: Actor, brief: string, scope: WriteScope
     parent: agent,
     signal: stepSignal,
     ...(caps.agentOptions ? { agentOptions: agentOptionsOf(actor) } : {}),
-    ...(caps.toolFilter ? { toolFilter: { deny: [...deps.config.delegationToolNames, ...OWN_TOOLS] } } : {}),
+    ...(caps.toolFilter ? { toolFilter: { deny: deniedTools(deps) } } : {}),
     ...(caps.depthLimit ? { maxDepth: delegationDepthOf(agent) + 1 } : {}),
     ...(caps.outputSchema && deps.config.proposalChannel === 'auto' ? { outputSchema: PROPOSAL_SCHEMA } : {}),
   }
@@ -336,7 +350,7 @@ async function roleStep(
     state,
     provider: run.provider.name,
     route: { provider: actor.route.provider, model: actor.route.model },
-    effort: actor.effort,
+    effort: actor.effort === undefined ? null : actor.effort,
   }
   const brief = renderBrief(run.briefs, {
     role,

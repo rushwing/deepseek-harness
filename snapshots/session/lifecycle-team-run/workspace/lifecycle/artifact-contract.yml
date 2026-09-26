@@ -1,0 +1,107 @@
+version: 1
+schema:
+  key: lifecycle_schema
+  version: 2
+words:
+  none: None
+req:
+  headings:
+    goal: Goal
+    behavior: Behavior
+    nonGoals: Non-goals
+    acceptance: Acceptance criteria
+    pendingDecisions: Pending decisions
+    designReferences: Design references
+    bugHistory: Bug History
+  bannedHeadings:
+    - Background
+    - Requirement description
+    - Revision history
+    - Review record
+    - Memo
+    - Implementation slices
+  sectionBudgets:
+    Goal: 2000
+    Behavior: 15000
+    Non-goals: 2000
+    Acceptance criteria: 15000
+    Pending decisions: 3000
+    Design references: 2500
+  bodyBudget: 35000
+  acceptanceEntryBudget: 600
+  priorities:
+    - P0
+    - P1
+    - P2
+    - P3
+  scopes:
+    - design
+    - backend
+    - frontend
+    - fullstack
+    - infra
+    - docs
+    - harness
+    - tooling
+  pendingDecisionLabels:
+    options: Options
+    default: Default
+    deadline: Deadline
+tc:
+  headings:
+    preconditions: Preconditions
+    steps: Steps
+    expectedResults: Expected results
+    implementationLocation: Implementation location
+  preconditionBudget: 4000
+  bodyBudget: 10000
+  manualMarker: Manual
+bug:
+  severities:
+    - low
+    - medium
+    - high
+    - critical
+pl:
+  headings:
+    - Contract changes
+    - Module placement and slices
+    - Test support
+    - Risks and open technical points
+  bodyBudget: 15000
+review:
+  conclusionLabel: "Conclusion:"
+  verdicts:
+    pass: PASS
+    reject: REJECT
+    awaitingSample: AWAITING SAMPLE
+  fields:
+    - Review scope
+    - Evidence
+    - Findings
+    - Pending human-001
+  scopeField: Review scope
+  evidenceField: Evidence
+  checklistCount: 8
+  exemptionMarker: "TC waiver reason:"
+  deferredMarker: "Deferred verification:"
+  sectionBudget: 6000
+  bodyBudget: 30000
+  regressionBudget: 6000
+lexicon:
+  categories:
+    code path:
+      - \b(src|tests|tools|libs|services)/\S+\.(py|yaml|json|ts|js)\b
+      - "::"
+    CLI flag:
+      - (?<![\w-])--[a-z][a-z0-9-]*
+    exit code / HTTP status:
+      - \bexit\s*(code\s*)?\d
+      - \bHTTP\s*\d{3}
+      - (?<![\d,.])\b(422|500)\b(?![\d,.])
+    request/response model name:
+      - \b[A-Z][A-Za-z]+(Request|Response)\b
+  allowedTerms:
+    - ConfigError
+    - ValidationError
+    - InputFormatError

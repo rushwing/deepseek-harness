@@ -31,7 +31,7 @@ kind: "package-reference"
 |---|---|---|
 | `lifecycleDir` | `lifecycle` | 相对于 Session 工作目录的目录，存放 `lifecycle.yml`、`agent-registry.yml`、`artifact-contract.yml`、`tasks/` 与 `standards/`。空白值在加载时失败。 |
 | `maxStepsPerRun` | `8` | 一次 `lifecycle_run` 最多走的步数；调用的 `maxSteps` 只能降低它。 |
-| `delegationToolNames` | `subagent`、`workflow`、`ralph`、`spawn_teammate`、`send_message`、`interrupt_agent` | 对角色子代拒绝的工具，使子代永不再委派；orchestrator 自己的 `lifecycle_run`、`lifecycle_transition`、`lifecycle_init` 总是一并拒绝。部署未组合的名字不拒绝任何东西。空白名字在加载时失败。 |
+| `delegationToolNames` | `subagent`、`subagent_fork`、`workflow`、`ralph`、`spawn_teammate`、`send_message`、`interrupt_agent` | 对角色子代拒绝的工具，使子代永不再委派；orchestrator 自己的 `lifecycle_run`、`lifecycle_transition`、`lifecycle_init` 总是一并拒绝。部署未组合的名字不进入限制（限制拒绝未知工具）。空白名字在加载时失败。 |
 | `humanDecisions` | `ask` | `ask` 在组合了 `userQuestions` 服务且有人应答时把人类拥有的 REQ 的合法迁移交给它，否则以 `needs-human` 停止；`stop` 从不询问。 |
 | `stepTimeoutMs` | `1800000` | 角色子代超过此时长即被中止；该步失败，不应用任何东西。 |
 | `proposalChannel` | `auto` | `auto` 向支持的 provider 请求结构化输出，否则读取子代最终文本中最后一个 ```json 代码块；`text` 总是读取文本。 |
@@ -126,15 +126,12 @@ kind: "package-reference"
 ##### 该字段的逐字文本，目录为 `lifecycle`
 
 ```markdown
-This workspace runs the lifecycle team process from `lifecycle/`. Requirements (REQ), test cases (TC), bugs (BUG), review records (RV), and design plans (PL) live under `lifecycle/tasks/`; their standards live under `lifecycle/standards/`.
-Use `lifecycle_status` to read a REQ's state, owner, and legal transitions, `lifecycle_check_in` before working on a REQ as a role, and `lifecycle_lint` before handing artifacts over.
-Never edit `status`, `owner`, `review_round`, `pending_bugs`, or the `blocked_*` frontmatter fields by hand: lifecycle transitions move them.
-Use `lifecycle_run` only when asked to drive a REQ; it spawns one role child per step and applies the proposed transitions. `lifecycle_transition` applies one transition or lifecycle event the human decided.
+This workspace runs the lifecycle team process from `lifecycle/`. Requirements (REQ), test cases (TC), bugs (BUG), review records (RV), and design plans (PL) live under `lifecycle/tasks/`; their standards live under `lifecycle/standards/`. Use `lifecycle_status` to read a REQ's state, owner, and legal transitions, `lifecycle_check_in` before working on a REQ as a role, and `lifecycle_lint` before handing artifacts over. Never edit `status`, `owner`, `review_round`, `pending_bugs`, or the `blocked_*` frontmatter fields by hand: lifecycle transitions move them. Use `lifecycle_run` only when asked to drive a REQ; it spawns one role child per step and applies the proposed transitions. `lifecycle_transition` applies one transition or lifecycle event the human decided.
 ```
 
 #### Token 影响
 
-生命周期工作区的每个请求固定四句；其他地方为零。
+生命周期工作区的每个请求固定一段五句话；其他地方为零。
 
 #### KV Cache 影响
 
@@ -182,7 +179,7 @@ schema 稳定；结果按常规延长对话。
 - **人类决定只选迁移** — 人类选择一条合法迁移 id 或 Stop；需要决定的迁移（如 `T15` 的阻塞字段）由当前 owner 的子代提案，或通过 `lifecycle_transition` 手工应用。
 - **尚无录制 Session 快照** — 驱动器有单元覆盖与 Loader 组合测试；手写的 `snapshots/session/lifecycle-team-run/` 用例随拥有其组合的 profile bundle 一起落地。
 - **每个 Session 一个生命周期目录** — 目录是插件级设置；两个布局不同的工作区需要两套部署。
-- **脚手架路由按产品形态识别** — `lifecycle_init` 识别 `claude-code` 与 `codex` 路由以生成跨厂商集合，其余一律以 `effort: high` 落到默认模型；effort 在步骤首次解析路由时校验，而非脚手架时。
+- **脚手架路由按产品形态识别** — `lifecycle_init` 识别 `claude-code` 与 `codex` 路由以生成带这些产品所声明 effort 的跨厂商集合，其余一律不带 effort 落到默认模型，由 adapter 默认值生效；effort 在步骤首次解析路由时校验，而非脚手架时。
 - **仅英文默认文件** — 脚手架写入英文的表、契约、标准与简报；团队在工作区内翻译或编辑它们。
 
 <a id="dev-note"></a>

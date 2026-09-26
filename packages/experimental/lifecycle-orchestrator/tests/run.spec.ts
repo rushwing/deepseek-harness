@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+import { deniedTools } from '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'
 import { REQ_010, agentAt, cleanup, setField } from './workspace-helper.ts'
 import { RV_010, TC_010_01, frontmatterOf, happyPathChildren, setupDriver } from './driver-helper.ts'
 
@@ -54,7 +56,7 @@ describe('lifecycle_run drives a REQ through fresh role children', () => {
     const [planner, , , , tcImpl] = provider.requests
     expect(planner?.label).toBe('lifecycle:planner-001@req_review:REQ-PLAT-010')
     expect(planner?.agentOptions).toEqual({ provider: 'claude-code', model: 'opus', reasoningEffort: 'xhigh' })
-    expect(planner?.toolFilter?.deny).toEqual(expect.arrayContaining(['subagent', 'ralph', 'lifecycle_run', 'lifecycle_transition', 'lifecycle_init']))
+    expect(planner?.toolFilter?.deny).toEqual(['lifecycle_run', 'lifecycle_transition', 'lifecycle_init'])
     expect(planner?.maxDepth).toBe(1)
     expect(planner?.outputSchema).toMatchObject({ type: 'object' })
     expect(planner?.prompt.map(block => (block.type === 'text' ? block.text : '')).join('')).toContain('# Brief: planner @ req_review — REQ-PLAT-010')
@@ -77,6 +79,21 @@ describe('lifecycle_run drives a REQ through fresh role children', () => {
       { version: 1, reqId: 'REQ-PLAT-010', state: 'pr_draft', options: ['T14', 'T15', 'T19'], phase: 'requested', answer: null },
       { version: 1, reqId: 'REQ-PLAT-010', state: 'pr_draft', options: ['T14', 'T15', 'T19'], phase: 'answered', answer: 'T14' },
     ])
+  })
+
+  it('denies the composed delegation tools and never names a tool the deployment lacks', async () => {
+    const { ctx, agent, provider } = await setupDriver(happyPathChildren().slice(0, 1), { answers: ['T01'], config: { maxStepsPerRun: 2 } })
+    ctx.tools.register(defineTool({
+      name: 'subagent',
+      description: 'A delegation tool stand-in.',
+      parameters: { task: { type: 'string', required: true } },
+      output: { schema: { type: 'object', additionalProperties: false, properties: { ok: { type: 'boolean', required: true } } }, render: () => [] },
+      execute: () => Promise.resolve({ ok: true }),
+      presentCall: () => ({ card: 'generic', title: 'subagent', kind: 'other' }),
+    }))
+    expect(deniedTools({ ctx, config: ctx.lifecycle.config })).toEqual(['subagent', 'lifecycle_run', 'lifecycle_transition', 'lifecycle_init'])
+    await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(provider.requests[0]?.toolFilter?.deny).toEqual(['subagent', 'lifecycle_run', 'lifecycle_transition', 'lifecycle_init'])
   })
 
   it('stops with needs-human when the human owns the REQ and no answerer is attached', async () => {

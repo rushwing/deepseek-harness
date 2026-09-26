@@ -54,7 +54,7 @@ export { LifecycleError, type LifecycleErrorCode } from './errors.ts'
 export { handlesOf, planRegistry, type Handles, type RegistryPlan, type SeatedRoute } from './tools/init.ts'
 export type { LifecycleHumanDecisionEvent, LifecycleLintEvent, LifecycleStepEvent, LifecycleTransitionEvent } from './events.ts'
 export { decisionsOf, isRecord, renderTransition, requireRoot, transitionEvent } from './tools/transition.ts'
-export { actorOf, runLifecycle, type Actor, type DriverDeps, type RunRequest, type RunResult, type RunStep, type RunStop } from './driver.ts'
+export { actorOf, deniedTools, runLifecycle, type Actor, type DriverDeps, type RunRequest, type RunResult, type RunStep, type RunStop } from './driver.ts'
 export { renderRun } from './tools/run.ts'
 export { PROPOSAL_SCHEMA, parseProposal, type ParsedProposal, type Proposal } from './proposal.ts'
 export { WRITE_KINDS, denialOf, unboundBug, writeScope, type WriteScope } from './scope.ts'
@@ -120,7 +120,7 @@ export class LifecycleService extends Service {
   static Config = z.object({
     lifecycleDir: z.string().default('lifecycle'),
     maxStepsPerRun: z.number().step(1).min(1).default(8),
-    delegationToolNames: z.array(z.string()).default(['subagent', 'workflow', 'ralph', 'spawn_teammate', 'send_message', 'interrupt_agent']),
+    delegationToolNames: z.array(z.string()).default(['subagent', 'subagent_fork', 'workflow', 'ralph', 'spawn_teammate', 'send_message', 'interrupt_agent']),
     humanDecisions: z.union(['ask', 'stop']).default('ask'),
     stepTimeoutMs: z.number().step(1).min(1).default(1_800_000),
     proposalChannel: z.union(['auto', 'text']).default('auto'),

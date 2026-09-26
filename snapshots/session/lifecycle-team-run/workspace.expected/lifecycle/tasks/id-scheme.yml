@@ -1,0 +1,10 @@
+---
+# Work-item id scheme: the single truth of scope directory <-> id prefix.
+#   <lifecycleDir>/tasks/features/<scope>/REQ-<PREFIX>-NNN.md
+#   <lifecycleDir>/tasks/test-cases/<scope>/TC-<PREFIX>-NNN-SS.md
+#   <lifecycleDir>/tasks/bugs/<scope>/BUG-<PREFIX>-NNN.md
+#   <lifecycleDir>/tasks/reviews/<scope>/RV-<PREFIX>-NNN.md
+#   <lifecycleDir>/tasks/plans/<scope>/PL-<PREFIX>-NNN.md
+
+scopes:
+  core: CORE

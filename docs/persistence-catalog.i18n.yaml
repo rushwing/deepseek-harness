@@ -9,8 +9,8 @@
   en: e7c80d1de4d328b4
   zh: d9f368c27fd9f998
 /session-persistence-event-catalog/persistence-type-fingerprints:
-  en: 3e281b9c68c54f1f
-  zh: 59965059e99089e5
+  en: 1ee47baed9398c44
+  zh: 47a20002c238b91c
 /session-persistence-event-catalog/event-envelope:
   en: 7ebb1a2e0dd1f916
   zh: 8946f415dda5c1b8
@@ -135,17 +135,17 @@
   en: dd956c77ddf3d01c
   zh: dd956c77ddf3d01c
 /session-persistence-event-catalog/events/lifecycle/lifecycle-human-decision-log-only:
-  en: 91c16ae96b3bfe0a
-  zh: 53573cfec094689a
+  en: 9d2a9e0325747246
+  zh: a2737e3315a3cd15
 /session-persistence-event-catalog/events/lifecycle/lifecycle-lint-log-only:
-  en: 0d8b62a9ecb2e6ea
-  zh: b68f766048b26208
+  en: 04cfaa6b13206477
+  zh: 7099159ac05cd3c1
 /session-persistence-event-catalog/events/lifecycle/lifecycle-step-log-only:
-  en: 94ae91be9bdec87f
-  zh: c4f8445e780da464
+  en: 8517f0f7268452d3
+  zh: 3a4c72afbe13a8e6
 /session-persistence-event-catalog/events/lifecycle/lifecycle-transition-log-only:
-  en: 5644ebbd4fb8a376
-  zh: 876384f9303fa388
+  en: 6a6b2bce7dbbd5b7
+  zh: f2b6ab9cdcc42849
 /session-persistence-event-catalog/events/llm:
   en: 8a5c09e48ec0a6ae
   zh: 8a5c09e48ec0a6ae
@@ -1095,14 +1095,14 @@
   en: 6db8afb0fbd96205
   zh: e1a3a738eccf7db2
 /session-persistence-event-catalog/resolved-persistence-types/lifecyclehumandecisionevent:
-  en: 0431efd486de3569
-  zh: 09f3818f55b13c9c
+  en: 4817242f70e9cc62
+  zh: e8a9e973bb6906cb
 /session-persistence-event-catalog/resolved-persistence-types/lifecyclelintevent:
-  en: 34e9d2d588404406
-  zh: 7265cc114bc32954
+  en: 5922be5c8ca498dc
+  zh: 348a07b20d15983f
 /session-persistence-event-catalog/resolved-persistence-types/lifecyclestepevent:
-  en: 37324b1f85d5e3db
-  zh: f68395678791cc15
+  en: 196c335985894158
+  zh: 13a571996efb7905
 /session-persistence-event-catalog/resolved-persistence-types/lifecycletransitionevent:
   en: 71742cd491fdfcdf
   zh: 9e67146dc5dba4a3
@@ -2001,11 +2001,11 @@
   en: dade2efff2ecdf56
   zh: 40dbb989b4f19639
 /session-persistence-event-catalog/resolved-persistence-types/type-lifecycle-lint:
-  en: e4e853f1372e643a
-  zh: 3c710ee887787dba
+  en: 048bd19fa4fb4239
+  zh: 42fce5c44122b38d
 /session-persistence-event-catalog/resolved-persistence-types/type-lifecycle-step:
-  en: 103f33399ade94bc
-  zh: 5c22ce2a5ed42480
+  en: 3fe31d89e55a42cf
+  zh: 65744c98d85dba39
 /session-persistence-event-catalog/resolved-persistence-types/type-lifecycle-transition:
   en: aa85b1fe7f2414c1
   zh: 405eeb34a1b8c6ba
