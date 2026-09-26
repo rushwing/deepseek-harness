@@ -1,0 +1,125 @@
+---
+# Agent registry — the single truth of role ↔ route (model, effort, fallbacks).
+# The lifecycle states themselves live in lifecycle.yml; each agent's `handles`
+# is the materialized projection of the states the table derives for its role,
+# and the loader checks that they are exactly equal.
+#
+# Conventions:
+#   - uid `<role>-NNN`; human-001 is the human orchestrator.
+#   - vendor is declared, never inferred from the model id: dsh routes such as
+#     `codex` and `claude-code` are products, not model families.
+#   - route  = the dsh provider route and the model the route resolves.
+#   - effort = a single reasoning effort, or a per-state map with a `default`.
+#   - fallbacks = ordered alternative routes; same vendor first, another vendor last.
+#   - provider_sets = complete planner / generator / evaluator trios. A
+#     `same_vendor` set keeps one vendor throughout; a `cross_vendor` set puts the
+#     Generator and Evaluator on different vendors so implementation review is
+#     independent. The active set switches as a whole and uids never change.
+#   - seats = per-state overrides of the active set's role seat.
+
+version: 1
+
+roles:
+  planner: "Expand a requirement into scope, technical direction, and task decomposition without implementation detail"
+  generator: "Implement iteratively against the specification (test code, product code, documents) and self-check before delivery"
+  evaluator: "Independent quality gate: write the test-case text that fixes acceptance, review every stage, and run the gates"
+  human: "Human orchestrator: scope approval, final merge, unblocking, and model selection"
+
+provider_sets:
+  anthropic:
+    kind: same_vendor
+    planner: planner-001
+    generator: generator-001
+    evaluator: evaluator-001
+  openai:
+    kind: same_vendor
+    planner: planner-002
+    generator: generator-002
+    evaluator: evaluator-002
+  mixed:
+    kind: cross_vendor
+    planner: planner-001
+    generator: generator-001
+    evaluator: evaluator-002
+
+active_set: mixed
+
+seats:
+  tc_impl_review: evaluator-001
+
+agents:
+  - uid: planner-001
+    role: planner
+    vendor: anthropic
+    route: { provider: claude-code, model: opus }
+    effort: xhigh
+    fallbacks:
+      - { provider: claude-code, model: sonnet, vendor: anthropic }
+      - { provider: codex, model: gpt-5.6-sol, vendor: openai }
+    description: "Primary Planner: requirement expansion, architecture, milestones"
+    handles: [req_review]
+    notes: >-
+      Do not over-prescribe steps; an over-prescriptive prompt lowers the quality of the output.
+
+  - uid: generator-001
+    role: generator
+    vendor: anthropic
+    route: { provider: claude-code, model: opus }
+    effort:
+      default: xhigh
+      tc_impl: high
+    fallbacks:
+      - { provider: claude-code, model: sonnet, vendor: anthropic }
+      - { provider: codex, model: gpt-5.6-sol, vendor: openai }
+    description: "Primary Generator: test code, requirement implementation, documents"
+    handles: [tc_review, tc_impl, req_impl]
+    notes: >-
+      Do not add verification scaffolding such as "double-check your answer"; state explicit scope discipline instead.
+
+  - uid: evaluator-001
+    role: evaluator
+    vendor: anthropic
+    route: { provider: claude-code, model: sonnet }
+    effort:
+      default: high
+      req_impl_review: xhigh
+    fallbacks:
+      - { provider: codex, model: gpt-5.6-sol, vendor: openai }
+    description: "Evaluator: requirement review, test-case text, test and implementation review, gates"
+    handles: [req_review, tc_design, tc_impl_review, req_impl_review]
+    notes: >-
+      Report every finding with a severity and a confidence; never ask for conservative or high-severity-only reporting.
+
+  - uid: planner-002
+    role: planner
+    vendor: openai
+    route: { provider: codex, model: gpt-5.6-sol }
+    effort: high
+    fallbacks: []
+    description: "Alternate Planner (OpenAI set)"
+    handles: [req_review]
+
+  - uid: generator-002
+    role: generator
+    vendor: openai
+    route: { provider: codex, model: gpt-5.6-sol }
+    effort: high
+    fallbacks: []
+    description: "Alternate Generator (OpenAI set)"
+    handles: [tc_review, tc_impl, req_impl]
+
+  - uid: evaluator-002
+    role: evaluator
+    vendor: openai
+    route: { provider: codex, model: gpt-5.6-sol }
+    effort: xhigh
+    fallbacks: []
+    description: "Cross-vendor Evaluator: req_review, tc_design, and req_impl_review seats; tc_impl_review goes to evaluator-001 through seats"
+    handles: [req_review, tc_design, tc_impl_review, req_impl_review]
+    notes: >-
+      Report every finding with a severity and a confidence; never filter by severity.
+
+  - uid: human-001
+    role: human
+    description: "Human orchestrator: scope approval, req_review rulings and recalls, final merge, unblocking, model selection"
+    handles: [draft, req_review, pr_draft, blocked, done]

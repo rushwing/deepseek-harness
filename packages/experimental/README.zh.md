@@ -47,6 +47,7 @@ kind: "package-group"
 | [`llm-claude-code`](llm-claude-code/README.zh.md) | Claude Code 会话后端：在一个持久 Claude Code 会话上运行每个 Session 回合并桥接审批的 provider 路由 | — |
 | [`llm-codex`](llm-codex/README.zh.md) | Codex 会话后端：在一个持久 Codex 线程上运行每个 Session 回合并桥接审批的 provider 路由 | — |
 | [`llm-product-backend`](llm-product-backend/README.zh.md) | 运行在外部 agent 产品上的会话后端共享的输入、流、活动、交互与绑定辅助函数 | 库——无 ctx 键 |
+| [`lifecycle-table`](lifecycle-table/README.zh.md) | 加载并校验生命周期状态表、agent 注册表与 id 方案，并推导角色状态、评审门与可达状态 | 库——无 ctx 键 |
 
 -----
 

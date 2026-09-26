@@ -486,6 +486,7 @@
         "./packages/experimental/llm-claude-code/src/index.ts"
       ],
       "@deepseek-ai/dsh-experimental-llm-codex": ["./packages/experimental/llm-codex/src"],
+      "@deepseek-ai/dsh-experimental-lifecycle-table": ["./packages/experimental/lifecycle-table/src"],
       "@deepseek-ai/dsh-experimental-llm-product-backend": ["./packages/experimental/llm-product-backend/src"],
       "@deepseek-ai/dsh-codex-app-server": ["./packages/product-runtime/codex-app-server/src"],
       "@deepseek-ai/dsh-subagent": ["./packages/subagent/subagent/src"],

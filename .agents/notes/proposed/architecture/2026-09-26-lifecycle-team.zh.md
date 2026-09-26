@@ -24,7 +24,7 @@ Status: proposed
 
 | 包（`@deepseek-ai/dsh-experimental-…`） | 角色 | 依赖 |
 |---|---|---|
-| `lifecycle-table` | 库：表类型、每个根因一条问题的加载器、推导（角色合法状态、所需评审门、可达状态）、注册表加载与校验 | `dsh-brand`、`yaml` |
+| `lifecycle-table` | 库：表类型、每个根因一条问题的加载器、推导（角色合法状态、所需评审门、可达状态）、注册表加载与校验 | `dsh-brand`、`dsh-util-values`、`yaml` |
 | `lifecycle-work-items` | 库：frontmatter 与正文解析器、工件图、契约加载器、校验规则组、守卫与效果谓词、带回滚的原子效果写入器 | `lifecycle-table` |
 | `lifecycle-orchestrator` | 服务 `ctx.lifecycle`、六个工具、`/lifecycle` 命令、任务书、写守卫、会话事件、英文默认模板 | `dsh-tools`、`dsh-subagent`、`dsh-fs`、`dsh-session`、两个库 |
 | `lifecycle-model-fallback` | 注册表候补的循环策略插件 | `dsh-agent`、`dsh-llm`、`lifecycle-table` |

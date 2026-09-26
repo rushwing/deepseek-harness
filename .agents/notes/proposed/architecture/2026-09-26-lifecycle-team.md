@@ -24,7 +24,7 @@ Six tools expose the method: `lifecycle_init`, `lifecycle_status`, `lifecycle_ch
 
 | Package (`@deepseek-ai/dsh-experimental-…`) | Role | Depends on |
 |---|---|---|
-| `lifecycle-table` | Library: table types, loader with one problem per root cause, derivations (role legal states, required review gates, reachable states), registry loader and validation | `dsh-brand`, `yaml` |
+| `lifecycle-table` | Library: table types, loader with one problem per root cause, derivations (role legal states, required review gates, reachable states), registry loader and validation | `dsh-brand`, `dsh-util-values`, `yaml` |
 | `lifecycle-work-items` | Library: frontmatter and body parser, artifact graph, contract loader, lint rule groups, guard and effect predicates, atomic effect writer with rollback | `lifecycle-table` |
 | `lifecycle-orchestrator` | Service `ctx.lifecycle`, the six tools, `/lifecycle` command, briefs, write guard, session events, English defaults | `dsh-tools`, `dsh-subagent`, `dsh-fs`, `dsh-session`, both libraries |
 | `lifecycle-model-fallback` | Loop policy plugin for registry fallbacks | `dsh-agent`, `dsh-llm`, `lifecycle-table` |

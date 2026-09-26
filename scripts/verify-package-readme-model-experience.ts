@@ -57,6 +57,7 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/product-runtime/codex-app-server': { kind: 'none', reason: 'A protocol library; the Codex provider and backend that mount it own every model-visible fact.' },
   'packages/product-runtime/claude-agent-sdk': { kind: 'none', reason: 'An SDK runtime library; the Claude Code provider and backend that mount it own every model-visible fact.' },
   'packages/experimental/llm-product-backend': { kind: 'none', reason: 'A helper library; the backend adapters that call it own every model-visible fact and Session event.' },
+  'packages/experimental/lifecycle-table': { kind: 'none', reason: 'A table library; the orchestrator that renders briefs and tool results owns every model-visible fact.' },
   'packages/ssh/fs-ssh': { kind: 'indirect', reason: 'The remote filesystem delegates model rendering to the existing filesystem consumers.' },
   'packages/ssh/subprocess-ssh': { kind: 'indirect', reason: 'The remote process provider delegates model rendering to Bash, terminal, LSP and ptc-runtime consumers.' },
   'packages/ssh/sandbox-ssh': { kind: 'indirect', reason: 'The remote confinement provider returns enforcement facts to its existing tool consumers.' },

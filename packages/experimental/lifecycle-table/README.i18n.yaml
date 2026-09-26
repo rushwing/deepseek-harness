@@ -1,0 +1,55 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/lifecycle-table/README.md
+/:
+  en: e67f0e12d46d3ac3
+  zh: 0b84b7674874e6a9
+/deepseek-ai-dsh-experimental-lifecycle-table:
+  en: 0edb7a9ac44a9d70
+  zh: ac1ab61c8ba76b69
+/deepseek-ai-dsh-experimental-lifecycle-table/summary:
+  en: 9908683e71a68126
+  zh: 6a774663623ddcc7
+/deepseek-ai-dsh-experimental-lifecycle-table/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-experimental-lifecycle-table/use-this-package:
+  en: 2212be58a0ee1bf1
+  zh: 66e83962a5a9d06a
+/deepseek-ai-dsh-experimental-lifecycle-table/use-this-package/load-the-lifecycle-table:
+  en: ffd4868045981187
+  zh: 05cca2581224cb73
+/deepseek-ai-dsh-experimental-lifecycle-table/use-this-package/read-derived-facts:
+  en: d08012da385614ce
+  zh: 3bff3586c6a38f12
+/deepseek-ai-dsh-experimental-lifecycle-table/use-this-package/load-the-agent-registry:
+  en: ec807e107f1c4b5d
+  zh: be9362a9e24d4612
+/deepseek-ai-dsh-experimental-lifecycle-table/use-this-package/load-the-id-scheme:
+  en: 95a347dd6bfaaa78
+  zh: cb96ee830bb76b87
+/deepseek-ai-dsh-experimental-lifecycle-table/understand-the-implementation:
+  en: 0b150b65f9afd0ab
+  zh: 43e0abeccebd1a0e
+/deepseek-ai-dsh-experimental-lifecycle-table/understand-the-implementation/design-concept:
+  en: efc4afb69f229b5c
+  zh: 16f7420dd891e171
+/deepseek-ai-dsh-experimental-lifecycle-table/understand-the-implementation/source-map:
+  en: c7e226a08ad5bd67
+  zh: 3d32ade67f521c96
+/deepseek-ai-dsh-experimental-lifecycle-table/further-exploration:
+  en: 3ea03a13dcd2393d
+  zh: 2a5eb8137575dd6b
+/deepseek-ai-dsh-experimental-lifecycle-table/model-experience:
+  en: 64bd789410813db3
+  zh: 6fbc0eb4388f6543
+/deepseek-ai-dsh-experimental-lifecycle-table/model-experience/kv-cache-effect:
+  en: cfbac7b923f61545
+  zh: bcac2ad5946e894c
+/deepseek-ai-dsh-experimental-lifecycle-table/known-limitations-and-deferred-work:
+  en: 77954f79a4b41823
+  zh: 1be732ddd4aa0bc6
+/deepseek-ai-dsh-experimental-lifecycle-table/known-limitations-and-deferred-work/dev-note:
+  en: 52d27ba3efd0b8bb
+  zh: a0d07cf5b3db80e6

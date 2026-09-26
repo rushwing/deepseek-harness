@@ -47,6 +47,7 @@ The experimental group contains prototype capabilities whose contracts can chang
 | [`llm-claude-code`](llm-claude-code/README.md) | Claude Code conversation backend: provider routes that run each Session's turns on one persistent Claude Code session with bridged approvals | — |
 | [`llm-codex`](llm-codex/README.md) | Codex conversation backend: provider routes that run each Session's turns on one persistent Codex thread with bridged approvals | — |
 | [`llm-product-backend`](llm-product-backend/README.md) | Shared input, stream, activity, interaction, and binding helpers for conversation backends on external agent products | library — no ctx key |
+| [`lifecycle-table`](lifecycle-table/README.md) | Loads and validates the lifecycle state table, agent registry, and id scheme, and derives role states, review gates, and reachable states | library — no ctx key |
 
 -----
 
