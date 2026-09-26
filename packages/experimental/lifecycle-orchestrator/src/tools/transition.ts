@@ -6,15 +6,17 @@
  */
 
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import { transitionById } from '@deepseek-ai/dsh-experimental-lifecycle-table'
 import { defineTool, type ToolDefinition } from '@deepseek-ai/dsh-tools'
 import { LifecycleError } from '../errors.ts'
 import type { LifecycleTransitionEvent } from '../events.ts'
 import type { LifecycleService } from '../index.ts'
 import { callerOf } from '../tools.ts'
-import type { TransitionResult } from '../workspace.ts'
+import { requireTables, type TransitionResult } from '../workspace.ts'
 
 const OTHER = 'other'
 const SUBAGENT = 'subagent'
+const HUMAN = 'human'
 const STRING_LIST = { type: 'array', items: { type: 'string' } } as const
 
 /**
@@ -27,6 +29,22 @@ const STRING_LIST = { type: 'array', items: { type: 'string' } } as const
 export function requireRoot(agent: Agent, tool: string): void {
   if (agent.session.header.origin === SUBAGENT) {
     throw new LifecycleError('DELEGATED_CALLER', `${tool} is for the root agent; a role child ends its work with a transition proposal instead`)
+  }
+}
+
+/**
+ * Refuse a transition the human decides (actor `human`): a model applies it
+ * only through `/lifecycle transition`, which the human invokes.
+ * @param service - the lifecycle service.
+ * @param cwd - the workspace directory.
+ * @param reqId - the REQ named by the call, for the message.
+ * @param id - the transition id; an unknown id is left to the applier.
+ * @throws LifecycleError `HUMAN_ACTOR` for a human-decided transition.
+ */
+export function refuseHumanActor(service: LifecycleService, cwd: string, reqId: string, id: string): void {
+  const transition = transitionById(requireTables(service.load(cwd)).table, id)
+  if (transition?.actor.kind === 'name' && transition.actor.name === HUMAN) {
+    throw new LifecycleError('HUMAN_ACTOR', `${id} is decided by the human; they run /lifecycle transition ${reqId} ${id} <summary> themselves`)
   }
 }
 
@@ -74,7 +92,8 @@ export function transitionTool(service: LifecycleService): ToolDefinition {
     name: 'lifecycle_transition',
     description: 'Apply one lifecycle transition (such as T01) or lifecycle event (such as bug_fix) to a requirement (REQ) by hand: '
       + 'the guards are checked, the effects rewrite the frontmatter and statuses, and the result is linted; a red result writes nothing. '
-      + 'Returns the suggested commit subject; the human commits.',
+      + 'Returns the suggested commit subject; the human commits. Transitions the human decides (such as T01 or T14) are refused here: '
+      + 'the human runs /lifecycle transition.',
     parameters: {
       reqId: { type: 'string', required: true, description: 'The REQ to move, such as REQ-PLAT-010.' },
       transition: { type: 'string', description: 'The transition id, such as T01. Name exactly one of transition and event.' },
@@ -112,6 +131,7 @@ export function transitionTool(service: LifecycleService): ToolDefinition {
     execute: async (args, exec) => {
       const { agent, cwd } = callerOf(exec, 'lifecycle_transition')
       requireRoot(agent, 'lifecycle_transition')
+      if (args.transition !== undefined) refuseHumanActor(service, cwd, args.reqId, args.transition)
       const decisions = args.decisions === undefined ? undefined : decisionsOf(args.decisions)
       const result = await service.transition(cwd, {
         reqId: args.reqId,

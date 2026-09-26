@@ -1427,7 +1427,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Drive one REQ through fresh role children from the agent\'s Session working directory, logging every step, transition, and human decision to the agent\'s Session.',
         parameters: [{ name: 'agent', description: 'the root agent that drives; its Session must have a working directory.' }, { name: 'request', description: 'the REQ and the optional step ceiling.' }, { name: 'signal', description: 'abort cancels the running child and ends the run.' }],
         returns: 'the run report.',
-        throws: ['LifecycleError `NO_WORKSPACE` without a working directory; the driver\'s own codes otherwise.'],
+        throws: ['LifecycleError `NO_WORKSPACE` without a working directory, `RUN_IN_PROGRESS` while another run or transition owns the workspace; the driver\'s own codes otherwise.'],
       },
       {
         signature: 'status(cwd: string, reqId?: string): LifecycleStatus',

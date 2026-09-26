@@ -19,6 +19,8 @@ export type LifecycleErrorCode =
   | 'INVALID_REQUEST'
   | 'DELEGATED_CALLER'
   | 'NO_PROVIDER'
+  | 'RUN_IN_PROGRESS'
+  | 'HUMAN_ACTOR'
 
 /**
  * A lifecycle failure: no workspace, tables that did not load, an unknown REQ,

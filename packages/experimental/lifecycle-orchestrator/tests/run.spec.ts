@@ -101,7 +101,7 @@ describe('lifecycle_run drives a REQ through fresh role children', () => {
     const before = await readFile(join(root, REQ_010), 'utf8')
     const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
     expect(result).toEqual({
-      reqId: 'REQ-PLAT-010', steps: [], stopped: 'needs-human', pendingHuman: { state: 'draft', options: ['T01', 'T19'] }, violations: [],
+      reqId: 'REQ-PLAT-010', steps: [], stopped: 'needs-human', pendingHuman: { state: 'draft', options: ['T01', 'T19'], question: null }, violations: [],
     })
     expect(await readFile(join(root, REQ_010), 'utf8')).toBe(before)
     expect(agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/human-decision').map(event => event.data)).toEqual([

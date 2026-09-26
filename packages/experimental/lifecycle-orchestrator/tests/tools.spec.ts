@@ -156,16 +156,18 @@ describe('the /lifecycle command', () => {
     expect(ctx.commands.list(agent)).toEqual([{
       definitionId: '@deepseek-ai/dsh-experimental-lifecycle-orchestrator',
       name: 'lifecycle',
-      description: 'Show lifecycle status or lint the lifecycle artifacts',
-      input: { hint: 'status [REQ-ID] | lint [REQ-ID]' },
+      description: 'Show lifecycle status, lint the lifecycle artifacts, or apply a transition the human decided',
+      input: { hint: 'status [REQ-ID] | lint [REQ-ID] | transition REQ-ID TNN summary…' },
     }])
     const run = async (line: string) => (await ctx.commands.execute(agent, line, [], signal))?.result
     expect(await run('/lifecycle status REQ-PLAT-010')).toEqual({ kind: 'success', text: 'REQ-PLAT-010: draft, owner human-001 (human), seat human-001; legal transitions T01, T19' })
     expect(await run('/lifecycle status')).toMatchObject({ kind: 'success' })
     expect(await run('/lifecycle lint')).toEqual({ kind: 'success', text: 'Lint clean: 0 violations across the tasks tree.' })
     expect(await run('/lifecycle lint REQ-PLAT-010')).toEqual({ kind: 'success', text: 'Lint clean: 0 violations for REQ-PLAT-010.' })
-    expect(await run('/lifecycle')).toEqual({ kind: 'error', text: 'Usage: /lifecycle status [REQ-ID] | lint [REQ-ID]' })
-    expect(await run('/lifecycle dance')).toEqual({ kind: 'error', text: 'Usage: /lifecycle status [REQ-ID] | lint [REQ-ID]' })
+    expect(await run('/lifecycle')).toEqual({ kind: 'error', text: 'Usage: /lifecycle status [REQ-ID] | lint [REQ-ID] | transition REQ-ID TNN summary…' })
+    expect(await run('/lifecycle dance')).toEqual({ kind: 'error', text: 'Usage: /lifecycle status [REQ-ID] | lint [REQ-ID] | transition REQ-ID TNN summary…' })
+    expect(await run('/lifecycle status REQ-PLAT-010 extra')).toMatchObject({ kind: 'error' })
+    expect(await run('/lifecycle transition')).toMatchObject({ kind: 'error' })
     await setField(root, REQ_010, 'owner', 'ghost-001')
     expect(await run('/lifecycle status REQ-PLAT-010')).toEqual({ kind: 'success', text: 'REQ-PLAT-010: draft, owner ghost-001 (unregistered), seat none; no legal transitions' })
     await withoutProviderSets(root)

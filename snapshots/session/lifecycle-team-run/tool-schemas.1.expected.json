@@ -404,11 +404,17 @@
               }
             ],
             "description": "The pull-request number the step records, when the transition takes one."
+          },
+          "needsHuman": {
+            "type": "boolean",
+            "description": "true to stop and ask the human instead of proposing a transition; then set question."
+          },
+          "question": {
+            "type": "string",
+            "description": "The ruling you need from the human when needsHuman is true."
           }
         },
-        "required": [
-          "summary"
-        ]
+        "required": []
       }
     },
     {

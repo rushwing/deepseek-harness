@@ -7,6 +7,7 @@
  * @module @deepseek-ai/dsh-experimental-lifecycle-orchestrator/scope
  */
 
+import { posix } from 'node:path'
 import { asList, textOf, type ArtifactGraph, type ArtifactKind } from '@deepseek-ai/dsh-experimental-lifecycle-work-items'
 import { assertNever } from '@deepseek-ai/dsh-util-values'
 
@@ -83,10 +84,13 @@ function boundTo(kind: ArtifactKind, id: string, scope: WriteScope, label: strin
  * @param label - the path relative to the workspace, POSIX separators.
  * @param tasksDir - the artifact tree relative to the workspace, such as `lifecycle/tasks`.
  * @param pre - the tree before the step, which binds existing BUGs.
- * @returns the denial reason, or `undefined` when the write is allowed (including every path outside the tree).
+ * @returns the denial reason, or `undefined` when the write is allowed: every path outside the lifecycle directory, and
+ * in-scope artifacts inside the tree; the tables, standards, and briefs beside the tree are always denied.
  */
 export function denialOf(scope: WriteScope, label: string, tasksDir: string, pre: ArtifactGraph): string | undefined {
-  if (!label.startsWith(`${tasksDir}/`)) return undefined
+  if (!label.startsWith(`${tasksDir}/`)) {
+    return label.startsWith(`${posix.dirname(tasksDir)}/`) ? reason(scope, label, 'the tables, standards, and briefs are read-only for a role child') : undefined
+  }
   const rest = label.slice(tasksDir.length + 1)
   const dir = rest.slice(0, Math.max(rest.indexOf('/'), 0))
   const kind = KIND_BY_DIR[dir]

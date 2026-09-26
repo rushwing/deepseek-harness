@@ -95,6 +95,7 @@ Indirectly, through the route a retried request is sent to: the plugin changes w
 
 这些限制界定回退不做的事。它们是当前的包约束，不是任务积压。
 
+- **一次跳转可能合并厂商** — 跨厂商集合的最后一条回退是另一厂商的路由，插件在跳转后不检查活动集合的 Generator 与 Evaluator 是否仍在不同厂商上。
 - **always 模式的 provider 从不跳转** — 重试策略为 `always` 的 provider 会在同一路由上重试直到成功或轮次被取消，因此回退从不被询问。
 - **跳转不记录为事件** — 路由切换可由子代的 `request/header` 与 `request/context` 事件重建；没有 `lifecycle/*` 事件记录它。
 - **计划按子代只读一次** — 子代运行期间编辑的注册表由下一个子代看到，而非正在运行的那个。

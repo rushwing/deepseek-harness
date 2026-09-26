@@ -29,11 +29,11 @@
 
 `ctx.lifecycle` 每次调用都重新读取 Session 的工作目录：`load(cwd)` 返回四张表或全部问题，`graph(cwd)` 返回工件图，`lint(cwd, reqId?)` 返回整棵树或一条 REQ 家族的违规，`checkIn(cwd, request)` 返回三项硬停检查，`legalTransitions(cwd, reqId)` 返回当前 owner 可走的迁移，`status(cwd, reqId?)` 返回工具渲染的报告，`briefs(cwd)` 返回解析后的角色简报以及对简报与注册表 notes 的禁用短语扫描，`transition(cwd, request)` 通过表的效果应用一次迁移或生命周期事件并作为完整步骤判定，`run(agent, request, signal)` 是用新鲜角色子代带动一个 REQ 的驱动器。
 
-模型看到 `lifecycle_init`、`lifecycle_status`、`lifecycle_check_in`、`lifecycle_lint`、`lifecycle_transition` 与 `lifecycle_run`，并在工作目录带有 `lifecycle.yml` 的 Session 中看到提示词顺序 700 处的 `lifecycle:policy` 节；角色子代看到三个只读工具和自己的简报。组合了命令注册表时，用户得到 `/lifecycle status [REQ-ID] | lint [REQ-ID]`。每次 `lifecycle_lint` 运行都向调用 Session 追加一条 `lifecycle/lint` 事件；每次应用的步骤追加 `lifecycle/transition`；一次运行在每个角色子代前后追加 `lifecycle/step`，在每次向人类提问前后追加 `lifecycle/human-decision`。四者都只记录不回放：恢复的驱动器重新读取文件。
+模型看到 `lifecycle_init`、`lifecycle_status`、`lifecycle_check_in`、`lifecycle_lint`、`lifecycle_transition` 与 `lifecycle_run`，并在工作目录带有 `lifecycle.yml` 的 Session 中看到提示词顺序 700 处的 `lifecycle:policy` 节；角色子代看到三个只读工具和自己的简报。组合了命令注册表时，用户得到 `/lifecycle status [REQ-ID] | lint [REQ-ID] | transition REQ-ID TNN summary…`；由人类决定的迁移只在那里应用。每次 `lifecycle_lint` 运行都向调用 Session 追加一条 `lifecycle/lint` 事件；每次应用的步骤追加 `lifecycle/transition`；一次运行在每个角色子代前后追加 `lifecycle/step`，在每次向人类提问前后追加 `lifecycle/human-decision`。四者都只记录不回放：恢复的驱动器重新读取文件。
 
-运行的每一步重新读取树，遇 `done` 或 `blocked` 停止，REQ 家族为红时以 `lint-red` 停止，否则代表 owner 行动。人类 owner 通过 `userQuestions` 得到合法迁移的选项（无人应答或回答 Stop 时为 `needs-human`）。角色 owner 从配置的 subagent provider 得到一个由注册表落座的新鲜一次性子代：路由与按状态的 effort 作为 `agentOptions`，委派工具与 orchestrator 的写入工具被拒绝，深度受限，渲染后的简报是其首条消息。子代交回一份提案（结构化输出或最后一个 JSON 代码块），点名一条迁移或事件、摘要、决定与 PR 号。驱动器把树与子代的写入范围（其角色在该状态书写、且绑定到该 REQ 的工件种类）做 diff，在步骤前的树上判定提案的守卫，规划并原子写入效果，把到达 `done` 的 REQ 移入 `tasks/archive/done/`，把该步作为整体判定，对家族做 lint，并记录迁移；被拒或失败的步骤恢复每个字节并停止运行。一个以驱动 Session 为键的工具守卫在步骤运行期间拒绝范围外的 `write`、`edit`、`str_replace_editor` 调用；对 shell 与产品原生写入，diff 是最终的强制手段。
+运行的每一步重新读取树，遇 `done` 或 `blocked` 停止，REQ 家族为红时以 `lint-red` 停止，否则代表 owner 行动。人类 owner 通过 `userQuestions` 得到合法迁移的选项（无人应答或回答 Stop 时为 `needs-human`）。角色 owner 从配置的 subagent provider 得到一个由注册表落座的新鲜一次性子代：路由与按状态的 effort 作为 `agentOptions`，委派工具与 orchestrator 的写入工具被拒绝，深度受限，渲染后的简报是其首条消息。子代交回一份提案（结构化输出或最后一个 JSON 代码块），点名一条迁移或事件、摘要、决定与 PR 号，或交回一个让运行以 `needs-human` 暂停的 `needsHuman` 问题。驱动器把树与子代的写入范围（其角色在该状态书写、且绑定到该 REQ 的工件种类）做 diff，在步骤前的树上判定提案的守卫，规划并原子写入效果，把到达 `done` 的 REQ 移入 `tasks/archive/done/`，把该步作为整体判定，对家族做 lint，并记录迁移；被拒或失败的步骤恢复生命周期目录下的每个字节（包括子代永不可写的表、标准与简报）并停止运行；一次运行在结束前占有工作区。一个以驱动 Session 为键的工具守卫在步骤运行期间拒绝范围外的 `write`、`edit`、`str_replace_editor` 调用；对 shell 与产品原生写入，diff 是最终的强制手段。
 
-返回的记录是 orchestrator 的 `LifecycleLoad`、`LintReport`、`CheckInRequest` 与 `CheckInResult`、`LegalTransition`、`LifecycleStatus`、`TransitionRequest` 与 `TransitionResult`、`RunRequest` 与 `RunResult`、`Briefs` 类型，以及 work-items 的 `ArtifactGraph`；每个都是该次调用从文件计算出的普通对象，不持有对文件的句柄。
+返回的记录是 orchestrator 的 `LifecycleLoad`、`LintReport`、`CheckInRequest` 与 `CheckInResult`、`LegalTransition`、`LifecycleStatus`、`TransitionRequest` 与 `TransitionResult`、`RunRequest`、`RunResult` 与 `PendingHuman`、`Briefs` 类型，以及 work-items 的 `ArtifactGraph`；每个都是该次调用从文件计算出的普通对象，不持有对文件的句柄。
 
 ## 三项检查
 
@@ -51,6 +51,8 @@
 | `INVALID_REQUEST` | 步骤对迁移与事件二者皆无或皆有、摘要空白，或 `maxSteps` 不是正整数 |
 | `DELEGATED_CALLER` | 角色子代调用了 `lifecycle_transition` 或 `lifecycle_run`；子代应交回提案 |
 | `NO_PROVIDER` | 配置的 `subagentProvider` 未注册 |
+| `RUN_IN_PROGRESS` | 另一次运行或手工迁移占有该工作区 |
+| `HUMAN_ACTOR` | 模型请求 `lifecycle_transition` 应用由人类决定的迁移；人类运行 `/lifecycle transition` |
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -143,7 +145,8 @@ transition(cwd: string, request: TransitionRequest): Promise<TransitionResult>
  * @param request - the REQ and the optional step ceiling.
  * @param signal - abort cancels the running child and ends the run.
  * @returns the run report.
- * @throws LifecycleError `NO_WORKSPACE` without a working directory; the driver's own codes otherwise.
+ * @throws LifecycleError `NO_WORKSPACE` without a working directory, `RUN_IN_PROGRESS` while another run or transition owns
+ * the workspace; the driver's own codes otherwise.
  */
 async run(agent: Agent, request: RunRequest, signal: AbortSignal): Promise<RunResult>
 

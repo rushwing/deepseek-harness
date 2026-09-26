@@ -46,6 +46,8 @@ export interface ScriptedChild {
   readonly act?: (request: ResolvedSubagentStartRequest, childId: SessionId) => Promise<void>
   /** Resolve only when the driver aborts the run. */
   readonly hang?: boolean
+  /** Reject the provider's start with this value instead of running the child. */
+  readonly startError?: unknown
 }
 
 function renderProposal(proposal: Proposal | null | undefined): string {
@@ -71,6 +73,8 @@ export class FakeRoleProvider implements SubagentProvider {
     const label = request.label ?? ''
     const script = this.children.find(child => label.startsWith(child.label))
     if (script === undefined) return Promise.reject(new Error(`no scripted child for ${label}`))
+    // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- a provider may reject with any value
+    if (script.startError !== undefined) return Promise.reject(script.startError)
     const id = SessionId(`lifecycle-child-${String(++this.runs)}`)
     const result = this.perform(script, request, id)
     return Promise.resolve({

@@ -66,8 +66,16 @@ export interface RunStep {
   readonly state: string
   /** The transition id or event name proposed; `null` when the child proposed none. */
   readonly transition: string | null
-  readonly outcome: 'applied' | 'rejected' | 'failed'
+  /** `paused` when the child handed over a question for the human instead of a proposal. */
+  readonly outcome: 'applied' | 'rejected' | 'failed' | 'paused'
   readonly reason: string | null
+}
+
+/** The human-owned state and its legal transitions when the run stopped for a decision, with a child's question when one paused it. */
+export interface PendingHuman {
+  readonly state: string
+  readonly options: string[]
+  readonly question: string | null
 }
 
 /** The run report. */
@@ -75,8 +83,8 @@ export interface RunResult {
   readonly reqId: string
   readonly steps: RunStep[]
   readonly stopped: RunStop
-  /** The human-owned state and its legal transitions when the run stopped for a decision. */
-  readonly pendingHuman: { readonly state: string; readonly options: string[] } | null
+  /** Set when the run stopped for a human decision or a child's question. */
+  readonly pendingHuman: PendingHuman | null
   /** Lint violations of a `lint-red` stop, or the problems of the rejecting or failing step. */
   readonly violations: string[]
 }
@@ -114,7 +122,8 @@ interface Run {
 type Outcome =
   | { readonly kind: 'applied'; readonly step: RunStep }
   | { readonly kind: 'stopped'; readonly stopped: 'rejected' | 'failed'; readonly step: RunStep; readonly violations: string[] }
-  | { readonly kind: 'pending'; readonly pendingHuman: { readonly state: string; readonly options: string[] } }
+  | { readonly kind: 'pending'; readonly pendingHuman: PendingHuman }
+  | { readonly kind: 'paused'; readonly step: RunStep; readonly pendingHuman: PendingHuman }
 
 interface ChildOutcome {
   readonly childId: string
@@ -243,6 +252,7 @@ export async function runLifecycle(
       : await roleStep(run, pre, req.status, owner, role, legal)
     if (outcome.kind === 'pending') return finish(run, 'needs-human', { pendingHuman: outcome.pendingHuman })
     run.steps.push(outcome.step)
+    if (outcome.kind === 'paused') return finish(run, 'needs-human', { pendingHuman: outcome.pendingHuman })
     if (outcome.kind === 'stopped') return finish(run, outcome.stopped, { violations: outcome.violations })
   }
   return finish(run, 'max-steps')
@@ -260,10 +270,10 @@ async function humanStep(run: Run, pre: ArtifactGraph, state: string, owner: str
   switch (decision.kind) {
     case 'unavailable':
       run.agent.session.append('lifecycle/human-decision', decisionEvent('unavailable', null))
-      return { kind: 'pending', pendingHuman: { state, options } }
+      return { kind: 'pending', pendingHuman: { state, options, question: null } }
     case 'stop':
       run.agent.session.append('lifecycle/human-decision', decisionEvent('answered', decision.answer))
-      return { kind: 'pending', pendingHuman: { state, options } }
+      return { kind: 'pending', pendingHuman: { state, options, question: null } }
     case 'transition': {
       run.agent.session.append('lifecycle/human-decision', decisionEvent('answered', decision.id))
       const result = await applyStep(run.cwd, run.load, pre, { reqId: run.reqId, transition: decision.id, summary: `Decided by ${owner}` })
@@ -281,7 +291,7 @@ async function humanStep(run: Run, pre: ArtifactGraph, state: string, owner: str
   }
 }
 
-function nameProblems(tables: LifecycleTables, proposal: Proposal): string[] {
+function nameProblems(tables: LifecycleTables, proposal: Extract<Proposal, { kind: 'step' }>): string[] {
   const problems: string[] = []
   if (proposal.transition !== undefined && transitionById(tables.table, proposal.transition) === undefined) {
     problems.push(`${proposal.transition} is not a transition of the lifecycle table`)
@@ -311,7 +321,9 @@ function scopeProblems(run: Run, scope: WriteScope, pre: ArtifactGraph, before: 
   return problems
 }
 
-async function runChild(run: Run, actor: Actor, brief: string, scope: WriteScope, pre: ArtifactGraph): Promise<ChildOutcome> {
+async function runChild(
+  run: Run, actor: Actor, brief: string, scope: WriteScope, pre: ArtifactGraph, onStart: (childId: string) => void,
+): Promise<ChildOutcome> {
   const { deps, agent, cwd, tasksDir, signal } = run
   const caps = run.provider.capabilities
   // The step ends with the run's abort or the configured timeout, whichever comes first.
@@ -330,6 +342,7 @@ async function runChild(run: Run, actor: Actor, brief: string, scope: WriteScope
   const close = deps.guard.open(String(agent.id), { cwd, tasksDir, scope, pre })
   try {
     child = await deps.ctx.subagents.start(run.provider.name, request)
+    onStart(String(child.id))
     const result = await child.result
     return { childId: String(child.id), result, timedOut: stepSignal.aborted && !signal.aborted }
   } finally {
@@ -341,7 +354,7 @@ async function runChild(run: Run, actor: Actor, brief: string, scope: WriteScope
 async function roleStep(
   run: Run, pre: ArtifactGraph, state: string, owner: string, role: string, legal: readonly LegalTransition[],
 ): Promise<Outcome> {
-  const { deps, agent, cwd, tasksDir, reqId } = run
+  const { deps, agent, cwd, reqId } = run
   const actor = actorOf(run.tables.registry, owner, state)
   const identity: StepIdentity = {
     reqId,
@@ -362,40 +375,57 @@ async function roleStep(
     notes: actor.agent.notes,
   })
   agent.session.append('lifecycle/step', stepEvent(identity, null, 'started', null))
-  const before = await snapshotTree(cwd, tasksDir)
+  const before = await snapshotTree(cwd, deps.service.dir)
   const scope = writeScope(role, state, reqId)
-  const child = await runChild(run, actor, brief, scope, pre)
   const step = (transition: string | null, outcome: RunStep['outcome'], reason: string | null): RunStep => (
     { uid: owner, role, state, transition, outcome, reason }
   )
+  let childId: string | null = null
   type Phase = 'rejected' | 'failed'
   const reject = async (problems: string[], transition: string | null, phase: Phase = 'rejected'): Promise<Outcome> => {
-    await restoreTree(cwd, before, await snapshotTree(cwd, tasksDir))
+    await restoreTree(cwd, before, await snapshotTree(cwd, deps.service.dir))
     const reason = problems.join('; ')
-    agent.session.append('lifecycle/step', stepEvent(identity, child.childId, phase, reason))
+    agent.session.append('lifecycle/step', stepEvent(identity, childId, phase, reason))
     return { kind: 'stopped', stopped: phase, step: step(transition, phase, reason), violations: problems }
   }
-  if (child.result.stopReason !== COMPLETED) {
-    const timing = child.timedOut ? ` after ${String(deps.config.stepTimeoutMs)} ms` : ''
-    return reject([`the child stopped with ${child.result.stopReason}${timing}`], null, 'failed')
+  try {
+    const child = await runChild(run, actor, brief, scope, pre, (id) => {
+      childId = id
+    })
+    if (child.result.stopReason !== COMPLETED) {
+      const timing = child.timedOut ? ` after ${String(deps.config.stepTimeoutMs)} ms` : ''
+      return await reject([`the child stopped with ${child.result.stopReason}${timing}`], null, 'failed')
+    }
+    const parsed = parseProposal(child.result)
+    if (!parsed.ok) return await reject([parsed.problem], null)
+    const { proposal } = parsed
+    const after = await snapshotTree(cwd, deps.service.dir)
+    const outside = scopeProblems(run, scope, pre, before, after)
+    if (proposal.kind === 'question') {
+      if (outside.length > 0) return await reject(outside, null)
+      agent.session.append('lifecycle/step', stepEvent(identity, childId, 'completed', proposal.question))
+      const options = legal.map(transition => transition.id)
+      return { kind: 'paused', step: step(null, 'paused', proposal.question), pendingHuman: { state, options, question: proposal.question } }
+    }
+    const proposed = proposal.transition === undefined ? String(proposal.event) : proposal.transition
+    const problems = [...nameProblems(run.tables, proposal), ...outside]
+    if (problems.length > 0) return await reject(problems, proposed)
+    const applied = await applyStep(cwd, run.load, pre, {
+      reqId,
+      transition: proposal.transition,
+      event: proposal.event,
+      summary: proposal.summary,
+      decisions: proposal.decisions,
+      pr: proposal.pr,
+    })
+    if (!applied.applied) return await reject(applied.violations, proposed)
+    agent.session.append('lifecycle/transition', transitionEvent(applied))
+    agent.session.append('lifecycle/step', stepEvent(identity, childId, 'completed', null))
+    return { kind: 'applied', step: step(applied.id, 'applied', null) }
+  } catch (error: unknown) {
+    // A child that deleted its own REQ, a provider that could not start, or a
+    // write that failed: the step fails, the tree is restored, and the step
+    // record is closed instead of the error escaping past the rollback.
+    return await reject([error instanceof Error ? error.message : String(error)], null, 'failed')
   }
-  const parsed = parseProposal(child.result)
-  if (!parsed.ok) return reject([parsed.problem], null)
-  const { proposal } = parsed
-  const proposed = proposal.transition === undefined ? String(proposal.event) : proposal.transition
-  const after = await snapshotTree(cwd, tasksDir)
-  const problems = [...nameProblems(run.tables, proposal), ...scopeProblems(run, scope, pre, before, after)]
-  if (problems.length > 0) return reject(problems, proposed)
-  const applied = await applyStep(cwd, run.load, pre, {
-    reqId,
-    transition: proposal.transition,
-    event: proposal.event,
-    summary: proposal.summary,
-    decisions: proposal.decisions,
-    pr: proposal.pr,
-  })
-  if (!applied.applied) return reject(applied.violations, proposed)
-  agent.session.append('lifecycle/transition', transitionEvent(applied))
-  agent.session.append('lifecycle/step', stepEvent(identity, child.childId, 'completed', null))
-  return { kind: 'applied', step: step(applied.id, 'applied', null) }
 }

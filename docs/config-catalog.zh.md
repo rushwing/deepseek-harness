@@ -1039,7 +1039,7 @@ export interface Config {
 ## `@deepseek-ai/dsh-experimental-lifecycle-orchestrator`
 
 - `inject`: `tools` · `systemPrompt` · `subagents`
-- `source`: [`packages/experimental/lifecycle-orchestrator/src/index.ts:84`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
+- `source`: [`packages/experimental/lifecycle-orchestrator/src/index.ts:95`](../packages/experimental/lifecycle-orchestrator/src/index.ts)
 
 ```ts config-catalog
 /** Where the lifecycle files live. */

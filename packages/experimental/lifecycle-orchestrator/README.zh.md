@@ -48,15 +48,15 @@ kind: "package-reference"
 - `lifecycle_status { reqId? }` 报告一个或全部 REQ：状态、owner 与 owner 角色、评审轮次、`tc_policy`、blocked 字段、下一步行动的座位，以及当前 owner 可走的迁移（T16 的恢复槽位由记录的配对解析）。
 - `lifecycle_check_in { reqId, uid, state, transition? }` 运行三项检查：C1 REQ 文件存在，C2 uid 是其 owner，C3 REQ 处于 `state` 且该 uid 的注册处理该状态。表中标记 `exempt_from_hard_stop` 的迁移让其行动角色通过 C2 与 C3。
 - `lifecycle_lint { reqId? }` 对整棵树或一个 REQ 的家族（该 REQ、其 TC、RV、PL，以及它携带或阻塞它的 BUG）做 lint，并追加带计数的 `lifecycle/lint` 事件。
-- `lifecycle_transition { reqId, transition? | event?, summary, decisions?, pr? }` 手工应用一次迁移（如 `T01`）或生命周期事件（如 `bug_fix`）：在当前树上判定守卫，效果原子地重写 REQ frontmatter 以及范围内 TC 与 BUG 的状态，到达 `done` 的 REQ 移入 `tasks/archive/done/`，结果作为完整步骤判定并在 REQ 家族内 lint。红色结果恢复每个字节并返回违规；已应用的结果返回文件、之后的 owner 与建议的提交主题 `lifecycle: <id> — <summary>`。由人类提交。
-- `lifecycle_run { reqId, maxSteps? }` 驱动一个 REQ：每一步重新读取树，遇 `done` 或 `blocked` 停止，家族为红时以 `lint-red` 停止，否则代表 owner 行动。人类 owner 被询问适用哪条合法迁移（无人应答或人类回答 Stop 时为 `needs-human`）；角色 owner 得到一个由注册表落座的新鲜一次性子代（来自其路由与按状态 effort 的 `agentOptions`、拒绝委派工具、限制深度、以其简报为首条消息），其交接是一份迁移提案。子代的编辑与其写入范围做 diff，提案像 `lifecycle_transition` 一样判定并应用，被拒或失败的步骤恢复树并停止运行。结果列出每一步的 uid、状态、迁移与结果、停止原因（`done`、`blocked`、`needs-human`、`rejected`、`lint-red`、`max-steps`、`failed`）、待决的人类决定，以及违规。
-- `/lifecycle status [REQ-ID]` 与 `/lifecycle lint [REQ-ID]` 为用户渲染同样的报告；其他输入回以用法行。
+- `lifecycle_transition { reqId, transition? | event?, summary, decisions?, pr? }` 手工应用一次迁移（如 `T01`）或生命周期事件（如 `bug_fix`）：在当前树上判定守卫，效果原子地重写 REQ frontmatter 以及范围内 TC 与 BUG 的状态，到达 `done` 的 REQ 移入 `tasks/archive/done/`，结果作为完整步骤判定并在 REQ 家族内 lint。红色结果恢复每个字节并返回违规；已应用的结果返回文件、之后的 owner 与建议的提交主题 `lifecycle: <id> — <summary>`。由人类提交。由人类决定的迁移（行动者为 `human`，如 `T01`、`T14`）对模型以 `HUMAN_ACTOR` 拒绝；人类用 `/lifecycle transition REQ-ID TNN summary…` 应用它，并记录同样的事件。
+- `lifecycle_run { reqId, maxSteps? }` 驱动一个 REQ：每一步重新读取树，遇 `done` 或 `blocked` 停止，家族为红时以 `lint-red` 停止，否则代表 owner 行动。人类 owner 被询问适用哪条合法迁移（无人应答或人类回答 Stop 时为 `needs-human`）；角色 owner 得到一个由注册表落座的新鲜一次性子代（来自其路由与按状态 effort 的 `agentOptions`、拒绝委派工具、限制深度、以其简报为首条消息），其交接是一份迁移提案。子代的编辑与其写入范围做 diff，提案像 `lifecycle_transition` 一样判定并应用，被拒或失败的步骤恢复生命周期目录下的每个文件并停止运行；判定子代时抛出的错误以同样方式让该步失败。子代也可以交回 `{ "needsHuman": true, "question": "…" }`：运行以 `needs-human` 暂停，问题放在 `pendingHuman` 中，子代范围内的编辑保留。结果列出每一步的 uid、状态、迁移与结果、停止原因（`done`、`blocked`、`needs-human`、`rejected`、`lint-red`、`max-steps`、`failed`）、待决的人类决定，以及违规。
+- `/lifecycle status [REQ-ID]`、`/lifecycle lint [REQ-ID]` 与 `/lifecycle transition REQ-ID TNN summary…` 为用户渲染同样的报告并应用迁移；其他输入回以用法行。
 
-每次调用都重新读取文件。没有工作目录的 Session 以 `NO_WORKSPACE` 失败；无法加载的表以 `TABLES_INVALID` 失败并列出每个问题；未知 REQ 或迁移以 `UNKNOWN_REQ` 或 `UNKNOWN_TRANSITION` 失败；迁移与事件二者皆无或皆有、摘要空白、`maxSteps` 非正整数的请求以 `INVALID_REQUEST` 失败；被委派的子代调用 `lifecycle_transition` 或 `lifecycle_run` 以 `DELEGATED_CALLER` 失败。
+每次调用都重新读取文件。没有工作目录的 Session 以 `NO_WORKSPACE` 失败；无法加载的表以 `TABLES_INVALID` 失败并列出每个问题；未知 REQ 或迁移以 `UNKNOWN_REQ` 或 `UNKNOWN_TRANSITION` 失败；迁移与事件二者皆无或皆有、摘要空白、`maxSteps` 非正整数的请求以 `INVALID_REQUEST` 失败；被委派的子代调用 `lifecycle_transition` 或 `lifecycle_run` 以 `DELEGATED_CALLER` 失败；工作区已被一次运行占有时，第二次运行或手工迁移以 `RUN_IN_PROGRESS` 失败；模型请求由人类决定的迁移以 `HUMAN_ACTOR` 失败。
 
 ### 写入范围
 
-角色子代只能创建或编辑它所处理 REQ 的工件，且只限其角色在该状态下书写的种类：Planner 在 `req_review` 写 REQ 及其 PL；Evaluator 在 `req_review`、`tc_impl_review`、`req_impl_review` 写 RV 与新 BUG，在 `tc_design` 写该 REQ 的 TC 以及 REQ（其 `test_case_ref`）；Generator 在 `tc_review` 写 RV，在 `tc_impl` 写 TC，在 `req_impl` 写 BUG 与 TC。归档工件与表从不被写；`tasks/` 之外的文件（产品代码、测试）不受围栏。两种机制强制该范围：一个工具守卫在步骤运行期间拒绝目标位于树内却超出范围的 `write`、`edit`、`str_replace_editor` 调用，以驱动 Session 为键，因而子代在存在之前就已被围住；步骤后的 diff 在范围外有任何变化或新 BUG 未指名该 REQ时拒绝该步并恢复每个文件。对 shell 写入以及原生工具绕过 harness 的产品后端子代，diff 是唯一的强制手段。
+角色子代只能创建或编辑它所处理 REQ 的工件，且只限其角色在该状态下书写的种类：Planner 在 `req_review` 写 REQ 及其 PL；Evaluator 在 `req_review`、`tc_impl_review`、`req_impl_review` 写 RV 与新 BUG，在 `tc_design` 写该 REQ 的 TC 以及 REQ（其 `test_case_ref`）；Generator 在 `tc_review` 写 RV，在 `tc_impl` 写 TC，在 `req_impl` 写 BUG 与 TC。归档工件、表、标准与简报从不被写：生命周期目录下 `tasks/` 之外的每个路径都被拒绝并做 diff；生命周期目录之外的文件（产品代码、测试）不受围栏。两种机制强制该范围：一个工具守卫在步骤运行期间拒绝目标位于树内却超出范围的 `write`、`edit`、`str_replace_editor` 调用，以驱动 Session 为键，因而子代在存在之前就已被围住；步骤后的 diff 在范围外有任何变化或新 BUG 未指名该 REQ时拒绝该步并恢复每个文件。对 shell 写入以及原生工具绕过 harness 的产品后端子代，diff 是唯一的强制手段。
 
 ### 简报
 
@@ -177,7 +177,8 @@ schema 稳定；结果按常规延长对话。
 - **每个驱动 Session 一次只走一步** — 守卫为当前步骤围住驱动 Session 的全部子代；同一 Session 中两次并发的 `lifecycle_run` 共用一个围栏。
 - **只归档 REQ 文件** — 到达 `done` 的 REQ 移入 `tasks/archive/done/`；其 TC、RV 与 PL 留在原目录，与 lint 的预期一致。
 - **人类决定只选迁移** — 人类选择一条合法迁移 id 或 Stop；需要决定的迁移（如 `T15` 的阻塞字段）由当前 owner 的子代提案，或通过 `lifecycle_transition` 手工应用。
-- **尚无录制 Session 快照** — 驱动器有单元覆盖与 Loader 组合测试；手写的 `snapshots/session/lifecycle-team-run/` 用例随拥有其组合的 profile bundle 一起落地。
+- **一次运行占有工作区** — 步骤运行期间，生命周期目录下的每个变化都归于子代，并随被拒的步骤一起回滚，因此人类在运行期间编辑工件会丢失该编辑；同一进程内并发的运行与手工迁移以 `RUN_IN_PROGRESS` 拒绝，其他进程则不会。
+- **回退不保持厂商分离** — 跨厂商注册表把另一厂商的路由列为最后一条回退，模型回退跳到它时不检查 Generator 与 Evaluator 是否仍在不同厂商上。
 - **每个 Session 一个生命周期目录** — 目录是插件级设置；两个布局不同的工作区需要两套部署。
 - **脚手架路由按产品形态识别** — `lifecycle_init` 识别 `claude-code` 与 `codex` 路由以生成带这些产品所声明 effort 的跨厂商集合，其余一律不带 effort 落到默认模型，由 adapter 默认值生效；effort 在步骤首次解析路由时校验，而非脚手架时。
 - **仅英文默认文件** — 脚手架写入英文的表、契约、标准与简报；团队在工作区内翻译或编辑它们。

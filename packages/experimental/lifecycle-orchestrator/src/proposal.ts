@@ -1,7 +1,8 @@
 /**
- * The transition proposal a role child hands back: its JSON schema for
- * structured output, and the parser that reads it from structured output or
- * from the last fenced ```json block of the child's final text.
+ * The hand-over a role child ends with: a transition or event proposal, or
+ * a question for the human. Its JSON schema serves structured output; the
+ * parser reads structured output or the last fenced ```json block of the
+ * child's final text.
  *
  * @module @deepseek-ai/dsh-experimental-lifecycle-orchestrator/proposal
  */
@@ -11,15 +12,18 @@ import type { SubagentResult } from '@deepseek-ai/dsh-subagent'
 import type { JsonSchemaNode, ObjectJsonSchema } from '@deepseek-ai/dsh-tools'
 import { decisionsOf, isRecord } from './tools/transition.ts'
 
-/** What a role child proposes at the end of its step. */
-export interface Proposal {
-  /** Exactly one of `transition` and `event` is set. */
-  readonly transition: string | undefined
-  readonly event: string | undefined
-  readonly summary: string
-  readonly decisions: StepDecisions
-  readonly pr: number | undefined
-}
+/** What a role child proposes at the end of its step: a transition or event to apply, or a question for the human. */
+export type Proposal =
+  | {
+    readonly kind: 'step'
+    /** Exactly one of `transition` and `event` is set. */
+    readonly transition: string | undefined
+    readonly event: string | undefined
+    readonly summary: string
+    readonly decisions: StepDecisions
+    readonly pr: number | undefined
+  }
+  | { readonly kind: 'question'; readonly question: string }
 
 /** A parsed proposal, or the reason the hand-over is unusable. */
 export type ParsedProposal = { readonly ok: true; readonly proposal: Proposal } | { readonly ok: false; readonly problem: string }
@@ -41,8 +45,10 @@ export const PROPOSAL_SCHEMA: ObjectJsonSchema = {
       description: 'Choices for effects that admit several values: { fields, tcStatuses, bugStatuses }.',
     },
     pr: { ...NULLABLE_INTEGER, description: 'The pull-request number the step records, when the transition takes one.' },
+    needsHuman: { type: 'boolean', description: 'true to stop and ask the human instead of proposing a transition; then set question.' },
+    question: { type: 'string', description: 'The ruling you need from the human when needsHuman is true.' },
   },
-  required: ['summary'],
+  required: [],
 }
 
 const FENCE = /```json\s*\n([\s\S]*?)\n\s*```/g
@@ -81,6 +87,13 @@ export function parseProposal(result: SubagentResult): ParsedProposal {
   if (!raw.ok) return raw
   const { value } = raw
   if (!isRecord(value)) return { ok: false, problem: 'the proposal is not a JSON object' }
+  if (value.needsHuman !== undefined && typeof value.needsHuman !== 'boolean') return { ok: false, problem: 'needsHuman must be a boolean' }
+  if (value.needsHuman === true) {
+    if (typeof value.question !== 'string' || value.question.trim() === '') {
+      return { ok: false, problem: 'question must be one non-empty sentence when needsHuman is true' }
+    }
+    return { ok: true, proposal: { kind: 'question', question: value.question.trim() } }
+  }
   const transition = nameOf(value.transition, 'transition')
   if (!transition.ok) return transition
   const event = nameOf(value.event, 'event')
@@ -94,6 +107,7 @@ export function parseProposal(result: SubagentResult): ParsedProposal {
   return {
     ok: true,
     proposal: {
+      kind: 'step',
       transition: transition.value,
       event: event.value,
       summary: value.summary.trim(),

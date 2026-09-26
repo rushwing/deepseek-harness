@@ -679,7 +679,7 @@ Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../package
 
 ### `lifecycle_run`
 
-Drive one requirement (REQ) through the lifecycle: each step spawns a fresh role child seated by the agent registry, fences its edits to its own artifacts, judges its transition proposal against the lifecycle table, applies the effects, and lints; the human decides at the human-owned states. Stops when the REQ is done or blocked, a human decision is pending, a step is rejected or fails, the tree lints red, or the step ceiling is reached. Use it only when asked to drive a REQ.
+Drive one requirement (REQ) through the lifecycle: each step spawns a fresh role child seated by the agent registry, fences its edits to its own artifacts, judges its transition proposal against the lifecycle table, applies the effects, and lints; the human decides at the human-owned states. Stops when the REQ is done or blocked, a human decision is pending, a step is rejected or fails, the tree lints red, or the step ceiling is reached; a child may also pause the run with a question for the human. Use it only when asked to drive a REQ.
 
 ```json
 {
@@ -722,7 +722,7 @@ Source: [`packages/experimental/lifecycle-orchestrator/src/index.ts`](../package
 
 ### `lifecycle_transition`
 
-Apply one lifecycle transition (such as T01) or lifecycle event (such as bug_fix) to a requirement (REQ) by hand: the guards are checked, the effects rewrite the frontmatter and statuses, and the result is linted; a red result writes nothing. Returns the suggested commit subject; the human commits.
+Apply one lifecycle transition (such as T01) or lifecycle event (such as bug_fix) to a requirement (REQ) by hand: the guards are checked, the effects rewrite the frontmatter and statuses, and the result is linted; a red result writes nothing. Returns the suggested commit subject; the human commits. Transitions the human decides (such as T01 or T14) are refused here: the human runs /lifecycle transition.
 
 ```json
 {

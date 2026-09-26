@@ -95,6 +95,7 @@ A hop moves the child's requests to another provider or model, so the provider c
 
 These limits define what the fallback does not do. They are current package constraints, not a task backlog.
 
+- **A hop may collapse the vendors** — the registry's last fallback of a cross-vendor set is the other vendor's route, and the plugin does not check that the Generator and the Evaluator of the active set still sit on different vendors after a hop.
 - **Always-mode providers never hop** — a provider whose retry policy is `always` retries the same route until it succeeds or the turn is cancelled, so the fallback is never asked.
 - **Hops are not logged as events** — the route switch is reconstructable from the child's `request/header` and `request/context` events; no `lifecycle/*` event records it.
 - **The plan is read once per child** — a registry edited while a child runs is seen by the next child, not the running one.

@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, rm, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -155,6 +155,103 @@ describe('lifecycle_run fences role children', () => {
   })
 })
 
+describe('lifecycle_run keeps the tables, briefs, and its own contract safe', () => {
+  it('rejects a child that edits the tables or the briefs and restores them', async () => {
+    const TABLE = 'lifecycle/lifecycle.yml'
+    const BRIEFS = 'lifecycle/standards/briefs.md'
+    const { ctx, root, agent } = await setupDriver([{
+      label: 'lifecycle:evaluator-002@req_review:REQ-PLAT-010',
+      edit: async (workspace) => {
+        await writeArtifact(workspace, RV_010, reviewRecord([{ section: 'req_review', uid: 'evaluator-002' }]))
+        for (const label of [TABLE, BRIEFS]) {
+          await writeArtifact(workspace, label, `${await readFile(join(workspace, ...label.split('/')), 'utf8')}\n# tampered\n`)
+        }
+      },
+      proposal: { transition: 'T03', summary: 'Review passes' },
+    }], { answers: 'none', prepare: atEvaluatorReview })
+    const table = await readFile(join(root, ...TABLE.split('/')), 'utf8')
+    const briefs = await readFile(join(root, ...BRIEFS.split('/')), 'utf8')
+    const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(result.stopped).toBe('rejected')
+    expect(result.violations.join('\n')).toContain('lifecycle/lifecycle.yml: outside the write scope')
+    expect(result.violations.join('\n')).toContain('lifecycle/standards/briefs.md: outside the write scope')
+    expect(await readFile(join(root, ...TABLE.split('/')), 'utf8')).toBe(table)
+    expect(await readFile(join(root, ...BRIEFS.split('/')), 'utf8')).toBe(briefs)
+    expect(existsSync(join(root, ...RV_010.split('/')))).toBe(false)
+  })
+
+  it('fails the step, restores the tree, and closes the step record when judging the child throws', async () => {
+    const { ctx, root, agent } = await setupDriver([{
+      label: 'lifecycle:planner-001@req_review:REQ-PLAT-010',
+      edit: workspace => rm(join(workspace, ...REQ_010.split('/'))),
+      proposal: { transition: 'T02', summary: 'Scope written' },
+    }], { answers: ['T01'] })
+    const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(result.stopped).toBe('failed')
+    expect(result.steps.map(step => step.outcome)).toEqual(['applied', 'failed'])
+    expect(result.steps[1]?.reason).toContain('REQ-PLAT-010')
+    expect(existsSync(join(root, ...REQ_010.split('/')))).toBe(true)
+    expect((await readFile(join(root, REQ_010), 'utf8'))).toContain('status: req_review\nowner: planner-001\n')
+    const phases = agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/step').map(event => (event.data as { phase: string }).phase)
+    expect(phases).toEqual(['started', 'failed'])
+  })
+
+  it('fails the step and closes the step record when the provider cannot start the child', async () => {
+    const { ctx, agent } = await setupDriver([{ label: 'lifecycle:planner-001@req_review:REQ-PLAT-010', startError: 'the provider is offline' }], { answers: ['T01'] })
+    const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(result).toMatchObject({ stopped: 'failed', steps: [{ outcome: 'applied' }, { outcome: 'failed', reason: 'the provider is offline' }] })
+    const steps = agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/step').map(event => event.data as { phase: string; childSessionId: string | null })
+    expect(steps.map(step => step.phase)).toEqual(['started', 'failed'])
+    expect(steps[1]?.childSessionId).toBeNull()
+  })
+
+  it('pauses the run with the child\'s question when it hands over needsHuman, keeping its scoped edits', async () => {
+    const question = 'Which acceptance criterion governs pagination?'
+    const { ctx, root, agent } = await setupDriver([{
+      label: 'lifecycle:evaluator-002@req_review:REQ-PLAT-010',
+      edit: workspace => writeArtifact(workspace, RV_010, reviewRecord([{ section: 'req_review', uid: 'evaluator-002', verdict: 'REJECT' }])),
+      text: `Blocked on a ruling.\n\n\`\`\`json\n${JSON.stringify({ needsHuman: true, question })}\n\`\`\`\n`,
+    }], { answers: 'none', prepare: atEvaluatorReview, config: { proposalChannel: 'text' } })
+    const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(result).toMatchObject({
+      stopped: 'needs-human',
+      pendingHuman: { state: 'req_review', options: ['T03', 'T03b', 'T03c', 'T04', 'T15'], question },
+      steps: [{ uid: 'evaluator-002', transition: null, outcome: 'paused', reason: question }],
+    })
+    expect(existsSync(join(root, ...RV_010.split('/')))).toBe(true)
+    expect((await readFile(join(root, REQ_010), 'utf8'))).toContain('owner: evaluator-002\n')
+    const phases = agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/step').map(event => (event.data as { phase: string }).phase)
+    expect(phases).toEqual(['started', 'completed'])
+  })
+
+  it('rejects a question hand-over whose edits left the write scope', async () => {
+    const { ctx, root, agent } = await setupDriver([{
+      label: 'lifecycle:evaluator-002@req_review:REQ-PLAT-010',
+      edit: async workspace => writeArtifact(workspace, RV_009, `${await readFile(join(workspace, RV_009), 'utf8')}\nTampered.\n`),
+      text: 'Blocked.\n\n```json\n{"needsHuman":true,"question":"Which AC applies?"}\n```\n',
+    }], { answers: 'none', prepare: atEvaluatorReview, config: { proposalChannel: 'text' } })
+    const rv009 = await readFile(join(root, RV_009), 'utf8')
+    const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(result).toMatchObject({ stopped: 'rejected', steps: [{ outcome: 'rejected', transition: null }] })
+    expect(await readFile(join(root, RV_009), 'utf8')).toBe(rv009)
+  })
+
+  it('refuses a second run or a hand-applied transition while a run owns the workspace', async () => {
+    const controller = new AbortController()
+    const { ctx, root, agent } = await setupDriver([{ label: 'lifecycle:evaluator-002@req_review:REQ-PLAT-010', hang: true }], {
+      answers: 'none',
+      prepare: atEvaluatorReview,
+    })
+    const pending = ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, controller.signal)
+    await new Promise<void>(resolve => setTimeout(resolve, 20))
+    await expect(ctx.lifecycle.run(agentAt(ctx, root, 'second-driver'), { reqId: 'REQ-PLAT-010' }, signal)).rejects.toMatchObject({ code: 'RUN_IN_PROGRESS' })
+    await expect(ctx.lifecycle.transition(root, { reqId: 'REQ-PLAT-010', transition: 'T04', summary: 'Meanwhile' })).rejects.toMatchObject({ code: 'RUN_IN_PROGRESS' })
+    controller.abort()
+    expect((await pending).stopped).toBe('failed')
+    await expect(ctx.lifecycle.transition(root, { reqId: 'REQ-PLAT-010', transition: 'T04', summary: 'Afterwards' })).resolves.toMatchObject({ id: 'T04' })
+  })
+})
+
 describe('lifecycle_run edge paths', () => {
   it('rejects a human decision whose effects cannot seat the next owner', async () => {
     const { ctx, root, agent } = await setupDriver([], {
@@ -292,8 +389,10 @@ describe('lifecycle_run edge paths', () => {
     expect(started?.data).toMatchObject({ uid: 'planner-001', effort: null })
   })
 
-  it('propagates a provider that fails to start', async () => {
+  it('fails the step when no child is scripted for the seat', async () => {
     const { ctx, agent } = await setupDriver([], { answers: ['T01'] })
-    await expect(ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)).rejects.toThrow('no scripted child for lifecycle:planner-001@req_review:REQ-PLAT-010')
+    const result = await ctx.lifecycle.run(agent, { reqId: 'REQ-PLAT-010' }, signal)
+    expect(result).toMatchObject({ stopped: 'failed', steps: [{ outcome: 'applied' }, { outcome: 'failed' }] })
+    expect(result.steps[1]?.reason).toContain('no scripted child for lifecycle:planner-001@req_review:REQ-PLAT-010')
   })
 })

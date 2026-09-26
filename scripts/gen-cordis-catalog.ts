@@ -507,6 +507,7 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   TransitionResult: 'lifecycle-team.md',
   RunRequest: 'lifecycle-team.md',
   RunResult: 'lifecycle-team.md',
+  PendingHuman: 'lifecycle-team.md',
   DailyInput: 'schedule.md',
   DailyScheduleRecord: 'schedule.md',
   RecurringScheduleRecord: 'schedule.md',

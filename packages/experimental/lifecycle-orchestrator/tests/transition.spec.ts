@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import CommandRuntime from '@deepseek-ai/dsh-commands'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
 import { LifecycleError, decisionsOf, renderTransition, transitionEvent } from '@deepseek-ai/dsh-experimental-lifecycle-orchestrator'
 import { REQ_010, agentAt, cleanup, setField, setup, workspace } from './workspace-helper.ts'
@@ -83,33 +84,68 @@ describe('lifecycle transitions applied by hand', () => {
       .rejects.toBeInstanceOf(LifecycleError)
   })
 
-  it('exposes the transition through lifecycle_transition and logs the applied transition', async () => {
+  it('applies human transitions through /lifecycle transition, role transitions through the tool, and logs both', async () => {
     const ctx = await setup()
+    await ctx.plugin(CommandRuntime)
     const root = await workspace()
     const agent = agentAt(ctx, root)
-    const applied = await call(ctx, { reqId: 'REQ-PLAT-010', transition: 'T01', summary: 'Start the review' }, agent)
-    if (applied.isError) throw new Error('transition failed')
-    expect(applied.value).toMatchObject({ applied: true, id: 'T01', to: 'req_review', suggestedCommitSubject: 'lifecycle: T01 — Start the review' })
-    expect(text(applied)).toBe('Applied T01 on REQ-PLAT-010: draft → req_review, owner planner-001. Commit subject: lifecycle: T01 — Start the review')
-    const events = agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/transition')
-    expect(events.map(event => event.data)).toEqual([{
-      version: 1,
-      reqId: 'REQ-PLAT-010',
-      id: 'T01',
-      from: 'draft',
-      to: 'req_review',
-      actorUid: 'human-001',
-      ownerBefore: 'human-001',
-      ownerAfter: 'planner-001',
-      reviewRound: 0,
-      files: [REQ_010],
-    }])
+    const refused = await call(ctx, { reqId: 'REQ-PLAT-010', transition: 'T01', summary: 'Start the review' }, agent)
+    expect(refused.isError).toBe(true)
+    if (!refused.isError) throw new Error('expected a refusal')
+    expect(refused.error.info).toMatchObject({ code: 'HUMAN_ACTOR' })
+    expect(refused.error.message).toContain('/lifecycle transition REQ-PLAT-010 T01')
 
-    const rejected = await call(ctx, { reqId: 'REQ-PLAT-010', transition: 'T14', summary: 'Finish early' }, agent)
-    if (rejected.isError) throw new Error('transition failed')
-    expect(rejected.value).toMatchObject({ applied: false, id: 'T14', from: 'req_review', to: 'done', files: [] })
-    expect(text(rejected)).toMatch(/^Rejected T14 on REQ-PLAT-010: \d+ violations?\n- /)
-    expect(agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/transition')).toHaveLength(1)
+    const command = await ctx.commands.execute(agent, '/lifecycle transition REQ-PLAT-010 T01 Start the review', [], signal)
+    expect(command?.result).toEqual({
+      kind: 'success',
+      text: 'Applied T01 on REQ-PLAT-010: draft → req_review, owner planner-001. Commit subject: lifecycle: T01 — Start the review',
+    })
+    const applied = await call(ctx, { reqId: 'REQ-PLAT-010', transition: 'T02', summary: 'Scope written' }, agent)
+    if (applied.isError) throw new Error(applied.error.message)
+    expect(applied.value).toMatchObject({ applied: true, id: 'T02', to: 'req_review', ownerAfter: 'evaluator-002', suggestedCommitSubject: 'lifecycle: T02 — Scope written' })
+    expect(text(applied)).toBe('Applied T02 on REQ-PLAT-010: req_review → req_review, owner evaluator-002. Commit subject: lifecycle: T02 — Scope written')
+    const events = agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/transition')
+    expect(events.map(event => event.data)).toEqual([
+      {
+        version: 1,
+        reqId: 'REQ-PLAT-010',
+        id: 'T01',
+        from: 'draft',
+        to: 'req_review',
+        actorUid: 'human-001',
+        ownerBefore: 'human-001',
+        ownerAfter: 'planner-001',
+        reviewRound: 0,
+        files: [REQ_010],
+      },
+      {
+        version: 1,
+        reqId: 'REQ-PLAT-010',
+        id: 'T02',
+        from: 'req_review',
+        to: 'req_review',
+        actorUid: 'planner-001',
+        ownerBefore: 'planner-001',
+        ownerAfter: 'evaluator-002',
+        reviewRound: 0,
+        files: [REQ_010],
+      },
+    ])
+
+    const rejected = await call(ctx, { reqId: 'REQ-PLAT-010', transition: 'T05', summary: 'Skip ahead' }, agent)
+    if (rejected.isError) throw new Error(rejected.error.message)
+    expect(rejected.value).toMatchObject({ applied: false, id: 'T05', from: 'req_review', to: 'tc_review', files: [] })
+    expect(text(rejected)).toMatch(/^Rejected T05 on REQ-PLAT-010: \d+ violations?\n- /)
+    expect(agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/transition')).toHaveLength(2)
+    const rejectedByHand = await ctx.commands.execute(agent, '/lifecycle transition REQ-PLAT-010 T14 Finish early', [], signal)
+    expect(rejectedByHand?.result.kind).toBe('error')
+    expect(rejectedByHand?.result.text).toMatch(/^Rejected T14 on REQ-PLAT-010: /)
+    expect(agent.session.snapshotEvents().filter(event => event.type === 'lifecycle/transition')).toHaveLength(2)
+    const usage = await ctx.commands.execute(agent, '/lifecycle transition REQ-PLAT-010', [], signal)
+    expect(usage?.result).toMatchObject({ kind: 'error' })
+    const bad = await ctx.commands.execute(agent, '/lifecycle transition REQ-PLAT-010 T99 nope', [], signal)
+    expect(bad?.result.kind).toBe('error')
+    expect(bad?.result.text).toContain('T99')
   })
 })
 
@@ -166,8 +202,13 @@ describe('lifecycle_transition and lifecycle_run presenters', () => {
     expect(view('lifecycle_transition', { reqId: 'REQ-PLAT-010', event: 'bug_fix', summary: 'x' })).toEqual({ card: 'generic', title: 'Lifecycle bug_fix on REQ-PLAT-010', kind: 'other' })
     expect(view('lifecycle_transition', { reqId: 'REQ-PLAT-010', summary: 'x' })).toEqual({ card: 'generic', title: 'Lifecycle step on REQ-PLAT-010', kind: 'other' })
     expect(view('lifecycle_run', { reqId: 'REQ-PLAT-010' })).toEqual({ card: 'generic', title: 'Lifecycle run on REQ-PLAT-010', kind: 'other' })
+    const eventOnly = await call(ctx, { reqId: 'REQ-PLAT-010', event: 'external_review', summary: 'An outside review' }, agent)
+    expect(eventOnly.isError).toBe(false)
+    const unknown = await call(ctx, { reqId: 'REQ-PLAT-010', transition: 'T99', summary: 'x' }, agent)
+    expect(unknown.isError).toBe(true)
+    if (unknown.isError) expect(unknown.error.info).toMatchObject({ code: 'UNKNOWN_TRANSITION' })
 
-    await call(ctx, { reqId: 'REQ-PLAT-010', transition: 'T01', summary: 'Start the review' }, agent)
+    await ctx.lifecycle.transition(root, { reqId: 'REQ-PLAT-010', transition: 'T01', summary: 'Start the review' })
     const blocked = await call(ctx, {
       reqId: 'REQ-PLAT-010',
       transition: 'T15',

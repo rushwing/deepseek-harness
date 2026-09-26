@@ -28,7 +28,8 @@ export function renderRun(result: RunResult): string {
     lines.push(`- ${step.uid} @ ${step.state}: ${step.transition ?? 'no transition'} ${step.outcome}${suffix}`)
   }
   if (result.pendingHuman !== null) {
-    lines.push(`Human decision needed at ${result.pendingHuman.state}; legal transitions ${result.pendingHuman.options.join(', ')}`)
+    const question = result.pendingHuman.question === null ? '' : `; question: ${result.pendingHuman.question}`
+    lines.push(`Human decision needed at ${result.pendingHuman.state}; legal transitions ${result.pendingHuman.options.join(', ')}${question}`)
   }
   for (const violation of result.violations) lines.push(`- ${violation}`)
   return lines.join('\n')
@@ -45,7 +46,7 @@ export function runTool(service: LifecycleService): ToolDefinition {
     description: 'Drive one requirement (REQ) through the lifecycle: each step spawns a fresh role child seated by the agent registry, fences its edits to '
       + 'its own artifacts, judges its transition proposal against the lifecycle table, applies the effects, and lints; the human decides at the '
       + 'human-owned states. Stops when the REQ is done or blocked, a human decision is pending, a step is rejected or fails, the tree lints red, '
-      + 'or the step ceiling is reached. Use it only when asked to drive a REQ.',
+      + 'or the step ceiling is reached; a child may also pause the run with a question for the human. Use it only when asked to drive a REQ.',
     parameters: {
       reqId: { type: 'string', required: true, description: 'The REQ to drive, such as REQ-PLAT-010.' },
       maxSteps: { type: 'integer', description: 'A step ceiling below the configured maximum; a higher value is capped.' },
@@ -67,7 +68,7 @@ export function runTool(service: LifecycleService): ToolDefinition {
                 role: { type: 'string', required: true },
                 state: { type: 'string', required: true },
                 transition: { ...NULLABLE_STRING, required: true },
-                outcome: { type: 'string', required: true, enum: ['applied', 'rejected', 'failed'] },
+                outcome: { type: 'string', required: true, enum: ['applied', 'rejected', 'failed', 'paused'] },
                 reason: { ...NULLABLE_STRING, required: true },
               },
             },
@@ -82,6 +83,7 @@ export function runTool(service: LifecycleService): ToolDefinition {
                 properties: {
                   state: { type: 'string', required: true },
                   options: { type: 'array', required: true, items: { type: 'string' } },
+                  question: { ...NULLABLE_STRING, required: true },
                 },
               },
               { type: 'null' },

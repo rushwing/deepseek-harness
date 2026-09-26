@@ -9,7 +9,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { brandString } from '@deepseek-ai/dsh-brand'
@@ -25,7 +25,7 @@ import { checkInTool, lintTool, statusTool } from './tools.ts'
 import { runLifecycle, type RunRequest, type RunResult } from './driver.ts'
 import { initTool } from './tools/init.ts'
 import { runTool } from './tools/run.ts'
-import { transitionTool } from './tools/transition.ts'
+import { renderTransition, transitionEvent, transitionTool } from './tools/transition.ts'
 import { WriteGuard } from './write-guard.ts'
 import {
   applyStep,
@@ -53,8 +53,19 @@ export { ARTIFACT_CONTRACT, LIFECYCLE_TABLE } from './defaults/tables.ts'
 export { LifecycleError, type LifecycleErrorCode } from './errors.ts'
 export { handlesOf, planRegistry, type Handles, type RegistryPlan, type SeatedRoute } from './tools/init.ts'
 export type { LifecycleHumanDecisionEvent, LifecycleLintEvent, LifecycleStepEvent, LifecycleTransitionEvent } from './events.ts'
-export { decisionsOf, isRecord, renderTransition, requireRoot, transitionEvent } from './tools/transition.ts'
-export { actorOf, deniedTools, runLifecycle, type Actor, type DriverDeps, type RunRequest, type RunResult, type RunStep, type RunStop } from './driver.ts'
+export { decisionsOf, isRecord, refuseHumanActor, renderTransition, requireRoot, transitionEvent } from './tools/transition.ts'
+export {
+  actorOf,
+  deniedTools,
+  runLifecycle,
+  type Actor,
+  type DriverDeps,
+  type PendingHuman,
+  type RunRequest,
+  type RunResult,
+  type RunStep,
+  type RunStop,
+} from './driver.ts'
 export { renderRun } from './tools/run.ts'
 export { PROPOSAL_SCHEMA, parseProposal, type ParsedProposal, type Proposal } from './proposal.ts'
 export { WRITE_KINDS, denialOf, unboundBug, writeScope, type WriteScope } from './scope.ts'
@@ -104,9 +115,10 @@ export interface Config {
 const TABLE_FILE = 'lifecycle.yml'
 const BRIEFS_FILE = 'standards/briefs.md'
 const COMMAND = 'lifecycle'
-const USAGE = 'Usage: /lifecycle status [REQ-ID] | lint [REQ-ID]'
+const USAGE = 'Usage: /lifecycle status [REQ-ID] | lint [REQ-ID] | transition REQ-ID TNN summary…'
 const STATUS = 'status'
 const LINT = 'lint'
+const TRANSITION = 'transition'
 const ALL = 'all'
 
 /**
@@ -135,6 +147,9 @@ export class LifecycleService extends Service {
 
   private readonly guard: WriteGuard
 
+  /** Working directories a run or a hand-applied transition currently owns. */
+  private readonly busy = new Set<string>()
+
   constructor(ctx: Context, config: Config) {
     if (config.lifecycleDir.trim() === '') throw new Error('lifecycleDir must name a directory relative to the Session working directory')
     if (config.subagentProvider.trim() === '') throw new Error('subagentProvider must name a registered subagent provider')
@@ -162,14 +177,22 @@ export class LifecycleService extends Service {
       commandCtx.commands.register({
         definitionId: brandString<CommandDefinitionId>('@deepseek-ai/dsh-experimental-lifecycle-orchestrator'),
         name: COMMAND,
-        description: 'Show lifecycle status or lint the lifecycle artifacts',
-        input: { hint: 'status [REQ-ID] | lint [REQ-ID]' },
-        handler: ({ agent, rawInput }) => {
+        description: 'Show lifecycle status, lint the lifecycle artifacts, or apply a transition the human decided',
+        input: { hint: 'status [REQ-ID] | lint [REQ-ID] | transition REQ-ID TNN summary…' },
+        handler: async ({ agent, rawInput }) => {
           const [verb = '', reqId, ...rest] = rawInput.trim().split(/\s+/).filter(word => word !== '')
-          if ((verb !== STATUS && verb !== LINT) || rest.length > 0) return { kind: 'error', text: USAGE }
+          const [id, ...summary] = rest
+          const reads = (verb === STATUS || verb === LINT) && rest.length === 0
+          const moves = verb === TRANSITION && reqId !== undefined && id !== undefined && summary.length > 0
+          if (!reads && !moves) return { kind: 'error', text: USAGE }
           const cwd = agent.session.header.cwd
           if (cwd === undefined) return { kind: 'error', text: `/${COMMAND} needs a Session with a working directory` }
           try {
+            if (moves) {
+              const result = await this.transition(cwd, { reqId, transition: id, summary: summary.join(' ') })
+              if (result.applied) agent.session.append('lifecycle/transition', transitionEvent(result))
+              return { kind: result.applied ? 'success' : 'error', text: renderTransition(result) }
+            }
             const text = verb === STATUS
               ? renderStatus(this.status(cwd, reqId))
               : renderLint(this.lint(cwd, reqId), reqId === undefined ? ALL : reqId)
@@ -276,8 +299,29 @@ export class LifecycleService extends Service {
    * @returns what was applied, or the violations with nothing written.
    */
   transition(cwd: string, request: TransitionRequest): Promise<TransitionResult> {
-    const load = this.load(cwd)
-    return applyStep(cwd, load, graphOf(load), request)
+    return this.exclusively(cwd, () => {
+      const load = this.load(cwd)
+      return applyStep(cwd, load, graphOf(load), request)
+    })
+  }
+
+  /**
+   * Run `work` as the only writer of a workspace: a run and a hand-applied
+   * transition never overlap, because a step's rollback restores every file
+   * that changed while the child ran.
+   * @throws LifecycleError `RUN_IN_PROGRESS` when the workspace is owned.
+   */
+  private async exclusively<T>(cwd: string, work: () => Promise<T>): Promise<T> {
+    const key = resolve(cwd)
+    if (this.busy.has(key)) {
+      throw new LifecycleError('RUN_IN_PROGRESS', `another lifecycle run or transition owns ${cwd}; wait for it to finish`)
+    }
+    this.busy.add(key)
+    try {
+      return await work()
+    } finally {
+      this.busy.delete(key)
+    }
   }
 
   /**
@@ -288,12 +332,14 @@ export class LifecycleService extends Service {
    * @param request - the REQ and the optional step ceiling.
    * @param signal - abort cancels the running child and ends the run.
    * @returns the run report.
-   * @throws LifecycleError `NO_WORKSPACE` without a working directory; the driver's own codes otherwise.
+   * @throws LifecycleError `NO_WORKSPACE` without a working directory, `RUN_IN_PROGRESS` while another run or transition owns
+   * the workspace; the driver's own codes otherwise.
    */
   async run(agent: Agent, request: RunRequest, signal: AbortSignal): Promise<RunResult> {
     const cwd = agent.session.header.cwd
     if (cwd === undefined) throw new LifecycleError('NO_WORKSPACE', 'lifecycle_run needs a Session with a working directory')
-    return await runLifecycle({ ctx: this.ctx, service: this, config: this.config, guard: this.guard }, agent, cwd, request, signal)
+    const deps = { ctx: this.ctx, service: this, config: this.config, guard: this.guard }
+    return await this.exclusively(cwd, () => runLifecycle(deps, agent, cwd, request, signal))
   }
 
   /**
