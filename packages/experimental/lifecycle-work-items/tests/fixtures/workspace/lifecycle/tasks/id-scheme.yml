@@ -1,0 +1,12 @@
+---
+# Work-item id scheme — the single truth of scope directory ↔ id prefix.
+#
+#   lifecycle/tasks/features/<scope>/REQ-<PREFIX>-NNN.md
+#   lifecycle/tasks/test-cases/<scope>/TC-<PREFIX>-NNN-SS.md
+#   lifecycle/tasks/bugs/<scope>/BUG-<PREFIX>-NNN.md
+#   lifecycle/tasks/reviews/<scope>/RV-<PREFIX>-NNN.md   review record, same number as the REQ
+#   lifecycle/tasks/plans/<scope>/PL-<PREFIX>-NNN.md     optional design plan, same number as the REQ
+
+scopes:
+  canonical-bom: CBOM
+  platform: PLAT

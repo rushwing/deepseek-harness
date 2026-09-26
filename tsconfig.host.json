@@ -426,6 +426,7 @@
     { "path": "./packages/subagent/subagent-acp" },
     { "path": "./packages/product-runtime/claude-agent-sdk" },
     { "path": "./packages/experimental/lifecycle-table" },
+    { "path": "./packages/experimental/lifecycle-work-items" },
     { "path": "./packages/experimental/llm-product-backend" },
     { "path": "./packages/experimental/llm-claude-code" },
     { "path": "./packages/experimental/llm-codex" },

@@ -6,6 +6,7 @@ import {
   loadLifecycleTable,
   reachableStates,
   requiredGates,
+  restoreRoles,
   roleStates,
   sensitiveKinds,
   signerOf,
@@ -100,6 +101,7 @@ describe('loadLifecycleTable on the English fixture', () => {
     expect(statusIndex(table, 'blocked')).toBe(-1)
     expect(signerOf(table, 'tc_review')).toBe('generator')
     expect(signerOf(table, 'regression')).toBeUndefined()
+    expect(restoreRoles(table)).toEqual({ req_review: 'planner', tc_design: 'evaluator', tc_impl: 'generator', req_impl: 'generator' })
   })
 
   it('lists the lifecycle-sensitive kinds may_change may name', () => {

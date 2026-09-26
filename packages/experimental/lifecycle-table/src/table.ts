@@ -654,6 +654,15 @@ export function signerOf(table: LifecycleTable, section: string): string | undef
 }
 
 /**
+ * The role that takes over at each T16 restore state.
+ * @param table - the loaded table.
+ * @returns restore state to owner role.
+ */
+export function restoreRoles(table: LifecycleTable): Readonly<Record<string, string>> {
+  return Object.fromEntries(table.restoreTargets.map(target => [target.state, target.owner]))
+}
+
+/**
  * Each role's legal states: a named actor gains the named origin, a named
  * hand-over role gains the named target. Structured slot values attribute
  * nothing, so T15's current owner, T16's restore pair, and T19's multi-state

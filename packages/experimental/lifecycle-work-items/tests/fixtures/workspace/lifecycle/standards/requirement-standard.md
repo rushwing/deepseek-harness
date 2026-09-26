@@ -1,0 +1,3 @@
+# requirement-standard
+
+Fixture stub.

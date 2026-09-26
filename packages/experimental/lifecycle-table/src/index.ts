@@ -13,6 +13,7 @@ export {
   loadLifecycleTable,
   reachableStates,
   requiredGates,
+  restoreRoles,
   roleStates,
   sensitiveKinds,
   signerOf,

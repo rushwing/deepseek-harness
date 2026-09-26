@@ -7766,6 +7766,28 @@ importers:
         specifier: workspace:*
         version: link:../../util/values
 
+  packages/experimental/lifecycle-work-items:
+    dependencies:
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:~
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-brand':
+        specifier: workspace:*
+        version: link:../../util/brand
+      '@deepseek-ai/dsh-experimental-lifecycle-table':
+        specifier: workspace:*
+        version: link:../lifecycle-table
+      '@deepseek-ai/dsh-util-values':
+        specifier: workspace:*
+        version: link:../../util/values
+
   packages/experimental/llm-claude-code:
     dependencies:
       '@deepseek-ai/dsh-agent-preset':
