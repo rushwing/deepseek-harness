@@ -11,6 +11,7 @@ The lifecycle team runs a requirement through a fixed state machine with three r
 | [`dsh-experimental-lifecycle-table`](../../packages/experimental/lifecycle-table/README.md) | Loads and validates `lifecycle.yml`, `agent-registry.yml`, and `tasks/id-scheme.yml`, and derives role states, required review gates, reachable states, and the lifecycle-sensitive kinds |
 | [`dsh-experimental-lifecycle-work-items`](../../packages/experimental/lifecycle-work-items/README.md) | Parses the artifacts into a graph, loads `artifact-contract.yml`, lints the graph, judges a step against the table's guards and effects, plans effect edits, and writes them atomically |
 | [`dsh-experimental-lifecycle-orchestrator`](../../packages/experimental/lifecycle-orchestrator/README.md) | The `ctx.lifecycle` service, the `lifecycle_*` tools, the `/lifecycle` command, the `lifecycle:policy` prompt section, the role briefs, and the English defaults `lifecycle_init` scaffolds |
+| [`dsh-experimental-lifecycle-model-fallback`](../../packages/experimental/lifecycle-model-fallback/README.md) | Moves a lifecycle role child to the next route of its registry entry when a request fails with a hop-worthy code, after `llm-retry` and every other recovery policy left the failure terminal, and retries the step under the same uid |
 
 ## Files in a workspace
 

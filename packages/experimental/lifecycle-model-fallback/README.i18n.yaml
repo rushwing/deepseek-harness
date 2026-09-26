@@ -1,0 +1,49 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/lifecycle-model-fallback/README.md
+/:
+  en: a8465215c8dccd8b
+  zh: b62e34cb2cb855de
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback:
+  en: de273798a5d12aaa
+  zh: 00dd3a5a2b47e25d
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/summary:
+  en: 40c4ade9601a3764
+  zh: 2b4a53e3107ce133
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/table-of-contents:
+  en: 518dd682f4009bb4
+  zh: 9f181aac7ade8525
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/use-this-plugin:
+  en: 1ca29db3a41ee4fa
+  zh: b0b7247e72fff346
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/use-this-plugin/configuration:
+  en: 3dcc0e81f4cb66da
+  zh: 05c5a1303ebdbaff
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/use-this-plugin/what-happens-on-a-failure:
+  en: ac88af0f50d7ef53
+  zh: bf590f07375c7acb
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/understand-the-implementation:
+  en: b52bcac58443813f
+  zh: c9b86728cdb27cd4
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/understand-the-implementation/design-concept:
+  en: a419c87d428658f2
+  zh: fe180f054223f253
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/understand-the-implementation/source-map:
+  en: 51cdc0983b8a733c
+  zh: 23a5771b3f4c65e5
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/further-exploration:
+  en: 4e54b9193ad0f7bd
+  zh: 071e7ff72c75a190
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/model-experience:
+  en: 82e41557c7ea1cfb
+  zh: 42f3391b5cdb77a4
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/model-experience/kv-cache-effect:
+  en: dbe1e478c6c271cb
+  zh: c8885ec0e3e03de7
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/known-limitations-and-deferred-work:
+  en: 6035a3bf7cb1899f
+  zh: f514ad5bad8c7b3c
+/deepseek-ai-dsh-experimental-lifecycle-model-fallback/known-limitations-and-deferred-work/dev-note:
+  en: 9b7c97bf33fd4595
+  zh: 01284dcbf170b75b

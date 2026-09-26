@@ -1012,6 +1012,27 @@ export interface InspectorOptions {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-inspector -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-lifecycle-model-fallback -->
+<a id="deepseek-aidsh-experimental-lifecycle-model-fallback"></a>
+
+## `@deepseek-ai/dsh-experimental-lifecycle-model-fallback`
+
+- `inject`: `llm` · `sessionProjections`
+- `source`: [`packages/experimental/lifecycle-model-fallback/src/index.ts:30`](../packages/experimental/lifecycle-model-fallback/src/index.ts)
+
+```ts config-catalog
+/** Resolved configuration. */
+export interface Config {
+  /** The lifecycle directory relative to the child's Session working directory. */
+  lifecycleDir: string
+  /** Failure codes that move the child to its next route; other codes stay terminal. */
+  hopOnCodes: string[]
+  /** The most route switches one child makes. */
+  maxHops: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-lifecycle-model-fallback -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-lifecycle-orchestrator -->
 <a id="deepseek-aidsh-experimental-lifecycle-orchestrator"></a>
 
@@ -3183,7 +3204,7 @@ export type JournalMode = 'wal' | 'delete' | 'truncate' | 'persist'
 ## `@deepseek-ai/dsh-subagent`
 
 - `refs`: `Volatile` (`@deepseek-ai/cordis`)
-- `source`: [`packages/subagent/subagent/src/index.ts:192`](../packages/subagent/subagent/src/index.ts)
+- `source`: [`packages/subagent/subagent/src/index.ts:193`](../packages/subagent/subagent/src/index.ts)
 
 ```ts config-catalog
 /** Host configuration for continuable subagent capacity. */

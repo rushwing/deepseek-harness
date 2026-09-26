@@ -49,7 +49,8 @@ kind: "package-group"
 | [`llm-product-backend`](llm-product-backend/README.zh.md) | 运行在外部 agent 产品上的会话后端共享的输入、流、活动、交互与绑定辅助函数 | 库——无 ctx 键 |
 | [`lifecycle-table`](lifecycle-table/README.zh.md) | 加载并校验生命周期状态表、agent 注册表与 id 方案，并推导角色状态、评审门与可达状态 | 库——无 ctx 键 |
 | [`lifecycle-work-items`](lifecycle-work-items/README.zh.md) | 把 REQ、TC、BUG、RV 与 PL 工件解析为图，按工件契约做 lint，判定生命周期步骤，并原子地应用效果 | 库——无 ctx 键 |
-| [`lifecycle-orchestrator`](lifecycle-orchestrator/README.zh.md) | 读取工作区的生命周期表与工件，检查角色交接，做 lint，生成生命周期目录脚手架，并向角色下发简报 | `ctx.lifecycle`、`lifecycle_*` 工具、`/lifecycle`、`lifecycle:policy` |
+| [`lifecycle-orchestrator`](lifecycle-orchestrator/README.zh.md) | 读取工作区的生命周期表与工件，做 lint，生成生命周期目录脚手架，应用迁移，并用被围在自身工件内的新鲜角色子代驱动 REQ | `ctx.lifecycle`、`lifecycle_*` 工具、`/lifecycle`、`lifecycle:policy` |
+| [`lifecycle-model-fallback`](lifecycle-model-fallback/README.zh.md) | 当请求以可跳转的代码失败时，把生命周期角色子代移到其注册表条目的下一条路由，并在同一 uid 下重试该步 | 循环策略——`agent/request` 与 `agent/request-error` 监听器 |
 
 -----
 

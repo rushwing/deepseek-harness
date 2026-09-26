@@ -81,6 +81,7 @@ import type { SubagentCatalogEntry } from './projection-types.ts'
 import { deliverSubagentPrompt } from './internal.ts'
 
 export type {} from './catalog.ts'
+export type {} from './projection.ts'
 export * from './out-of-process.ts'
 export { AssistantOutputFold, finalAssistantOutput } from './assistant-output.ts'
 export { SubagentRunId } from './types.ts'
