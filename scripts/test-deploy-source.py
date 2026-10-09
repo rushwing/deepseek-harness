@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 import zipfile
 
@@ -152,6 +153,64 @@ class DeploymentTests(unittest.TestCase):
         with patch.object(self.device, 'rpc', return_value={'items': [{}]}):
             with self.assertRaisesRegex(DEPLOY.Blocked, 'running state is unknown'):
                 DEPLOY.deploy(self.device, self.build, self.sdk, install=True)
+        self.assert_no_install()
+
+    def legacy_live_failure(self):
+        self.device.open = lambda *a, **kw: (_ for _ in ()).throw(
+            urllib.error.HTTPError('http://fixture/live', 404, 'missing', {}, None))
+        self.device.read = lambda path: b'{"version":"0.2.1-alpha.2"}'
+        live_sha = '271b4c6b61a25de3357270840da414e5c5b49908c0a431f81e732e4a920662a2'
+        settings_sha = '9432b872597b7a31473072eb38a55979ab23375c76bd1d86d751388a692a0136'
+        self.device.file_digest = lambda path: settings_sha if '/dsh-settings/' in path else live_sha
+        original_rpc = self.device.rpc
+        row = {'entryId': 'include:codex-live', 'moduleName': '@dsh-android/dsh-codex-live',
+               'enabled': True, 'fiberPhase': 'failed'}
+        self.device.rpc = lambda method, args, **kw: (
+            {'entries': [row]} if method == 'pluginInventory/list' else original_rpc(method, args, **kw))
+        return row
+
+    def test_reviewed_startup_failure_requires_readable_native_idle(self):
+        self.legacy_live_failure()
+        DEPLOY.require_idle(self.device)
+        for state in ('recording', None):
+            self.native['live'] = state
+            with self.assertRaises(DEPLOY.Blocked):
+                DEPLOY.require_idle(self.device)
+        self.assert_no_install()
+
+    def test_missing_live_api_rejects_unknown_code_or_runtime(self):
+        row = self.legacy_live_failure()
+        for phase in ('active', 'pending', 'loading', 'unloading', None):
+            row['fiberPhase'] = phase
+            with self.assertRaises(DEPLOY.Blocked):
+                DEPLOY.require_idle(self.device)
+        row['fiberPhase'] = 'failed'
+        self.device.file_digest = lambda path: '0'*64
+        with self.assertRaisesRegex(DEPLOY.Blocked, 'Unknown Live code'):
+            DEPLOY.require_idle(self.device)
+        self.assert_no_install()
+
+    def test_non_404_live_failure_still_blocks(self):
+        self.legacy_live_failure()
+        self.device.open = lambda *a, **kw: (_ for _ in ()).throw(
+            urllib.error.HTTPError('http://fixture/live', 503, 'unavailable', {}, None))
+        with self.assertRaisesRegex(DEPLOY.Blocked, 'Authenticated engine status'):
+            DEPLOY.require_idle(self.device)
+        self.assert_no_install()
+
+    def test_missing_live_api_rejects_changed_settings_and_inventory(self):
+        row = self.legacy_live_failure()
+        original_digest = self.device.file_digest
+        self.device.file_digest = lambda path: '0'*64 if '/dsh-settings/' in path else original_digest(path)
+        with self.assertRaisesRegex(DEPLOY.Blocked, 'Unknown settings runtime'):
+            DEPLOY.require_idle(self.device)
+        self.device.file_digest = original_digest
+        original_rpc = self.device.rpc
+        for entries in ([], [row, row], [{}]):
+            self.device.rpc = lambda method, args, **kw: (
+                {'entries': entries} if method == 'pluginInventory/list' else original_rpc(method, args, **kw))
+            with self.assertRaises(DEPLOY.Blocked):
+                DEPLOY.require_idle(self.device)
         self.assert_no_install()
 
     def test_run_as_failure_never_installs(self):

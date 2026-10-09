@@ -10,6 +10,7 @@ import shlex
 import subprocess
 import tempfile
 import time
+import urllib.error
 import zipfile
 
 from lib.dsh_device import Device, PKG, ROOT
@@ -145,6 +146,34 @@ desktop:JSON.parse(b.desktopVoiceStatus()).phase};})()`)))}finally{c.close()}
                       'wait for audio tasks to finish, then rerun --check.') from None
 
 
+def require_failed_legacy_live(device):
+    """Recognize one reviewed startup failure, never treat an arbitrary 404 as idle.
+
+    This exact build calls the removed settings.register before creating CodexLive
+    or registering any handlers. On the matching master engine it cannot own a
+    Live task. The caller still requires authenticated idle Agents and all native
+    audio/display states, twice immediately before installation.
+    """
+    prefix = 'files/home/.dsh/profiles/web/node_modules/@dsh-android/dsh-codex-live/'
+    require(json.loads(device.read('files/usr/lib/node_modules/@deepseek-ai/dsh/package.json'))
+            .get('version') == '0.2.1-alpha.2', 'Unknown engine with missing Live status.')
+    require(device.file_digest(prefix+'lib/index.js') ==
+            '271b4c6b61a25de3357270840da414e5c5b49908c0a431f81e732e4a920662a2',
+            'Unknown Live code with missing status; installation is blocked.')
+    require(device.file_digest('files/usr/lib/node_modules/@deepseek-ai/dsh/node_modules/'
+                               '@deepseek-ai/dsh-settings/lib/index.js') ==
+            '9432b872597b7a31473072eb38a55979ab23375c76bd1d86d751388a692a0136',
+            'Unknown settings runtime with missing Live status; installation is blocked.')
+    inventory = device.rpc('pluginInventory/list', {}, timeout=10)
+    rows = inventory.get('entries')
+    require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows),
+            'Plugin runtime state is unknown; installation is blocked.')
+    live = [row for row in rows if row.get('moduleName') == '@dsh-android/dsh-codex-live']
+    require(len(live) == 1 and live[0].get('entryId') == 'include:codex-live' and
+            live[0].get('enabled') is True and live[0].get('fiberPhase') == 'failed',
+            'Live runtime is not the reviewed startup failure; installation is blocked.')
+
+
 def require_idle(device):
     require(not snapshot_busy(device), 'Snapshot transaction is active; wait without stopping DeepCode.')
     try:
@@ -156,10 +185,15 @@ def require_idle(device):
                 'Agent running state is unknown; installation is blocked.')
         require(not any(item['running'] for item in items),
                 'An Agent is running. Wait for its work to finish; do not force-stop it.')
-        with device.opener.open(device.base+'/api/android/codex/live', timeout=10) as response:
-            live = json.load(response)
-        require(isinstance(live, dict) and 'active' in live and live['active'] is None,
-                'GPT Live is active or unknown; finish the Live session before updating.')
+        try:
+            with device.opener.open(device.base+'/api/android/codex/live', timeout=10) as response:
+                live = json.load(response)
+            require(isinstance(live, dict) and 'active' in live and live['active'] is None,
+                    'GPT Live is active or unknown; finish the Live session before updating.')
+        except urllib.error.HTTPError as error:
+            if error.code != 404:
+                raise
+            require_failed_legacy_live(device)
     except Blocked:
         raise
     except Exception:

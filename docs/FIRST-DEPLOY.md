@@ -81,6 +81,14 @@ python3 scripts/deploy-source.py --install --serial "$device_serial"
 
 该工具只在临时目录读取已装 APK 的签名用于比较，不把它当构建 donor；不会自动备份用户数据，重要数据仍应按用户自己的策略保管。安装后初始化超时会保留进程运行并报阻塞，禁止强杀解压流程。
 
+已知的首次 master 迁移故障有一个严格限定的修复更新入口：Live API 返回 404 时，
+部署器仅接受 0.2.1-alpha.2、已审查的旧 Live 与官方 settings 编译文件 SHA，
+并通过认证的实时 pluginInventory 确认唯一 `include:codex-live` entry 为 failed。
+该旧代码在创建 Live 对象或注册处理器前调用已移除的 settings.register，因此没有
+宿主 Live 任务。仍须读取全部 Agent 与原生 Live、录音、桌面语音、双屏状态并确认
+空闲，安装前再复检一次。未知代码、缺失 inventory、其他 HTTP 错误或任何活跃／
+未知状态继续阻塞；不通过强杀、修改开关或伪造状态解除检查。
+
 ## 4. 第一次使用与功能分级
 
 安装后的共享存储、通知、麦克风、桌面浮层等权限按所选功能在设备授权；不需要的插件保持关闭。Codex 由用户自行登录，模型服务地址与 API key 在设置中输入，禁止把这些保存进源码或日志。应用本身的无线 ADB 身份需单独配对，电脑在线不代表应用已授权。
