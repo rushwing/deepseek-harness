@@ -1,8 +1,9 @@
+import {bindSettings} from '../../../settings-client-compat.mjs'
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react'
 import {ProgressAudio,ProgressSpeaker} from './progress-audio.mjs'
 export function isCodex(session:any){const s=session?.projectionValues?.modelSelection;const provider=s?.next?.provider??s?.pending?.provider??s?.lastUsed?.provider;return provider?provider==='relay-codex':(session?.projectionValues?.agentPreset??session?.agentPreset)==='relay-codex'}
 export function progressComponent(ctx:any,settings:any){
- const speech=ctx.settingsScope.bind({namespace:'speech-services'})
+ const speech=bindSettings(ctx,'speech-services')
  return function Progress({sessionId}:{sessionId:string}){
   const c=useSyncExternalStore((f:any)=>settings.subscribe(f),()=>settings.getSnapshot()) as any
   const speechConfig=useSyncExternalStore((f:any)=>speech.subscribe(f),()=>speech.getSnapshot()) as any

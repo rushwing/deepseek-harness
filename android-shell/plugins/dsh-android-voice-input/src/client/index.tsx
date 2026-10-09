@@ -1,3 +1,4 @@
+import {bindSettings} from '../../../settings-client-compat.mjs'
 import { useEffect, useState, useSyncExternalStore, useId } from 'react'
 import { buildVoiceWavePath } from './waveform.ts'
 import { insertion, type InputState, type TextInsertion } from './draft.ts'
@@ -12,7 +13,7 @@ interface VoiceState {
 }
 interface Scoped { bail(subject: Scoped, event: 'slash/input-insert-text', request: TextInsertion): boolean | undefined }
 interface Context {
-  settingsScope: { bind(options: {namespace: string}): any }
+  configForms: {get(namespace: string): any}
   provide(name: string, service: unknown): void
   slots: { inject(slot: string, register: () => (() => void)): void; register(options: Record<string, unknown>, component: unknown): () => void }
   effect(setup: () => (() => void), label?: string): void
@@ -150,10 +151,10 @@ function Panel({ voice }: Props) {
 
 function MicrophoneEntry(props: Props) { return useEnabled() ? <Microphone {...props} /> : null }
 function PanelEntry(props: Props) { return useEnabled() ? <Panel {...props} /> : null }
-export const inject = ['slots', 'sessions', 'conversation', 'settingsScope']
+export const inject = ['slots', 'sessions', 'conversation', 'configForms']
 export function apply(ctx: Context): void {
   const sessions = new Map<string, VoiceSession>()
-  const settings = ctx.settingsScope.bind({namespace:'speech-services'})
+  const settings = bindSettings(ctx,'speech-services')
   ctx.effect(() => {
     let dead=false, migrating=false
     const update=()=>{

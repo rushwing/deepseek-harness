@@ -7,9 +7,9 @@ import React from 'react'
 import {create,act} from 'react-test-renderer'
 const require=createRequire(import.meta.url)
 const tick=()=>new Promise(r=>setImmediate(r))
-function fixture({enabled=true,user={enabled:true},legacy=null,migrated=false}={}){
+function fixture({enabled=true,user={enabled:true},legacy=null,migrated=false,master=false,refuse=false}={}){
  const window=new EventTarget(),document=new EventTarget(),storage=new Map(),components=new Map(),effects=[],watchers=new Set(),timers=new Set(),calls=[]
- let plugin,native={phase:'idle'},settings={state:{status:'ready',writable:true,value:{enabled},user},getSnapshot(){return this.state},subscribe(fn){watchers.add(fn);return()=>watchers.delete(fn)},async set(key,value){calls.push(['set',value]);this.state={...this.state,value:{...this.state.value,[key]:value},user:{...this.state.user,[key]:value}};watchers.forEach(fn=>fn())}}
+ let plugin,native={phase:'idle'},settings={state:{status:'ready',writable:true,value:{enabled},user},getSnapshot(){return this.state},subscribe(fn){watchers.add(fn);return()=>watchers.delete(fn)},async set(key,value){calls.push(['set',value]);if(refuse)return false;this.state={...this.state,value:{...this.state.value,[key]:value},user:{...this.state.user,[key]:value}};watchers.forEach(fn=>fn());return true}}
  window.androidBridge={liveVoiceStatus:()=>JSON.stringify(native),liveVoiceStart:id=>{calls.push(['start',id]);native={phase:'listening',sessionId:id};return '{"ok":true}'},liveVoiceStop:()=>{calls.push(['stop']);native={phase:'closed'}},liveVoiceRelease:()=>calls.push(['release'])}
  window.__ModuleLoader__={load:({factory})=>{plugin=factory(require)}}
  if(legacy!==null)storage.set('dsh.android.voice.enabled',legacy)
@@ -17,9 +17,26 @@ function fixture({enabled=true,user={enabled:true},legacy=null,migrated=false}={
  const localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)}
  vm.runInNewContext(fs.readFileSync(new URL('../lib/client.js',import.meta.url),'utf8'),{window,document,localStorage,setInterval:fn=>{timers.add(fn);return fn},clearInterval:fn=>timers.delete(fn),fetch:async()=>({ok:true,json:async()=>({enabled:true,available:true,csrf:"test"})}),console})
  const list={state:{byId:{'session-test':{agentPreset:'relay-codex'},'session-qwen':{agentPreset:'standard',projectionValues:{modelSelection:{next:{provider:'local-qwen'},lastUsed:{provider:'relay-codex'}}}}}},subscribe(){return()=>{}},getSnapshot(){return this.state}}
- plugin.apply({settingsScope:{bind:()=>settings},sessions:{list},effect:fn=>effects.push(fn()),slots:{inject:(slot,fn)=>effects.push(fn()),register:(spec,component)=>{components.set(spec.id??spec.key,spec.inject?props=>React.createElement(component,spec.inject(props.sessionId)):component);return()=>components.delete(spec.id??spec.key)}}})
+ plugin.apply({...(master?{configForms:{get:()=>settings}}:{settingsScope:{bind:()=>settings}}),sessions:{list},effect:fn=>effects.push(fn()),slots:{inject:(slot,fn)=>effects.push(fn()),register:(spec,component)=>{components.set(spec.id??spec.key,spec.inject?props=>React.createElement(component,spec.inject(props.sessionId)):component);return()=>components.delete(spec.id??spec.key)}}})
  return {settings,calls,storage,timers,watchers,components,cleanup(){effects.reverse().forEach(fn=>fn?.())}}
 }
+
+test('master ConfigForms mounts the plugins page and never marks a refused migration complete',async()=>{
+ const refused=fixture({master:true,refuse:true,enabled:false,user:{},legacy:'true'})
+ try {
+  await tick()
+  assert.ok(refused.components.has('codex-live'))
+  assert.equal(refused.components.get('codex-live')({view:'summary'}),'GPT Live')
+  assert.equal(refused.settings.getSnapshot().value.enabled,false)
+  assert.equal(refused.storage.get('dsh.codex-live.migrated'),undefined)
+ } finally {refused.cleanup()}
+ const accepted=fixture({master:true,enabled:false,user:{},legacy:'true'})
+ try {
+  await tick()
+  assert.equal(accepted.settings.getSnapshot().value.enabled,true)
+  assert.equal(accepted.storage.get('dsh.codex-live.migrated'),'1')
+ } finally {accepted.cleanup()}
+})
 test('standard settings stores render; one click starts, next ends; idle owns no timer',async()=>{
  const f=fixture();let tree
  try{

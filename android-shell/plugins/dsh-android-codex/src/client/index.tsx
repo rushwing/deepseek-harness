@@ -1,7 +1,8 @@
+import {settingsPage} from '../../../settings-client-compat.mjs'
 import {useEffect,useState} from 'react'
 const endpoint='/api/android/codex/account'
 type State={enabled:boolean;connected:boolean;csrf:string;account?:{email?:string;planType?:string;type:string}|null;login?:{authUrl:string}|null;error?:string|null}
-export const inject=['slots']
+export const inject=['slots','configForms']
 export function apply(ctx:any){
   function Settings(){
     const [state,setState]=useState<State|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('')
@@ -31,5 +32,5 @@ export function apply(ctx:any){
       <p style={{opacity:.65}}>当前 Android 运行时需要会话选择“完全访问”，可访问本应用已获授权的文件；暂不提供工作区级隔离。</p>
     </section>
   }
-  ctx.slots.inject('settings.plugin.item',()=>ctx.slots.register({name:'settings.plugin.item',key:'android-codex',order:85},Settings))
+  settingsPage(ctx,'android-codex',"Codex",85,Settings)
 }

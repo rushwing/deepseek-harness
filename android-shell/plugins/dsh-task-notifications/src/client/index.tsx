@@ -1,8 +1,10 @@
+import {settingsPage} from '../../../settings-client-compat.mjs'
+import {bindSettings} from '../../../settings-client-compat.mjs'
 import {useState,useSyncExternalStore} from 'react'
 import {bindSurface} from './surface.mjs'
-export const inject=['slots','settingsScope']
+export const inject=['slots','configForms']
 export function apply(ctx:any){
- const scope=ctx.settingsScope.bind({namespace:'task-notifications'})
+ const scope=bindSettings(ctx,'task-notifications')
  ctx.effect(()=>bindSurface(scope,(window as any).androidBridge),'visible notification sessions')
  function Settings(){
   const snap:any=useSyncExternalStore((f:any)=>scope.subscribe(f),()=>scope.getSnapshot())
@@ -17,5 +19,5 @@ export function apply(ctx:any){
    {error&&<p role="alert">{error}</p>}
   </section>
  }
- ctx.slots.inject('settings.plugin.item',()=>ctx.slots.register({name:'settings.plugin.item',key:'task-notifications',order:92},Settings))
+ settingsPage(ctx,'task-notifications',"任务通知",92,Settings)
 }

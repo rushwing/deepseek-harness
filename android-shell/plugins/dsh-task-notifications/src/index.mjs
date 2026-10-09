@@ -1,11 +1,12 @@
+import {liveConfig,pluginSettings} from '../../settings-compat.mjs'
 import Schema from '@deepseek-ai/schemastery'
 import {mkdirSync,writeFileSync,renameSync,appendFileSync} from 'node:fs'
 import {homedir} from 'node:os'
 import {join} from 'node:path'
 export const name='dsh-task-notifications',inject=['settings']
-export const Config=Schema.object({enabled:Schema.boolean().default(true),progress:Schema.boolean().default(true),quietWhenVisible:Schema.boolean().default(true)})
+export const Config=liveConfig(Schema.object({enabled:Schema.boolean().default(true),progress:Schema.boolean().default(true),quietWhenVisible:Schema.boolean().default(true)}))
 export function apply(ctx,config={}){
- const scope=ctx.settings.register('task-notifications',Config,{base:config,applies:'live'})
+ const scope=pluginSettings(ctx,'task-notifications',Config,{base:config,applies:'live'})
  const dir=process.env.DSH_HOME||join(homedir(),'.dsh'),path=join(dir,'.task-notifications.json')
  const publish=value=>{mkdirSync(dir,{recursive:true});writeFileSync(path+'.tmp',JSON.stringify(value),{mode:0o600});renameSync(path+'.tmp',path)}
  ctx.effect(()=>{publish(scope.get());const off=scope.watch(()=>publish(scope.get()));return()=>{off();publish({enabled:false})}},'native notification policy')

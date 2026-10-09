@@ -41,6 +41,7 @@ def package(runtime, generated, receipt, source):
                  'stage-task-notifications','stage-xiaomi-remote'):
         module(name).stage(assets)
     own = {'voice-deck-client':'plugins/dsh-client-ui-voice-deck/lib/client.js',
+        'codex-live-host':'plugins/dsh-android-codex/lib/index.js',
         'responsive-client-033':'dsh-client-ui-responsive/lib/client.js',
         'voice-input-client':'plugins/dsh-android-voice-input/lib/client.js',
         'codex-image-input':'vendor/relay-dsh-plugin-codex/lib/host-plugin.js'}

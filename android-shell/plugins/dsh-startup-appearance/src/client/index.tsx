@@ -1,8 +1,10 @@
+import {settingsPage} from '../../../settings-client-compat.mjs'
+import {bindSettings} from '../../../settings-client-compat.mjs'
 import {useState, useSyncExternalStore} from 'react'
 import {bindNativeStartup} from './lifetime.mjs'
-export const inject = ['slots', 'settingsScope']
+export const inject = ['slots', 'configForms']
 export function apply(ctx: any) {
-  const scope = ctx.settingsScope.bind({namespace: 'startup-appearance'})
+  const scope = bindSettings(ctx,'startup-appearance')
   const native = (window as any).androidBridge
   ctx.effect(() => bindNativeStartup(scope, native), 'native startup appearance')
   function Settings() {
@@ -27,5 +29,5 @@ export function apply(ctx: any) {
       {error && <p role="alert">{error}</p>}
     </section>
   }
-  ctx.slots.inject('settings.plugin.item', () => ctx.slots.register({name: 'settings.plugin.item', key: 'startup-appearance', order: 91}, Settings))
+  settingsPage(ctx,'startup-appearance',"启动动画",91,Settings)
 }

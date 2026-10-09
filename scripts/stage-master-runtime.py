@@ -15,6 +15,7 @@ import subprocess
 
 from lib.master_deck_patch import stage as stage_deck
 from lib.master_runtime_patch import patch_boot, patch_search
+from lib.master_settings_patch import patch_settings
 from lib.master_deploy_links import materialize
 from lib.codex_context_patch import patch_agent_loop, patch_attachment_store
 from lib.legacy_codex_migration import (patch_legacy_codex_migration,
@@ -167,6 +168,7 @@ def stage(source, deploy, runtime, assets, native, resume=False):
         update(name, 'lib/client.js', (deck/(name+'.js')).read_bytes(), hashes['base'])
     update('dsh-app-boot', 'lib/index.js', patch_boot(original('dsh-app-boot').read_bytes()), digest(original('dsh-app-boot')))
     update('dsh-tool-fs-search', 'lib/index.js', patch_search(original('dsh-tool-fs-search').read_bytes()), digest(original('dsh-tool-fs-search')))
+    update('dsh-settings', 'lib/index.js', patch_settings(original('dsh-settings').read_bytes()), digest(original('dsh-settings')))
     update('dsh-agent-loop', 'lib/index.js', patch_agent_loop(original('dsh-agent-loop').read_text()).encode(), digest(original('dsh-agent-loop')))
     update('dsh-attachment-local', 'lib/index.js', patch_attachment_store(original('dsh-attachment-local').read_text()).encode(), digest(original('dsh-attachment-local')))
     migration_bases = {'dsh-session-format-v1-to-v2':'b2b401d880bb000017ba8663c4448b501427b23a1cd2f9fdb04cb7ec9d763eff',

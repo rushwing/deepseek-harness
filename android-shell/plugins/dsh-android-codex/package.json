@@ -16,7 +16,8 @@
         "@deepseek-ai/dsh-client-ui-settings",
         "@deepseek-ai/dsh-client-ui-settings-plugins",
         "relay-dsh-plugin-codex",
-        "relay-dsh-plugin-session-import"
+        "relay-dsh-plugin-session-import",
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
       ],
       "platform": "web"
     }

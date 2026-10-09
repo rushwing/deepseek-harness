@@ -1,6 +1,8 @@
+import {settingsPage} from '../../../settings-client-compat.mjs'
+import {bindSettings} from '../../../settings-client-compat.mjs'
 import {useEffect,useState,useSyncExternalStore} from 'react'
 import {followCurrentSession} from './focus.mjs'
-export const inject=['slots','settingsScope','sessions','uiSession','uiConversation']
+export const inject=['slots','configForms','sessions','uiSession','uiConversation']
 const styles=`
 .dsh-speech{color:inherit;font-size:14px;padding:20px 0;max-width:760px;--sp-line:color-mix(in srgb,currentColor 12%,transparent);--sp-soft:color-mix(in srgb,currentColor 4%,transparent);--sp-muted:color-mix(in srgb,currentColor 58%,transparent)}
 .dsh-speech *{box-sizing:border-box}.dsh-speech h2{font-size:18px;font-weight:600;margin:0}.dsh-speech h3{font-size:14px;font-weight:600;margin:0}.dsh-speech p{margin:5px 0 0;color:var(--sp-muted);font-size:12px;line-height:1.6}
@@ -10,7 +12,7 @@ const styles=`
 `
 function Toggle({label,checked,onChange}:{label:string,checked:boolean,onChange:(v:boolean)=>void}){return <label className="sp-switch"><input type="checkbox" aria-label={label} checked={checked} onChange={e=>onChange(e.target.checked)}/><span/></label>}
 export function apply(ctx:any){
- const scope=ctx.settingsScope.bind({namespace:'speech-services'})
+ const scope=bindSettings(ctx,'speech-services')
  ctx.effect(()=>followCurrentSession(ctx,scope),'current-session desktop companion')
  function Settings(){
   const snap=useSyncExternalStore((f:any)=>scope.subscribe(f),()=>scope.getSnapshot()) as any
@@ -47,5 +49,5 @@ export function apply(ctx:any){
    </fieldset>{c.asrEnabled&&c.asrProvider!=='local'&&<p className="sp-note">录音将发送至所选语音服务。</p>}{error&&<p role="alert" className="sp-error">{error}</p>}
   </section>
  }
- ctx.slots.inject('settings.plugin.item',()=>ctx.slots.register({name:'settings.plugin.item',key:'speech-services',order:87},Settings))
+ settingsPage(ctx,'speech-services',"语音服务",87,Settings)
 }

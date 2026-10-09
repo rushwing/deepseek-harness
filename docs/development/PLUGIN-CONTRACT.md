@@ -53,3 +53,21 @@ DeepCode 增加以下产品要求：可选功能可以独立停用和恢复；�
 - [DSH 设置卡片](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cookbook/adding-a-settings-card.zh.md)
 
 上游文档中的标准 settings helper 在不同版本有变化；本仓已有 Codex 的 namespace 注册与卡片是当前包的参考，不代表其停用行为已经正确。
+
+### 官方 0.2.1-alpha.2 配置接口
+
+新版由 Loader 的 profile entry id 标识配置表单。Host 使用声明了 volatile
+字段的 Config，读取引用的 `.get()`，监听 `loader/volatile-update`；
+`settings.configure()` 只注册页面呈现策略，不负责保存配置。
+自有插件通过 `android-shell/plugins/settings-compat.mjs` 保留生命周期和
+持久化前验证；不得用空的 register 方法跳过配置。Schemastery 在 Host 构建中
+保持 external，使用引擎实际版本创建实时引用。
+
+浏览器使用 `configForms.get(entryId)` 与 `plugins.item`，保存必须处理拒绝结果，
+revision 冲突不能当作成功。共享浏览器适配器在
+`android-shell/plugins/settings-client-compat.mjs`；账户操作仍走已认证账户 API。
+旧 settings.yaml 被首次升级归档后，版本与 SHA 守卫的恢复补丁只迁移已知 Android
+插件中尚无 profile 用户覆盖的字段，并记录完成状态，不重复覆盖用户新选择。
+
+验证必须检查实际插件初始化、表单存在、配置保存/冲突及卸载恢复。网页能打开或
+package.json 的 peer 匹配不足以证明插件加载成功。

@@ -1,10 +1,12 @@
+import {settingsPage} from '../../../settings-client-compat.mjs'
+import {bindSettings} from '../../../settings-client-compat.mjs'
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react'
 import {bindRemote,defaults,validate} from './policy.mjs'
 import {learnKey} from './capture.mjs'
 import {styles} from './style.ts'
-export const inject=['slots','settingsScope','sessions']
+export const inject=['slots','configForms','sessions']
 export function apply(ctx:any){
- const scope=ctx.settingsScope.bind({namespace:'xiaomi-remote'}),native=(window as any).androidBridge
+ const scope=bindSettings(ctx,'xiaomi-remote'),native=(window as any).androidBridge
  const visible=(el:any)=>!!el?.getClientRects().length
  const lane=()=>[...document.querySelectorAll('[data-deck-lane][data-active="true"]')].find(visible)
  const surface=()=>lane()||document
@@ -71,6 +73,6 @@ export function apply(ctx:any){
    {!native?.remoteConfigure&&<p>需要支持遥控器输入的 Android 版本。</p>}{error&&<p role="alert" className="rm-error">{error}</p>}
   </section>
  }
- ctx.slots.inject('settings.plugin.item',()=>ctx.slots.register({name:'settings.plugin.item',key:'xiaomi-remote',order:86},Settings))
+ settingsPage(ctx,'xiaomi-remote',"遥控器",86,Settings)
  ctx.effect(()=>()=>{native?.remoteLease?.(false);native?.remoteConfigure?.('{"enabled":false}')},'remote plugin disposal')
 }

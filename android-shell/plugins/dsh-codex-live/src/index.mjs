@@ -1,3 +1,4 @@
+import {liveConfig,pluginSettings} from '../../settings-compat.mjs'
 import {homedir} from 'node:os'
 import {join} from 'node:path'
 import {sessionLinkLookup} from './session-links.mjs'
@@ -8,12 +9,11 @@ export const name='dsh-codex-live'
 export const inject=['settings','webServer']
 export const NAMESPACE='codex-live'
 
-export const Config=Schema.object({enabled:Schema.boolean().default(true),showCommentary:Schema.boolean().default(true),speakCommentary:Schema.boolean().default(false)})
-
+export const Config=liveConfig(Schema.object({enabled:Schema.boolean().default(true),showCommentary:Schema.boolean().default(true),speakCommentary:Schema.boolean().default(false)}))
 export function apply(ctx,config={}) {
  let live=null, runtime=null, disposed=false
  const sessionForThread=sessionLinkLookup(join(process.env.DSH_HOME||join(homedir(),'.dsh'),'codex-android','session-links.json'))
- const scope=ctx.settings.register(NAMESPACE,Config,{
+ const scope=pluginSettings(ctx,NAMESPACE,Config,{
   base:config,applies:'live',
   validate:value=>{if(!value.enabled && live?.busy)throw Error('GPT Live 正在使用中，请先结束语音，再关闭插件功能。')}
  })

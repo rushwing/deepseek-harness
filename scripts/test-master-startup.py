@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Start only a disposable host deployment and check the real Web entry point."""
 import argparse
+import json
 import os
 import re
 import shutil
@@ -29,7 +30,10 @@ def check(engine, home, port):
     for name in ('package.json','cordis.yml','cordis.patch.yml'):
         origin = home/'profiles/web'/name
         if origin.is_file():
-            (profile/name).write_text(origin.read_text().replace('__SMOKE_HOME__', str(isolated)))
+                (profile/name).write_text(origin.read_text().replace('__SMOKE_HOME__', str(isolated)))
+    legacy = home/'settings.yaml.imported'
+    if legacy.is_file():
+        (isolated/'settings.yaml.imported').write_text(legacy.read_text())
     modules = home/'profiles/web/node_modules'
     if modules.is_dir():
         shutil.copytree(modules, profile/'node_modules', symlinks=True)
@@ -57,6 +61,38 @@ def check(engine, home, port):
                         raise RuntimeError('Web entry is not the built frontend')
                     if 'disabling profile plugin row' in log.read_text():
                         raise RuntimeError(f'A bundled plugin was rejected; diagnostic: {log}')
+                    failures = re.findall(r'^([\w-]+) \([^\n]+\): (?:\w*Error:|failed|pending)', log.read_text(), re.MULTILINE)
+                    own = set(re.findall(r'    - id: ([\w-]+)', (profile/'cordis.patch.yml').read_text())) if (profile/'cordis.patch.yml').exists() else set()
+                    rejected = sorted(set(failures) & own)
+                    if rejected:
+                        raise RuntimeError(f'Profile plugin activation failed: {", ".join(rejected)}; diagnostic: {log}')
+                    if 'startup-appearance' in own:
+                        def rpc(method, args):
+                            request = urllib.request.Request(f'http://127.0.0.1:{port}/api/{method}',
+                                data=json.dumps({'type':'client-request','rpcId':'isolated-settings-test',
+                                    'method':method,'payload':{'args':args}}).encode(),
+                                headers={'Content-Type':'application/json'})
+                            with opener.open(request, timeout=15) as reply:
+                                result = json.load(reply)['result']
+                            return result
+                        rows = rpc('settings/describe', {})
+                        if not rows.get('ok'): raise RuntimeError('Real settings describe failed')
+                        forms = {row['ns']:row for row in rows['value']['namespaces']}
+                        expected = {'codex-live','speech-services','startup-appearance','task-notifications','xiaomi-remote'}
+                        if not expected.issubset(forms): raise RuntimeError('Own plugin Config forms are missing')
+                        startup = forms['startup-appearance']
+                        if legacy.is_file() and startup['value']['enabled'] is not False:
+                            raise RuntimeError('Rejected legacy settings were not recovered')
+                        result = rpc('settings/update', {'ns':'startup-appearance','patch':{'enabled':not startup['value']['enabled']},'expectedRevision':startup['revision']})
+                        if not result.get('ok'): raise RuntimeError('Real settings write failed')
+                        changed = result['value']
+                        if changed['value']['enabled'] == startup['value']['enabled']: raise RuntimeError('Setting did not change')
+                        conflict = rpc('settings/update', {'ns':'startup-appearance','patch':{'enabled':False},'expectedRevision':startup['revision']})
+                        if conflict.get('ok'): raise RuntimeError('Stale settings revision was accepted')
+                        speech = forms['speech-services']
+                        invalid = rpc('settings/update', {'ns':'speech-services','patch':{'ttsEnabled':True},'expectedRevision':speech['revision']})
+                        if invalid.get('ok'): raise RuntimeError('Invalid speech provider settings were persisted')
+                        print('PASS: five real Config forms, legacy recovery, persisted edit, stale-write refusal and speech validation', flush=True)
                     print('PASS: isolated master CLI startup and real Web entry', flush=True)
                     return
                 except (OSError, urllib.error.URLError):

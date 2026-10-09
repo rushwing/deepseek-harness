@@ -1,3 +1,4 @@
+import {liveConfig,pluginSettings} from '../../settings-compat.mjs'
 import Schema from '@deepseek-ai/schemastery'
 import {defineTool} from '@deepseek-ai/dsh-tools'
 import {SayQueue,SAY_GUIDANCE} from './say.mjs'
@@ -12,9 +13,9 @@ import {ResponseFeed} from './state.mjs'
 export const name='dsh-speech-services', inject=['settings','webServer'], NAMESPACE='speech-services'
 export const PATH='/api/android/speech'
 const Service=Schema.object({id:Schema.string(),name:Schema.string(),baseUrl:Schema.string(),model:Schema.string(),voice:Schema.string().default('alloy'),instructions:Schema.string().default(''),speed:Schema.number().min(.25).max(4).default(1)})
-export const Config=Schema.object({enabled:Schema.boolean().default(true),asrEnabled:Schema.boolean().default(true),ttsEnabled:Schema.boolean().default(false),overlayGamepad:Schema.boolean().default(true),asrProvider:Schema.string().default('local'),ttsProvider:Schema.string().default(''),services:Schema.array(Service).default([])})
+export const Config=liveConfig(Schema.object({enabled:Schema.boolean().default(true),asrEnabled:Schema.boolean().default(true),ttsEnabled:Schema.boolean().default(false),overlayGamepad:Schema.boolean().default(true),asrProvider:Schema.string().default('local'),ttsProvider:Schema.string().default(''),services:Schema.array(Service).default([])}),validateProfiles)
 export function apply(ctx,config={}){
- const scope=ctx.settings.register(NAMESPACE,Config,{base:config,applies:'live',validate:validateProfiles})
+ const scope=pluginSettings(ctx,NAMESPACE,Config,{base:config,applies:'live',validate:validateProfiles})
  const csrf=randomBytes(24).toString('hex'),feed=new ResponseFeed(),say=new SayQueue(),pending=new Set(),streams=new Map();let dead=false,revision=0
  const directory=join(homedir(),'.dsh','speech-services'),keyFile=join(directory,'credentials.json');let keys={}
  try{keys=JSON.parse(readFileSync(keyFile,'utf8'))}catch(e){if(e.code!=='ENOENT')throw Error('语音凭据文件不可读取，请检查应用私有配置')}

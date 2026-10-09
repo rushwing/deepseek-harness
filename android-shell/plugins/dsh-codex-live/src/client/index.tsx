@@ -1,3 +1,5 @@
+import {settingsPage} from '../../../settings-client-compat.mjs'
+import {bindSettings} from '../../../settings-client-compat.mjs'
 import {useEffect,useState,useSyncExternalStore} from 'react'
 import {progressComponent,isCodex} from './progress'
 import {followLiveOverlay} from './overlay-focus.mjs'
@@ -5,10 +7,10 @@ import {followLiveOverlay} from './overlay-focus.mjs'
 const namespace='codex-live'
 const bridge=()=> (window as any).androidBridge
 const idle={phase:'idle',message:''}
-export const inject=['slots','sessions','settingsScope']
+export const inject=['slots','sessions','configForms']
 
 export function apply(ctx:any){
- const settings=ctx.settingsScope.bind({namespace})
+ const settings=bindSettings(ctx,namespace)
  ctx.effect(()=>followLiveOverlay(ctx,settings,isCodex),'GPT Live desktop entry')
  const configSubscribe=(fn:()=>void)=>settings.subscribe(fn),configSnapshot=()=>settings.getSnapshot()
  const listSubscribe=(fn:()=>void)=>ctx.sessions.list.subscribe(fn),listSnapshot=()=>ctx.sessions.list.getSnapshot()
@@ -104,5 +106,5 @@ export function apply(ctx:any){
  const Progress=progressComponent(ctx,settings)
  ctx.slots.inject('conversation.input.dock',()=>ctx.slots.register({name:'conversation.input.dock',id:'codex-progress',order:88,inject:(sessionId:string)=>({sessionId})},Progress))
  ctx.slots.inject('conversation.input.right',()=>ctx.slots.register({name:'conversation.input.right',id:'codex-live-voice',order:89,inject:(sessionId:string)=>({sessionId})},Entry))
- ctx.slots.inject('settings.plugin.item',()=>ctx.slots.register({name:'settings.plugin.item',key:namespace,order:86},Settings))
+ settingsPage(ctx,namespace,"GPT Live",86,Settings)
 }

@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
-import Schema from '@deepseek-ai/schemastery'
 import * as relay from 'relay-dsh-plugin-codex'
 import {AndroidCodexClient} from './client.mjs'
 import {CodexAccount,ACCOUNT_PATH} from './account.mjs'
@@ -11,7 +10,7 @@ function platformError(message){return Object.assign(new Error(message),{code:'A
 export async function apply(ctx,config={}) {
   // The standard configurable-plugin list pairs Host namespaces with client
   // cards. Account actions stay on the authenticated API, never in settings JSON.
-  ctx.settings.register('android-codex',Schema.object({}),{base:{}})
+  // Account controls use their authenticated API; there is no generic Config form.
   const home=process.env.DSH_HOME||path.join(os.homedir(),'.dsh')
   const state=path.join(home,'codex-android');fs.mkdirSync(state,{recursive:true,mode:0o700})
   const settings=path.join(state,'settings.json')
