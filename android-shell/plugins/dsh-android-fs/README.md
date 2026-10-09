@@ -22,7 +22,9 @@ the upstream path, abrupt process/device death can require ordinary filesystem
 recovery; this does not add a power-loss durability guarantee.
 
 The exposed `internals` field is described as a test hook upstream, not a stable
-plugin ABI. Exact peer versions and archive gates pin 0.1.2-rc.1. Re-audit the hook
+plugin ABI. The peer ranges include the legacy engine and the fixed
+0.2.1-alpha.2 source-built engine; the latter retains `internals.linkFile` in
+LocalFileSystem, inherited by SandboxedFileSystem. Re-audit the hook
 and rerun tests before upgrading Harness. This is an explicit compatibility seam.
 
 Python/ctypes are already shipped in the paired snapshot; no additional runtime

@@ -43,7 +43,10 @@ DeepCode 增加以下产品要求：可选功能可以独立停用和恢复；�
 
 ## 版本与上游参考
 
-本产品运行时固定 DSH `0.1.2-rc.1` 并带受管补丁。上游 master 会变化，不能把新文档 API 直接复制进旧运行时；需校验当前快照对应的包导出、类型、settings 注册与槽位契约。
+运行时版本由来源清单和构建入口固定：旧 0.1.5 快照与官方 0.2.1-alpha.2
+源码构建使用独立的补丁及校验。插件 peer 声明只包含已经适配的版本；新版
+启动器拒绝不兼容声明，不能使用 allow-version 豁免来代替迁移。上游 master
+会变化，需校验当前快照对应的包导出、类型、settings 注册与槽位契约。
 
 - [DSH 生命周期与 effect](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-tutorial/02-lifecycle-and-effects.zh.md)
 - [DSH 服务与可选依赖](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-tutorial/03-services.zh.md)

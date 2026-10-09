@@ -1,5 +1,10 @@
 # Android patch against npm 0.2.3-rc.1
 
+For DSH format V4, Codex projections use a producer-owned empty system head
+and first-class tool-role results. `dsh-compat.mjs` preserves the released
+wrapper representation on V3 hosts and checks call attribution before lifting
+a result. Neither path rewrites existing session files.
+
 `lib/host-plugin.js`: `apply()` returns early only with `androidClientOnly: true`.
 DSH discovers client bundles from mounted rows, not dependencies alone. The row
 publishes the original client and its dependencies, while dsh-android-codex calls

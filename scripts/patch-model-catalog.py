@@ -5,11 +5,13 @@ import tarfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CURRENT_BASELINE = '16ecb48f33996efe72868f1603223214430634c5ac4c3e8fe9060bf240e990ff'
+MASTER_BASELINE = 'd2a460ebb593c46eff54758470092bed50be249e9d0dde10275d216c088a6e8b'
 BASELINE = 'e8c43c85ce89710df30db8104ff98822edced90fca645956a8a8bce6da7ea2a7'
 
 
 def patch(source):
-    assert hashlib.sha256(source).hexdigest() in (BASELINE, CURRENT_BASELINE), 'Unknown model catalog baseline'
+    source_sha = hashlib.sha256(source).hexdigest()
+    assert source_sha in (BASELINE, CURRENT_BASELINE, MASTER_BASELINE), 'Unknown model catalog baseline'
     text = source.decode()
     marker = 'async function buildModelCatalog(ctx, defaultSelection = ctx.agentDefaultModel.currentSelection()) {'
     assert text.count(marker) == 1
@@ -25,9 +27,15 @@ def patch(source):
     old = '\t\t\tconst models = await ctx.llm.listModels(provider.id);'
     assert text.count(old) == 1
     text = text.replace(old, '''            if (!await androidModelProviderConfigured(ctx, provider.id, androidDeclarations, androidNamespaces)) {
-                return { kind: "unconfigured" };
+                return { kind: "unconfigured", id: provider.id };
             }
 ''' + old)
+    if source_sha == MASTER_BASELINE:
+        # V4 derives routing hints from the presentation groups. Android's
+        # credential filter must not remove an otherwise registered route.
+        routing = 'routableProviders: groups.map((group) => group.id),'
+        assert text.count(routing) == 1
+        text = text.replace(routing, 'routableProviders: [...groups.map((group) => group.id), ...catalog.filter(item => item.kind === "unconfigured").map(item => item.id)],')
     return text
 
 

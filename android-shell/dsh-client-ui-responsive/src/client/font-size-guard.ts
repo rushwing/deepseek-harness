@@ -1,14 +1,30 @@
 /** Hardware keyboard shortcuts change the durable content font setting. */
-interface FontTheme {
+interface LegacyFontTheme {
   getTheme(): { fontSize: number }
   setFontSize(px: number): void
+}
+
+interface RoleFontTheme {
+  getTheme(): { fontSizes: { text: number } }
+  setFontSize(role: 'text', px: number): void
+}
+
+type FontTheme = LegacyFontTheme | RoleFontTheme
+
+function usesFontRoles(theme: FontTheme): theme is RoleFontTheme {
+  return 'fontSizes' in theme.getTheme()
 }
 
 export class FontSizeGuard {
   constructor(private readonly theme: FontTheme) {}
 
   private change(delta: number): void {
-    this.theme.setFontSize(delta ? Math.min(17, Math.max(12, this.theme.getTheme().fontSize + delta)) : 14)
+    if (usesFontRoles(this.theme)) {
+      const size = this.theme.getTheme().fontSizes.text
+      this.theme.setFontSize('text', delta ? Math.min(17, Math.max(12, size + delta)) : 14)
+    } else {
+      this.theme.setFontSize(delta ? Math.min(17, Math.max(12, this.theme.getTheme().fontSize + delta)) : 14)
+    }
   }
 
   // Android WebView can consume hardware zoom keys before any DOM key event.

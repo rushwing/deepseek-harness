@@ -10,8 +10,12 @@
   },
   "official_reference": {
     "url": "https://github.com/deepseek-ai/deepseek-harness.git",
-    "commit": "c389f96bf3a9b6807cb71ed6bdad5849be0df6d8",
-    "path": "upstream",
-    "tracked": false
+    "commit": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+    "version": "0.2.1-alpha.2",
+    "path": ".local/master-engine/source",
+    "tracked": false,
+    "build_entry": "scripts/prepare-master-engine.py",
+    "android_staging_entry": "scripts/stage-master-runtime.py",
+    "integration_method": "Source-built CLI/Web with version/SHA-guarded Android patches; public history merge retains the vendored Android tree"
   }
 }

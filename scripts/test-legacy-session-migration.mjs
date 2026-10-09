@@ -9,8 +9,11 @@ import {projectTranscripts} from '../android-shell/plugins/dsh-codex-live/src/hi
 const root=process.env.DSH_MIGRATION_ENGINE;
 if(!root)throw Error('Set DSH_MIGRATION_ENGINE to staged @deepseek-ai package directory');
 const load=async n=>import(pathToFileURL(resolve(root,n,'lib/index.js')));
-const {sessionFormatCatalog:c}=await load('dsh-session-format-catalog');
-const {Session,SessionId,SessionLogOffset}=await load('dsh-session');
+const catalog=await load('dsh-session-format-catalog');
+// These fixtures have no children; supply that fact explicitly on V4.
+const c=catalog.createSessionFormatCatalogWithChildren?.([])??catalog.sessionFormatCatalog;
+const {Session,SessionId,SessionLogOffset,SESSION_FORMAT_VERSION}=await load('dsh-session');
+const {freezeMessage}=await load('dsh-llm');
 const header={type:'session',version:0,id:'session-migration-fixture',createdAt:1,cwd:'/work',delegationDepth:0,agentPreset:'standard'};
 const liveId='gpt-live:00000000-0000-0000-0000-000000000001:00000000-0000-0000-0000-000000000002';
 const user=(id=liveId)=>({id,role:'user',source:{kind:'user'},content:[{type:'text',text:'fixture request'}]});
@@ -28,7 +31,8 @@ const live=()=>rows([
 test('legacy Live keeps messages and chronology; format frame is empty, marked and reopenable',()=>{
  const input=live(),out=reopen(restore(input));
  for(const type of ['user/message','assistant/message','turn/start','turn/end'])assert.deepEqual(out.events.filter(e=>e.type===type).map(e=>({time:e.time,data:{...e.data,...(e.type==='assistant/message'?{stream:undefined}:{})}})),input.filter(e=>e.type===type).map(e=>({time:e.time,data:{...e.data,...(e.type==='assistant/message'?{stream:undefined}:{})}})));
- const head=out.events.find(e=>e.type==='system/message');assert.deepEqual(head.data.message.content,[]);assert.equal(head.data.message.source.plugin,'deepcode-legacy-live-migration');
+ const head=out.events.find(e=>e.type==='system/message');assert.deepEqual(head.data.message.content,[]);
+ assert.deepEqual(head.data.message.source,SESSION_FORMAT_VERSION>=4?{kind:'system-prompt',producer:'deepcode-legacy-live-migration'}:{kind:'plugin',plugin:'deepcode-legacy-live-migration'});
  assert.equal(out.events.filter(e=>e.type==='step/start').length,2);
 });
 for(const [name,mutate] of [
@@ -66,7 +70,39 @@ for(const role of ['user','assistant'])test('native Live '+role+' first survives
  assert.equal(projectTranscripts(s,records).projectedMessages,2);validateSession(s);assert.equal(projectTranscripts(s,records).projectedMessages,0);validateSession(s);
 });
 const host=readFileSync('android-shell/vendor/relay-dsh-plugin-codex/lib/host-plugin.js','utf8');
-const project=vm.runInNewContext(host.slice(host.indexOf('function appendProjectedTurn('),host.indexOf('function projectionMessageIds('))+';appendProjectedTurn',{MessageId:id=>id,toolCallId:id=>id,freezeMessage:m=>m,CODEX_PROVIDER:'relay-codex'});
+const compat=readFileSync('android-shell/vendor/relay-dsh-plugin-codex/dsh-compat.mjs','utf8');
+const currentMessage=vm.runInNewContext(compat.slice(compat.indexOf('export function currentMessage('),compat.indexOf('// Keep namespace access:')).replace('export function','function')+';currentMessage');
+const project=vm.runInNewContext(host.slice(host.indexOf('function appendProjectedTurn('),host.indexOf('function projectionMessageIds('))+';appendProjectedTurn',{MessageId:id=>id,toolCallId:id=>id,freezeMessage:m=>freezeMessage(currentMessage(m,SESSION_FORMAT_VERSION)),CODEX_PROVIDER:'relay-codex',SESSION_FORMAT_VERSION});
 test('Codex imported user-first history has a valid protected system head',()=>{
  const s=newSession();project((type,data,surfaceOp)=>s.append(type,data,surfaceOp?{surfaceOp}:undefined),{timeline:[{kind:'message',role:'user',id:'u',text:'question'},{kind:'message',role:'assistant',id:'a',text:'answer'}],endReason:{kind:'completed'}},1,true);validateSession(s);
 });
+test('Codex imported activity preserves tool identity, content, errors and replay',()=>{
+ const s=newSession();
+ project((type,data,surfaceOp)=>s.append(type,data,surfaceOp?{surfaceOp}:undefined),{timeline:[
+  {kind:'activity',requestId:'request',resultId:'result',callId:'call',toolName:'relay_codex_activity',arguments:'{}',resultContent:[{type:'text',text:'command output'}],isError:true}
+ ],endReason:{kind:'completed'}},1,true);
+ const out=validateSession(s),message=out.events.find(e=>e.type==='tool/result').data.message;
+ assert.equal(message.source.callId,'call');
+ if(SESSION_FORMAT_VERSION>=4){assert.equal(message.role,'tool');assert.equal(message.toolCallId,'call');assert.equal(message.isError,true);assert.equal(message.content[0].text,'command output');}
+ else {assert.equal(message.role,'user');assert.equal(message.content[0].toolCallId,'call');}
+ assert.equal(JSON.stringify(reopen(out).events),JSON.stringify(out.events));
+});
+if(SESSION_FORMAT_VERSION>=4){
+ const v3Head=plugin=>rows([
+  ['turn/start',{turn:1}],['step/start',{turn:1,step:1}],
+  ['system/message',{turn:1,step:1,message:{id:'saved-empty-head',role:'system',source:{kind:'plugin',plugin},content:[]}},{surfaceOp:'append'}],
+  ['step/end',{turn:1,step:1}],['user/message',user('saved-user')],['turn/end',{turn:1,reason:{kind:'completed'}}]
+ ]);
+ for(const plugin of ['deepcode-legacy-live-migration','@dsh-android/dsh-codex-live','relay-dsh-plugin-codex'])test('saved V3 '+plugin+' head migrates without changing history',()=>{
+  const input=v3Head(plugin),before=JSON.stringify(input),out=reopen(restore(input,{...header,version:3,isSeeded:false}));
+  assert.equal(JSON.stringify(input),before);
+  const head=out.events.find(e=>e.type==='system/message');
+  assert.equal(head.time,input[2].time);assert.equal(head.data.message.id,'saved-empty-head');
+  assert.deepEqual(head.data.message.content,[]);assert.deepEqual(head.data.message.source,{kind:'system-prompt',producer:plugin});
+  const actual=out.events.find(e=>e.type==='user/message');assert.deepEqual(actual.data,input[4].data);assert.equal(actual.time,input[4].time);
+ });
+ for(const [name,mutate] of [
+  ['unknown producer',es=>{es[2].data.message.source.plugin='unknown-producer'}],
+  ['nonempty Android head',es=>{es[2].data.message.content=[{type:'text',text:'unexpected prompt'}]}]
+ ])test('V3 head migration refuses '+name,()=>{const input=v3Head('relay-dsh-plugin-codex');mutate(input);assert.throws(()=>restore(input,{...header,version:3,isSeeded:false}));});
+}

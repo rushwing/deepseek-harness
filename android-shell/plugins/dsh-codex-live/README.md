@@ -10,6 +10,8 @@ Voice uses the selected chat's Codex thread, with IDs visible in the details con
 
 Build and check from this directory with `npm ci && npm test`. Tests include real Cordis unload/reinstall, optional dependency loss/recovery, active-disable rejection, React entry controls, settings migration and protocol ownership races. APK packaging and physical-device checks are documented in `../../docs/AGENTS/background-voice.md`. Build both this plugin and `dsh-android-voice-input` before packaging the experimental APK; use the verified donor host workflow to preserve installed independent changes.
 
+For session format v4, newly projected transcripts reserve an empty system head with the required `system-prompt` source. This records no system prompt and preserves the legacy source for older formats. Run `DSH_V4_SESSION_MODULE=<absolute path to the v4 dsh-session lib/index.js> node --test tests/history-v4.test.mjs` to verify restore and duplicate prevention against that engine. This check covers new projections; existing v3 history still requires the engine's format migration.
+
 ## Foreground task progress
 
 The same GPT Live settings card owns `showCommentary` (default on) and

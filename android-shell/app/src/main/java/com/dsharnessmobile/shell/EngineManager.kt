@@ -637,10 +637,16 @@ class EngineManager(private val context: Context, private val pickToken: String?
     val dshPkgs = File(usrDir, "lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai")
     retireLegacyModelSyncInsert()
     retireLegacyAttachmentInsert(dshPkgs)
-    applyAssetPatch("patched/attachment-local-index.js",
-      File(dshPkgs, "dsh-attachment-local/lib/index.js"))
-    applyAssetPatch("patched/session-persistence-jsonl-index.js",
-      File(dshPkgs, "dsh-session-persistence-jsonl/lib/index.js"))
+    // Legacy complete bundles must never overwrite a newer engine at startup.
+    for ((name, asset) in listOf(
+      "dsh-attachment-local" to "attachment-local-index",
+      "dsh-session-persistence-jsonl" to "session-persistence-jsonl-index")) {
+      val version = runCatching { org.json.JSONObject(File(dshPkgs, "$name/package.json").readText()).optString("version") }.getOrNull()
+      if (version == "0.1.5-rc.1" || version == "0.1.2-rc.1") {
+        applyAssetPatch("patched/$asset.js", File(dshPkgs, "$name/lib/index.js"))
+      }
+    }
+    applyMasterRuntimePatches()
     // Only the audited 0.1.5 migration bundles may receive these compatibility assets.
     for (name in listOf("dsh-session-format-v1-to-v2", "dsh-session-format-v2-to-v3")) {
       val pkg = File(dshPkgs, name)
@@ -683,6 +689,25 @@ class EngineManager(private val context: Context, private val pickToken: String?
       "session-selection-client-015", "181e4162bb1f533926854223fb5552ac88b39a7b2c8233a9bc51d4a20385524e")
     applyVersionedClientPatch("@deepseek-ai/dsh-api-session-controller", "0.1.2-rc.1", "lib/index.js",
       "model-catalog-host", "e8c43c85ce89710df30db8104ff98822edced90fca645956a8a8bce6da7ea2a7")
+  }
+
+  /** Apply only source-built master assets whose package version and input SHA match. */
+  private fun applyMasterRuntimePatches() {
+    try {
+      val manifest = context.assets.open("master-runtime-patches.json").bufferedReader().use {
+        org.json.JSONObject(it.readText())
+      }
+      val rows = manifest.getJSONArray("patches")
+      for (index in 0 until rows.length()) {
+        val row = rows.getJSONObject(index)
+        applyVersionedClientPatch(row.getString("name"), row.getString("version"),
+          row.getString("relative"), row.getString("patch"), row.getString("baseline"))
+      }
+    } catch (error: java.io.FileNotFoundException) {
+      // APKs that still carry the legacy engine have no master patch manifest.
+    } catch (error: Exception) {
+      Log.w(TAG, "Master runtime patch manifest unavailable", error)
+    }
   }
 
   /** Seed composition once and update only verified managed files; preserve user removals. */

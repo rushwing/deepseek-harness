@@ -1,6 +1,6 @@
 # 上游集成维护
 
-本项目采用 vendored Android 壳，来源和精确版本记录在 `source-provenance.json`。集成使用“上次导入版本、DeepCode 当前实现、新上游”三方比较，不将上游历史直接拼接到 NAS 仓库。原始许可证保留。升级在独立分支完成，验收前不得替换正式设备的 APK 或运行时。
+本项目采用 vendored Android 壳，来源和精确版本记录在 `source-provenance.json`。集成比较上次导入版本、DeepCode 当前实现和新上游，保留适用的公开历史与原始许可证，不合入私有开发历史。官方引擎与 Android 工程的根目录不同，按固定源码构建入口集成。升级在独立分支完成，验收前不得替换正式设备的 APK 或运行时。
 
 ## 0.14 系列接口边界
 
@@ -14,6 +14,14 @@
 - 带 `deepcode` 版本后缀的实验 APK 禁止通过上游 APK 更新器安装 stock shell，防止丢失下游扩展。
 
 ## 分 ABI 实验入口
+
+### 0.2 引擎迁移边界
+
+0.2 ARM64 使用 [源码构建入口](MASTER-ENGINE-BUILD.md)，固定官方 master 的公开提交，由源码构建 CLI、Host、Client 与 Web。0.14 release 仅提供经摘要校验的 Termux 基座，原引擎目录整体替换。旧 `first-build.py assemble` 和 `stage-upstream-experiment.py` 继续属于 0.1.5 路径，不能混用。Termux 提供方同时支持旧 `run/start` 与新 `execute` 接口；响应式字号快捷键同时支持单字号与按角色设置；Live 新投影按会话格式选择空 system head 的来源。
+
+工作台的保留租约由新版 Session Manager 的 retain/release 管理，挂载前完成绑定；同步发布期间避免重入。独立泳道复用实际新编辑器、提交守卫、附件和草稿持久化，卸载释放自有租约。`master_deck_patch.py` 校验五个客户端源 bundle 的版本和 SHA。Codex 工具结果写入按会话版本选择 v4 包装，旧 Live 空 system head 仅对已知迁移来源适配。原文件、正文、工具身份和拒绝未知结构的边界保留。
+
+生产部署显式包含递归工作区 peer 闭包，避免上游禁用 peer 自动安装时漏掉服务定义。随包插件声明固定新版兼容范围，已删除的 client-runtime 仅保留为旧类型开发输入；运行时客户端注入使用 client-connection。启动检查遇到任何插件因版本被禁用即失败，不设置版本豁免。原生文件锁、PTY 和 Koffi 从固定源码交叉编译为 Android ARM64，Sharp 使用官方 WASM 回退。新版快照使用独立门禁核对完整包图、补丁 SHA、加载路径和 ELF，旧引擎门禁保留。
 
 `scripts/stage-upstream-experiment.py` 接受经哈希验证的 v0.14.0-preview release archive、其全新解压目录和 APK assets 目录，覆盖已经构建的本仓插件，并应用有锚点校验的引擎补丁。`--abi x86_64` 为默认值；ARM64 使用 `--abi arm64`，不同 ABI 分别校验固定哈希。它不会下载 ASR 模型或执行语音推理。运行前 source `scripts/env.sh`，所有路径均由调用方明确指定。
 

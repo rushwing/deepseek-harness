@@ -9,9 +9,12 @@ import { chmod, cp, link, lstat, mkdir, readFile, realpath, rename, stat, unlink
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import * as llm from "@deepseek-ai/dsh-llm";
-import { LlmAdapter, LlmError, MessageId, createMessage, freezeMessage } from "@deepseek-ai/dsh-llm";
+import { LlmAdapter, LlmError, MessageId, createMessage as upstreamCreateMessage, freezeMessage as upstreamFreezeMessage } from "@deepseek-ai/dsh-llm";
+import { currentMessage } from "../dsh-compat.mjs";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { SessionId, SESSION_FORMAT_VERSION } from "@deepseek-ai/dsh-session";
+const createMessage = message => upstreamCreateMessage(currentMessage(message, SESSION_FORMAT_VERSION));
+const freezeMessage = message => upstreamFreezeMessage(currentMessage(message, SESSION_FORMAT_VERSION));
 //#region internal/plugin-sdk.mjs
 const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const PLUGIN_ID_PATTERN = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/;
@@ -4544,7 +4547,9 @@ function appendProjectedTurn(append, sourceTurn, turn, reserveSystemHead = false
 		append("step/start", { turn, step });
 		append("system/message", { turn, step, message: freezeMessage({
 			id: MessageId(`codex-import-system:${sourceTurn.timeline[0]?.id ?? sourceTurn.sourceId ?? turn}`),
-			role: "system", content: [], source: { kind: "plugin", plugin: "relay-dsh-plugin-codex" }
+			role: "system", content: [], source: typeof SESSION_FORMAT_VERSION !== "undefined" && SESSION_FORMAT_VERSION >= 4
+                ? { kind: "system-prompt", producer: "relay-dsh-plugin-codex" }
+                : { kind: "plugin", plugin: "relay-dsh-plugin-codex" }
 		}) }, "append");
 		append("step/end", { turn, step });
 	}

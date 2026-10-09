@@ -1,5 +1,7 @@
 /downloads/
 /artifacts/
+/android-shell/app/src/main/assets/master-runtime.json
+/android-shell/app/src/main/assets/snapshot.tar.part
 /logs/
 /.tools
 /upstream/

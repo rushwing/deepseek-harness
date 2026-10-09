@@ -30,3 +30,20 @@ it('intercepts font shortcuts at limits, resets, and leaves normal typing/IME in
   } finally { guard.detach() }
   expect(fire('+')).toBe(false)
 })
+
+it('changes only the text role with the role-based upstream theme API', () => {
+  const sizes = { text: 14, code: 16, terminal: 15 }
+  const guard = new FontSizeGuard({
+    getTheme: () => ({ fontSizes: sizes }),
+    setFontSize: (role: 'text', px: number) => { sizes[role] = px },
+  })
+  guard.attach()
+  try {
+    window.dispatchEvent(new CustomEvent('dsh-content-font-shortcut', { detail: 'increase' }))
+    expect(sizes).toEqual({ text: 15, code: 16, terminal: 15 })
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: '0', ctrlKey: true, bubbles: true }))
+    expect(sizes).toEqual({ text: 14, code: 16, terminal: 15 })
+  } finally { guard.detach() }
+  window.dispatchEvent(new CustomEvent('dsh-content-font-shortcut', { detail: 'increase' }))
+  expect(sizes.text).toBe(14)
+})

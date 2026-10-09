@@ -44,13 +44,19 @@ window.__ModuleLoader__.load({
 		};
 		//#endregion
 		//#region src/client/font-size-guard.ts
+		function usesFontRoles(theme) {
+			return "fontSizes" in theme.getTheme();
+		}
 		var FontSizeGuard = class {
 			theme;
 			constructor(theme) {
 				this.theme = theme;
 			}
 			change(delta) {
-				this.theme.setFontSize(delta ? Math.min(17, Math.max(12, this.theme.getTheme().fontSize + delta)) : 14);
+				if (usesFontRoles(this.theme)) {
+					const size = this.theme.getTheme().fontSizes.text;
+					this.theme.setFontSize("text", delta ? Math.min(17, Math.max(12, size + delta)) : 14);
+				} else this.theme.setFontSize(delta ? Math.min(17, Math.max(12, this.theme.getTheme().fontSize + delta)) : 14);
 			}
 			onNativeShortcut = (event) => {
 				const action = event.detail;
@@ -160,8 +166,8 @@ window.__ModuleLoader__.load({
 			}
 		};
 		//#endregion
-		//#region \0dsh-css:src/client/ExportResultDialog.module.css.mjs
-		const css$3 = ".GVJvPa_backdrop{z-index:1;background:var(--dsw-alias-bg-mask-1,#0000003d);justify-content:center;align-items:center;padding:16px;display:flex;position:absolute;inset:0}.GVJvPa_dialog{box-sizing:border-box;background:var(--dsw-alias-bg-base,#fff);border:1px solid var(--dsw-alias-border-l2,#0000001a);width:min(440px,100%);max-height:70%;color:var(--dsw-alias-label-primary,#0f1115);border-radius:12px;flex-direction:column;gap:12px;padding:16px;display:flex;overflow:auto}.GVJvPa_title{margin:0;font-size:16px;font-weight:600}.GVJvPa_detail{overflow-wrap:anywhere;white-space:pre-wrap;margin:0;font-size:13px;line-height:1.5}.GVJvPa_detail[data-status=success]{color:var(--dsw-alias-state-success-primary)}.GVJvPa_detail[data-status=error]{color:var(--dsw-alias-state-error-primary)}.GVJvPa_actions{justify-content:flex-end;display:flex}.GVJvPa_button{border:1px solid var(--dsw-alias-border-l2,#0000001a);background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border-radius:8px;padding:8px 14px;font-size:13px}.GVJvPa_button:hover{background:var(--dsw-alias-button-primary-hover)}";
+		//#region \0dsh-css:/mnt/d/Dev/dsh-mobile-apk/android-shell/dsh-client-ui-responsive/src/client/ExportResultDialog.module.css.mjs
+		const css$3 = ".GyrZpa_backdrop{z-index:1;background:var(--dsw-alias-bg-mask-1,#0000003d);justify-content:center;align-items:center;padding:16px;display:flex;position:absolute;inset:0}.GyrZpa_dialog{box-sizing:border-box;background:var(--dsw-alias-bg-base,#fff);border:1px solid var(--dsw-alias-border-l2,#0000001a);width:min(440px,100%);max-height:70%;color:var(--dsw-alias-label-primary,#0f1115);border-radius:12px;flex-direction:column;gap:12px;padding:16px;display:flex;overflow:auto}.GyrZpa_title{margin:0;font-size:16px;font-weight:600}.GyrZpa_detail{overflow-wrap:anywhere;white-space:pre-wrap;margin:0;font-size:13px;line-height:1.5}.GyrZpa_detail[data-status=success]{color:var(--dsw-alias-state-success-primary)}.GyrZpa_detail[data-status=error]{color:var(--dsw-alias-state-error-primary)}.GyrZpa_actions{justify-content:flex-end;display:flex}.GyrZpa_button{border:1px solid var(--dsw-alias-border-l2,#0000001a);background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border-radius:8px;padding:8px 14px;font-size:13px}.GyrZpa_button:hover{background:var(--dsw-alias-button-primary-hover)}";
 		const tagId$3 = "@dsh-android/dsh-client-ui-responsive/ExportResultDialog.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
 			const tag = document.createElement("style");
@@ -171,12 +177,12 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var ExportResultDialog_module_css_default = {
-			"title": "GVJvPa_title",
-			"actions": "GVJvPa_actions",
-			"detail": "GVJvPa_detail",
-			"button": "GVJvPa_button",
-			"backdrop": "GVJvPa_backdrop",
-			"dialog": "GVJvPa_dialog"
+			"title": "GyrZpa_title",
+			"detail": "GyrZpa_detail",
+			"actions": "GyrZpa_actions",
+			"dialog": "GyrZpa_dialog",
+			"button": "GyrZpa_button",
+			"backdrop": "GyrZpa_backdrop"
 		};
 		//#endregion
 		//#region src/client/ExportResultDialog.tsx
@@ -363,23 +369,15 @@ html[data-dsh-mobile-form] [data-composer-card] [role='menu'] {
 `;
 		//#endregion
 		//#region src/client/composer-row.css.ts
-		/**
-		* Composer control-row narrow-screen fixes:
-		* - The model-selection pill is 176px fixed; on phones below the 400px
-		*   breakpoint it overlaps the permission/access pill (device-observed on
-		*   360dp phones). Cap its width and ellipsize so both stay tappable.
-		* - The row is flex-wrap: wrap (upstream InputBar). On 360dp the left group
-		*   (add + access-mode, 88px) + gap (12px) + trailing group (model pill +
-		*   context meter + send, 204px at pill 118px) = 304px > 302px content width
-		*   (318px card - 16px padding), so the trailing group wraps to a second
-		*   line and the add/access controls misalign vertically with the model
-		*   picker (issue #54). Capping the pill at 104px shrinks the trailing group
-		*   to 182px (282px total), keeping the whole toolbar on one line; the pill's
-		*   own content (label + effort + chevron, ~98px) still fits without
-		*   truncation. Verified on-device (vivo V2425A, 360dp): tools y 627→670 and
-		*   aligns with the model trigger.
-		*/
+		/** Compact mobile tool groups; retain wrapping for larger user fonts or extra plugins. */
 		const COMPOSER_ROW_CSS = `
+@media (max-width: 767px) {
+  [data-composer-card] > div:has(> div > [data-slot='conversation.input.left']),
+  [data-composer-card] div:has(> [data-slot='conversation.input.left']),
+  [data-composer-card] div:has(> [data-slot='conversation.input.right']) {
+    gap: 6px;
+  }
+}
 @media (max-width: 400px) {
   [data-composer-card] [aria-label*='选择模型'],
   [data-composer-card] [aria-label*='model'] {
@@ -1981,8 +1979,8 @@ html:is([data-dsh-mobile-form], [data-dsh-fold-workbench]) {
 }
 `;
 		//#endregion
-		//#region \0dsh-css:src/client/mobile/MobileChrome.module.css.mjs
-		const css$2 = ".qPD0FW_root{pointer-events:none;z-index:25;position:absolute;inset:0}.qPD0FW_bar,.qPD0FW_mask{display:none}html:is([data-dsh-mobile-form],[data-dsh-fold-workbench]){& .qPD0FW_bar{box-sizing:border-box;height:calc(var(--dsh-mobile-topbar-height,44px) + var(--dsh-mobile-top-inset,0px));padding:var(--dsh-mobile-top-inset,0px) 4px 0;background:var(--dsw-specific-sidebar-fill);border-bottom:1px solid var(--dsw-alias-border-l1);pointer-events:auto;z-index:26;align-items:center;display:flex;position:absolute;top:0;left:0;right:0}& .qPD0FW_toggle{width:44px;height:44px;color:var(--dsw-alias-text-l1);cursor:pointer;touch-action:manipulation;background:0 0;border:none;border-radius:10px;flex:none;justify-content:center;align-items:center;display:inline-flex}& .qPD0FW_toggle:active{background:var(--dsw-alias-button-floating-fill)}& .qPD0FW_mask{opacity:0;pointer-events:none;transition:opacity var(--ds-transition-duration-slow,.2s) var(--ds-ease-in-out,ease);z-index:25;background:#00000073;display:block;position:absolute;inset:0}& .qPD0FW_mask[data-open]{opacity:1;pointer-events:auto}}@media (prefers-reduced-motion:reduce){.qPD0FW_mask{transition:none}}";
+		//#region \0dsh-css:/mnt/d/Dev/dsh-mobile-apk/android-shell/dsh-client-ui-responsive/src/client/mobile/MobileChrome.module.css.mjs
+		const css$2 = ".x0uwuW_root{pointer-events:none;z-index:25;position:absolute;inset:0}.x0uwuW_bar,.x0uwuW_mask{display:none}html:is([data-dsh-mobile-form],[data-dsh-fold-workbench]){& .x0uwuW_bar{box-sizing:border-box;height:calc(var(--dsh-mobile-topbar-height,44px) + var(--dsh-mobile-top-inset,0px));padding:var(--dsh-mobile-top-inset,0px) 4px 0;background:var(--dsw-specific-sidebar-fill);border-bottom:1px solid var(--dsw-alias-border-l1);pointer-events:auto;z-index:26;align-items:center;display:flex;position:absolute;top:0;left:0;right:0}& .x0uwuW_toggle{width:44px;height:44px;color:var(--dsw-alias-text-l1);cursor:pointer;touch-action:manipulation;background:0 0;border:none;border-radius:10px;flex:none;justify-content:center;align-items:center;display:inline-flex}& .x0uwuW_toggle:active{background:var(--dsw-alias-button-floating-fill)}& .x0uwuW_mask{opacity:0;pointer-events:none;transition:opacity var(--ds-transition-duration-slow,.2s) var(--ds-ease-in-out,ease);z-index:25;background:#00000073;display:block;position:absolute;inset:0}& .x0uwuW_mask[data-open]{opacity:1;pointer-events:auto}}@media (prefers-reduced-motion:reduce){.x0uwuW_mask{transition:none}}";
 		const tagId$2 = "@dsh-android/dsh-client-ui-responsive/MobileChrome.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
 			const tag = document.createElement("style");
@@ -1992,10 +1990,10 @@ html:is([data-dsh-mobile-form], [data-dsh-fold-workbench]) {
 			document.head.appendChild(tag);
 		}
 		var MobileChrome_module_css_default = {
-			"mask": "qPD0FW_mask",
-			"bar": "qPD0FW_bar",
-			"toggle": "qPD0FW_toggle",
-			"root": "qPD0FW_root"
+			"toggle": "x0uwuW_toggle",
+			"root": "x0uwuW_root",
+			"bar": "x0uwuW_bar",
+			"mask": "x0uwuW_mask"
 		};
 		//#endregion
 		//#region src/client/mobile/MobileChrome.tsx
@@ -2156,8 +2154,8 @@ html:is([data-dsh-mobile-form], [data-dsh-fold-workbench]) {
 			return typeof cwd === "string" && cwd !== "" ? cwd : void 0;
 		}
 		//#endregion
-		//#region \0dsh-css:src/client/mobile/OpenInFileManagerAction.module.css.mjs
-		const css$1 = ".LX5Q1G_button{width:28px;height:28px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:28px;flex:none;justify-content:center;align-items:center;padding:0;line-height:1;display:inline-flex}.LX5Q1G_button:hover,.LX5Q1G_button:active{background:var(--dsw-alias-interactive-bg-hover)}";
+		//#region \0dsh-css:/mnt/d/Dev/dsh-mobile-apk/android-shell/dsh-client-ui-responsive/src/client/mobile/OpenInFileManagerAction.module.css.mjs
+		const css$1 = ".eZw_ZG_button{width:28px;height:28px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:28px;flex:none;justify-content:center;align-items:center;padding:0;line-height:1;display:inline-flex}.eZw_ZG_button:hover,.eZw_ZG_button:active{background:var(--dsw-alias-interactive-bg-hover)}";
 		const tagId$1 = "@dsh-android/dsh-client-ui-responsive/OpenInFileManagerAction.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$1) + "]") === null) {
 			const tag = document.createElement("style");
@@ -2166,7 +2164,7 @@ html:is([data-dsh-mobile-form], [data-dsh-fold-workbench]) {
 			tag.textContent = css$1;
 			document.head.appendChild(tag);
 		}
-		var OpenInFileManagerAction_module_css_default = { "button": "LX5Q1G_button" };
+		var OpenInFileManagerAction_module_css_default = { "button": "eZw_ZG_button" };
 		//#endregion
 		//#region src/client/mobile/OpenInFileManagerAction.tsx
 		/** Label used for both the accessible name and the tooltip. */
@@ -2376,8 +2374,8 @@ html:is([data-dsh-mobile-form], [data-dsh-fold-workbench]) {
 			};
 		}
 		//#endregion
-		//#region \0dsh-css:src/client/mobile/ExternalOpen.module.css.mjs
-		const css = ".KSQr-q_card{flex-direction:column;gap:8px;min-width:0;padding:16px;display:flex}.KSQr-q_name{font-size:var(--dsh-content-font-size-primary,14px);color:var(--dsw-alias-text-l1);overflow-wrap:anywhere;margin:0}.KSQr-q_path{font-family:var(--dsw-font-mono,ui-monospace, SFMono-Regular, Menlo, monospace);font-size:var(--dsh-content-font-size-secondary,13px);color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;margin:0}.KSQr-q_hint{font-size:var(--dsh-content-font-size-secondary,13px);color:var(--dsw-alias-label-tertiary);margin:0}.KSQr-q_actions{flex-wrap:wrap;gap:8px;margin-top:4px;display:flex}.KSQr-q_primary,.KSQr-q_secondary{border:1px solid var(--dsw-alias-border-l1);font-size:var(--dsh-content-font-size-secondary,13px);cursor:pointer;touch-action:manipulation;border-radius:10px;flex:none;padding:8px 14px}.KSQr-q_primary{color:var(--dsw-alias-text-l1);background:var(--dsw-alias-interactive-bg-hover)}.KSQr-q_secondary{color:var(--dsw-alias-text-l1);background:0 0}.KSQr-q_failure{font-size:var(--dsh-content-font-size-secondary,13px);color:var(--dsw-alias-error-text,#e5484d);margin:4px 0 0}";
+		//#region \0dsh-css:/mnt/d/Dev/dsh-mobile-apk/android-shell/dsh-client-ui-responsive/src/client/mobile/ExternalOpen.module.css.mjs
+		const css = ".QxTB9q_card{flex-direction:column;gap:8px;min-width:0;padding:16px;display:flex}.QxTB9q_name{font-size:var(--dsh-content-font-size-primary,14px);color:var(--dsw-alias-text-l1);overflow-wrap:anywhere;margin:0}.QxTB9q_path{font-family:var(--dsw-font-mono,ui-monospace, SFMono-Regular, Menlo, monospace);font-size:var(--dsh-content-font-size-secondary,13px);color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;margin:0}.QxTB9q_hint{font-size:var(--dsh-content-font-size-secondary,13px);color:var(--dsw-alias-label-tertiary);margin:0}.QxTB9q_actions{flex-wrap:wrap;gap:8px;margin-top:4px;display:flex}.QxTB9q_primary,.QxTB9q_secondary{border:1px solid var(--dsw-alias-border-l1);font-size:var(--dsh-content-font-size-secondary,13px);cursor:pointer;touch-action:manipulation;border-radius:10px;flex:none;padding:8px 14px}.QxTB9q_primary{color:var(--dsw-alias-text-l1);background:var(--dsw-alias-interactive-bg-hover)}.QxTB9q_secondary{color:var(--dsw-alias-text-l1);background:0 0}.QxTB9q_failure{font-size:var(--dsh-content-font-size-secondary,13px);color:var(--dsw-alias-error-text,#e5484d);margin:4px 0 0}";
 		const tagId = "@dsh-android/dsh-client-ui-responsive/ExternalOpen.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -2387,14 +2385,14 @@ html:is([data-dsh-mobile-form], [data-dsh-fold-workbench]) {
 			document.head.appendChild(tag);
 		}
 		var ExternalOpen_module_css_default = {
-			"primary": "KSQr-q_primary",
-			"secondary": "KSQr-q_secondary",
-			"failure": "KSQr-q_failure",
-			"hint": "KSQr-q_hint",
-			"name": "KSQr-q_name",
-			"actions": "KSQr-q_actions",
-			"card": "KSQr-q_card",
-			"path": "KSQr-q_path"
+			"actions": "QxTB9q_actions",
+			"secondary": "QxTB9q_secondary",
+			"hint": "QxTB9q_hint",
+			"failure": "QxTB9q_failure",
+			"primary": "QxTB9q_primary",
+			"card": "QxTB9q_card",
+			"name": "QxTB9q_name",
+			"path": "QxTB9q_path"
 		};
 		//#endregion
 		//#region src/client/mobile/external-open.tsx
@@ -3342,6 +3340,7 @@ html:is([data-dsh-mobile-form], [data-dsh-fold-workbench]) {
 				priority: "extension",
 				title: () => "AI 浏览器",
 				guide: [{
+					id: BROWSER_TAB_ID,
 					order: 20,
 					title: () => "AI 浏览器",
 					description: () => "在右侧栏打开 AI 专用浏览器工作台（档位 / 视口 / 身份）"

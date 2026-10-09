@@ -1,5 +1,16 @@
 # RUNTIME-PATCHES.md — assets/patched/ 运行时补丁登记
 
+## 官方 0.2.1-alpha.2
+
+新版使用 `assets/master-runtime-patches.json` 登记包名、版本、目标路径、基线
+及生成资产 SHA，来源是固定公开提交的编译产物。`EngineManager` 逐项走现有
+`applyVersionedClientPatch`；旧附件和会话持久化全文件补丁只允许旧包版本，
+不覆盖新版引擎。工作台五个客户端、启动解析、Codex context、附件持久化、
+v1/v2/v3 会话迁移、模型目录和独占会话发布各自有固定源守卫。
+完整生成和验证入口见 [MASTER-ENGINE-BUILD.md](../../../docs/MASTER-ENGINE-BUILD.md)。
+`master-*.js` 保留生成字节，避免 Windows CRLF 改写破坏 SHA；生成快照收据
+`master-runtime.json` 不入 Git。下方登记保留旧版本历史用途。
+
 > 职责：`app/src/main/assets/patched/` 六文件的权威登记——消费方 `EngineManager.applyRuntimePatches()`（EngineManager.kt:409-430），逐文件目标快照路径/作用/来源线索与维护约定。行号、字节数 2026-09-05 当场 grep/ls 实测。
 
 ## 1. 机制（EngineManager.kt）

@@ -28,6 +28,11 @@ import type { SandboxMode } from '@deepseek-ai/dsh-sandbox'
 import { LocalBashExecutor } from '@deepseek-ai/dsh-bash-local'
 import type { Config as LocalConfig } from '@deepseek-ai/dsh-bash-local'
 
+/** Execution handle returned by upstream's unified shell API. */
+interface TermuxExecution extends ShellProcess {
+  result(): Promise<ShellRunResult>
+}
+
 /** Default grace period passed to probe spawns. */
 const PROBE_GRACE_MS = 3_000
 
@@ -201,18 +206,37 @@ export class TermuxBashExecutor extends LocalBashExecutor {
     return [this.bashPath, '-c', command]
   }
 
-  override async run(spec: ShellExecSpec): Promise<ShellRunResult> {
+  async run(spec: ShellExecSpec): Promise<ShellRunResult> {
     this.assertBash()
-    const result = await this.runArgv(spec, this.bashArgv(spec.command))
+    const run = Reflect.get(LocalBashExecutor.prototype, 'runArgv')
+    if (typeof run !== 'function') throw new Error('shell-termux: this engine uses execute() instead of run()')
+    const result: ShellRunResult = await Reflect.apply(run, this, [spec, this.bashArgv(spec.command)])
     return { ...result, sandbox: { mode: this.writeMode, denied: false, enforcement: 'partial' } }
   }
 
-  override start(spec: ShellExecSpec): ShellProcess {
+  start(spec: ShellExecSpec): ShellProcess {
     this.assertBash()
-    const proc = this.startArgv(spec, this.bashArgv(spec.command))
+    const start = Reflect.get(LocalBashExecutor.prototype, 'startArgv')
+    if (typeof start !== 'function') throw new Error('shell-termux: this engine uses execute() instead of start()')
+    const proc: ShellProcess = Reflect.apply(start, this, [spec, this.bashArgv(spec.command)])
     // Background processes never confine; the app-domain fact is fixed at spawn.
     proc.sandbox = { mode: this.writeMode, denied: false, enforcement: 'partial' }
     return proc
+  }
+
+  /** Execute through the unified upstream API while retaining Termux argv and provider facts. */
+  async execute(spec: ShellExecSpec): Promise<TermuxExecution> {
+    this.assertBash()
+    const execute = Reflect.get(LocalBashExecutor.prototype, 'executeArgv')
+    if (typeof execute !== 'function') throw new Error('shell-termux: this engine uses run()/start() instead of execute()')
+    const sandbox = { mode: this.writeMode, denied: false, enforcement: 'partial' as const }
+    const stamp = (process: TermuxExecution): void => { process.sandbox = sandbox }
+    const process: TermuxExecution = await Reflect.apply(execute, this, [spec, this.bashArgv(spec.command), stamp])
+    stamp(process)
+    const result = process.result.bind(process)
+    let settled: Promise<ShellRunResult> | undefined
+    process.result = () => settled ??= result().then(value => ({ ...value, sandbox }))
+    return process
   }
 
   /**

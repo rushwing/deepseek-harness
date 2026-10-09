@@ -96,6 +96,15 @@
     "LGPL-2.1+",
     "LGPL-3.0+"
   ],
+  "masterRuntime": {
+    "@deepseek-ai/node-addon-system@0.1.2": "BSD-3-Clause",
+    "node-pty@1.2.0-beta.15": "MIT",
+    "koffi@3.1.1": "MIT",
+    "sharp@0.35.5": "Apache-2.0",
+    "@img/sharp-wasm32@0.35.5": "Apache-2.0 AND LGPL-3.0-or-later AND MIT",
+    "@emnapi/runtime@1.11.3": "MIT",
+    "tslib@2.8.1": "0BSD"
+  },
   "localPlugins": {
     "@dsh-android/dsh-android-fs": {
       "license": "MIT",

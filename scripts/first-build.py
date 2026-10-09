@@ -124,7 +124,20 @@ def pack_runtime(runtime, target):
             archive.addfile(info, io.BytesIO(content))
     with target.with_suffix('.part').open('wb') as output:
         subprocess.run(['xz','-T4','-3','-c',str(temporary)],stdout=output,check=True)
-    target.with_suffix('.part').replace(target)
+    compressed = target.with_suffix('.part')
+    try:
+        compressed.replace(target)
+    except PermissionError:
+        if sys.platform != 'linux' or 'microsoft' not in os.uname().release.lower():
+            raise
+        # DrvFS may reject replacing an existing Windows cache file. This is
+        # a build asset, never a user runtime; verify the completed copy before
+        # removing its temporary source or allowing any APK packaging.
+        expected = digest(compressed)
+        shutil.copyfile(compressed, target)
+        if digest(target) != expected:
+            raise RuntimeError('WSL snapshot copy differs from compressed input')
+        compressed.unlink()
     temporary.unlink()
 
 
@@ -175,7 +188,17 @@ def verify_runtime():
     snapshot = ASSETS/'snapshot.tar.xz'
     if digest(snapshot) != (ASSETS/'snapshot.sha256').read_text().strip():
         raise RuntimeError('Snapshot receipt mismatch')
-    checks = ['check-engine-overlay.mjs','check-snapshot-file-modes.mjs','check-snapshot-secrets.mjs']
+    master_manifest = ASSETS/'master-runtime-patches.json'
+    master_engine = False
+    if master_manifest.is_file():
+        with tarfile.open(snapshot, 'r|xz') as archive:
+            for item in archive:
+                if item.name == 'usr/lib/node_modules/@deepseek-ai/dsh/package.json':
+                    master_engine = json.load(archive.extractfile(item))['version'] == '0.2.1-alpha.2'
+                    break
+    if master_engine:
+        script('check-master-runtime.py', snapshot, ASSETS/'master-runtime.json', ASSETS)
+    checks = ([] if master_engine else ['check-engine-overlay.mjs']) + ['check-snapshot-file-modes.mjs','check-snapshot-secrets.mjs']
     for check in checks: run(['node','scripts/'+check,snapshot],ANDROID)
     run(['node','scripts/check-third-party.mjs','x','--tar',snapshot],ANDROID)
     run(['node','scripts/elf-check.mjs',snapshot,'arm64'],ANDROID)
@@ -215,6 +238,10 @@ def apk():
                'snapshot_sha256':digest(ASSETS/'snapshot.tar.xz'),'native_sha256':expected_native,
                'base_url':BASE_URL,'base_sha256':BASE_SHA,'models_included':False,
                'device_toolchain_installed':False,'cloud_accounts_included':False}
+    if (ASSETS/'master-runtime.json').is_file():
+        master = json.loads((ASSETS/'master-runtime.json').read_text())
+        receipt['engine_version'] = master['engine']
+        receipt['engine_source_commit'] = master['commit']
     (ROOT/'artifacts/first-build.json').write_text(json.dumps(receipt,indent=2)+'\n')
     print('Verified source APK:', target)
 

@@ -8,7 +8,9 @@
     ".": "./lib/index.js",
     "./package.json": "./package.json"
   },
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -19,9 +21,9 @@
     "@dsh-android/dsh-android-bridge": "file:../dsh-android-bridge"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2",
-    "@deepseek-ai/dsh-llm": "^0.1.1-rc.2",
-    "@deepseek-ai/cordis": "4.0.1"
+    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2 || 0.2.1-alpha.2",
+    "@deepseek-ai/dsh-llm": "^0.1.1-rc.2 || 0.2.1-alpha.2",
+    "@deepseek-ai/cordis": "4.0.1 || 4.0.5-alpha.1"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-tools": "0.1.1-rc.2",

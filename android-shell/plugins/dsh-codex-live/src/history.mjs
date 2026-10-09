@@ -35,7 +35,8 @@ export function projectTranscripts(session,records,freeze=x=>x){
   if(needsHead){
    // Native V3 reserves its empty system head before any transcript surface.
    session.append('step/start',{turn,step:1})
-   session.append('system/message',{turn,step:1,message:freeze({id:`live-system:${r.id}`,role:'system',source:{kind:'plugin',plugin:'@dsh-android/dsh-codex-live'},content:[]})},{surfaceOp:'append'})
+   const source=session.header?.version>=4?{kind:'system-prompt'}:{kind:'plugin',plugin:'@dsh-android/dsh-codex-live'}
+   session.append('system/message',{turn,step:1,message:freeze({id:`live-system:${r.id}`,role:'system',source,content:[]})},{surfaceOp:'append'})
    session.append('step/end',{turn,step:1})
    needsHead=false
   }

@@ -58,6 +58,7 @@ export function browserTabDefinition(): SidebarRightTabDefinition {
     title: () => 'AI 浏览器',
     guide: [
       {
+        ...{ id: BROWSER_TAB_ID },
         // 工作区文件（ui-sidebar-files）用 order 10；同级卡片排在它后面。
         order: 20,
         title: () => 'AI 浏览器',

@@ -1,4 +1,4 @@
-import {memo,useEffect,useLayoutEffect,useRef,useSyncExternalStore} from 'react'
+import {memo,useEffect,useLayoutEffect,useRef,useState,useSyncExternalStore} from 'react'
 import {SessionSurface} from '@deepseek-ai/dsh-client-ui-renderer'
 import type {Context,Source,Intent,VoiceService,Gamepad} from './contracts.ts'
 import {adjacent,assign,type DeckState} from './state.ts'
@@ -43,11 +43,18 @@ export function apply(ctx:Context) {
   const publish=(next:Partial<DeckState>)=>{state={...state,...next};localStorage.setItem(KEY,JSON.stringify({...state,notice:''}));listeners.forEach(fn=>fn())}
   const notice=(text:string)=>publish({notice:text})
   const activeId=()=>state.lanes[state.active]
+  let syncingLeases=false
   const syncLeases=()=>{
+    // retain/release publishes the sessions list synchronously in Harness v4.
+    // Ignore that nested notification until this reconciliation has finished.
+    if(syncingLeases)return
+    syncingLeases=true
+    try {
     const list=ctx.sessions.list.getSnapshot()
     const ids=new Set(mounted && state.enabled?state.lanes.filter((id):id is string=>!!id && !!list.byId[id]):[])
     for(const [id,release] of leases)if(!ids.has(id)){release();leases.delete(id)}
     for(const id of ids)if(!leases.has(id))leases.set(id,ctx.sessions.acquireStage(id))
+    } finally {syncingLeases=false}
   }
   const hardwareKeyboard=()=>{
     const bridge=(window as unknown as {androidBridge?:{hasHardwareKeyboard?:()=>boolean}}).androidBridge
@@ -154,6 +161,10 @@ export function apply(ctx:Context) {
   })
   function Deck(){
     const s=useSource(store),list=useSource(ctx.sessions.list)
+    // SessionSurface in Harness v4 requires a retained binding. Acquire the
+    // deck's leases before mounting children, rather than during their first
+    // render; an abandoned render must never allocate a session lease.
+    const [ready,setReady]=useState(false)
     const grid=useRef<HTMLDivElement>(null)
     useEffect(()=>{
       const element=grid.current;if(!element)return
@@ -246,8 +257,9 @@ export function apply(ctx:Context) {
       element.addEventListener('scrollend',settle)
       return()=>{if(hostWindow.__dshFoldDeckReady===hostReady)delete hostWindow.__dshFoldDeckReady;if(cancelSwipe===chatSwipe.cancel)cancelSwipe=undefined;chatSwipe.dispose();resize.disconnect();clearTimeout(timer);element.removeEventListener('touchstart',start);element.removeEventListener('touchend',end);element.removeEventListener('touchcancel',end);element.removeEventListener('scroll',schedule);element.removeEventListener('scroll',rememberPair);element.removeEventListener('scrollend',settle)}
     },[])
-    useEffect(()=>{
+    useLayoutEffect(()=>{
       mounted++;layout.setWorkbenchActive?.(true);syncLeases();syncGamepad();focus(true)
+      setReady(true)
       const reset=()=>{const id=activeId();if(id)voice?.leave(id)}
       window.addEventListener('dsh-gamepad-reset',reset)
       // One-shot owned-UI detach. Deferred React unmount invokes it, and the
@@ -269,7 +281,7 @@ export function apply(ctx:Context) {
       return detach
     },[])
     return <div className="dsh-deck" data-plugin="voice-deck" data-conversation-composer-overlay="">
-      <div ref={grid} className="dsh-deck-grid" data-count={s.lanes.filter(Boolean).length}>{s.lanes.map((id,i)=>id&&list.byId[id]?<Lane key={id} id={id} index={i} active={s.active===i}/>:<div className="dsh-deck-empty" key={`empty-${i}`} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();bindLane(i,e.dataTransfer.getData('text/plain'))}}><span>{i+1}</span><p>从左侧拖入会话</p><select aria-label={`添加到泳道 ${i+1}`} value="" onChange={e=>bindLane(i,e.target.value)}><option value="">选择会话</option>{list.ids.map(id=><option key={id} value={id}>{list.byId[id]?.displayTitle??id}</option>)}</select></div>)}</div>
+      <div ref={grid} className="dsh-deck-grid" data-count={s.lanes.filter(Boolean).length}>{s.lanes.map((id,i)=>id&&list.byId[id]?ready&&leases.has(id)&&<Lane key={id} id={id} index={i} active={s.active===i}/>:<div className="dsh-deck-empty" key={`empty-${i}`} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();bindLane(i,e.dataTransfer.getData('text/plain'))}}><span>{i+1}</span><p>从左侧拖入会话</p><select aria-label={`添加到泳道 ${i+1}`} value="" onChange={e=>bindLane(i,e.target.value)}><option value="">选择会话</option>{list.ids.map(id=><option key={id} value={id}>{list.byId[id]?.displayTitle??id}</option>)}</select></div>)}</div>
       {s.notice&&<footer role="status">{s.notice}</footer>}
     </div>
   }

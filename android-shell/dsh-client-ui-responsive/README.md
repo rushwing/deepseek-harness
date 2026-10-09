@@ -27,6 +27,8 @@ The plugin now keeps upstream's frame and adds only what a phone needs.
 
 ## Install and mount
 
+Hardware font shortcuts support the legacy single font size and the newer role-based theme API. With font roles, shortcuts change only text; code and terminal sizes are preserved.
+
 **1. Package** into the web profile's `node_modules` (see dsh-shell-termux for the pattern).
 
 **2. Insert** in the profile's `cordis.patch.yml` — `ui-layout` stays ENABLED:

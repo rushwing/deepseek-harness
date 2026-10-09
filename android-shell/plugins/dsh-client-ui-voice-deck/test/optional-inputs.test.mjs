@@ -26,11 +26,11 @@ import {build} from 'esbuild'
 
 const reactMock = `
 export function useRef(initial){return {current:initial===undefined?null:initial}}
-export function useEffect(fn){const cleanup=fn();if(typeof cleanup==='function')globalThis.__dshEffects.push(cleanup)}
+export function useEffect(fn){if(globalThis.__dshRerender)return;const cleanup=fn();if(typeof cleanup==='function')globalThis.__dshEffects.push(cleanup)}
 export const useLayoutEffect=useEffect
 export function useSyncExternalStore(subscribe,getSnapshot){return getSnapshot()}
 export function memo(fn){return fn}
-export function useState(v){return [v,()=>{}]}
+export function useState(v){return [globalThis.__dshRerender?globalThis.__dshState:v,value=>{globalThis.__dshState=value;globalThis.__dshStateChanged=true}]}
 `
 const jsxMock = `
 export function jsx(type,props){return {type,props:props||{}}}
@@ -152,7 +152,13 @@ function mount(h){
   const entry=entries[entries.length-1]
   const before=globalThis.__dshEffects.length
   const rendered=[]
-  renderNode(entry.component(),rendered)
+  // Commit the parent's mount effect and its readiness state update before
+  // walking children. This mock only models that one mount transition; the
+  // master client test uses real React to cover render and lease ordering.
+  globalThis.__dshStateChanged=false
+  let tree=entry.component()
+  if(globalThis.__dshStateChanged){globalThis.__dshRerender=true;tree=entry.component();globalThis.__dshRerender=false}
+  renderNode(tree,rendered)
   const effects=globalThis.__dshEffects.slice(before)
   effects.tree=rendered // rendered child subtrees, so tests can reach retained props like Lane's openView
   return effects

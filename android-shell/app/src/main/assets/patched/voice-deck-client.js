@@ -287,14 +287,21 @@ function apply(ctx) {
   };
   const notice = (text) => publish({ notice: text });
   const activeId = () => state.lanes[state.active];
+  let syncingLeases = false;
   const syncLeases = () => {
-    const list = ctx.sessions.list.getSnapshot();
-    const ids = new Set(mounted && state.enabled ? state.lanes.filter((id) => !!id && !!list.byId[id]) : []);
-    for (const [id, release] of leases) if (!ids.has(id)) {
-      release();
-      leases.delete(id);
+    if (syncingLeases) return;
+    syncingLeases = true;
+    try {
+      const list = ctx.sessions.list.getSnapshot();
+      const ids = new Set(mounted && state.enabled ? state.lanes.filter((id) => !!id && !!list.byId[id]) : []);
+      for (const [id, release] of leases) if (!ids.has(id)) {
+        release();
+        leases.delete(id);
+      }
+      for (const id of ids) if (!leases.has(id)) leases.set(id, ctx.sessions.acquireStage(id));
+    } finally {
+      syncingLeases = false;
     }
-    for (const id of ids) if (!leases.has(id)) leases.set(id, ctx.sessions.acquireStage(id));
   };
   const hardwareKeyboard = () => {
     const bridge = window.androidBridge;
@@ -495,6 +502,7 @@ function apply(ctx) {
   });
   function Deck() {
     const s = useSource(store), list = useSource(ctx.sessions.list);
+    const [ready, setReady] = (0, import_react.useState)(false);
     const grid = (0, import_react.useRef)(null);
     (0, import_react.useEffect)(() => {
       const element = grid.current;
@@ -606,12 +614,13 @@ function apply(ctx) {
         element.removeEventListener("scrollend", settle);
       };
     }, []);
-    (0, import_react.useEffect)(() => {
+    (0, import_react.useLayoutEffect)(() => {
       mounted++;
       layout.setWorkbenchActive?.(true);
       syncLeases();
       syncGamepad();
       focus(true);
+      setReady(true);
       const reset = () => {
         const id = activeId();
         if (id) voice?.leave(id);
@@ -633,7 +642,7 @@ function apply(ctx) {
       return detach;
     }, []);
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-deck", "data-plugin": "voice-deck", "data-conversation-composer-overlay": "", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { ref: grid, className: "dsh-deck-grid", "data-count": s.lanes.filter(Boolean).length, children: s.lanes.map((id, i) => id && list.byId[id] ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Lane, { id, index: i, active: s.active === i }, id) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-deck-empty", onDragOver: (e) => e.preventDefault(), onDrop: (e) => {
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { ref: grid, className: "dsh-deck-grid", "data-count": s.lanes.filter(Boolean).length, children: s.lanes.map((id, i) => id && list.byId[id] ? ready && leases.has(id) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Lane, { id, index: i, active: s.active === i }, id) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-deck-empty", onDragOver: (e) => e.preventDefault(), onDrop: (e) => {
         e.preventDefault();
         bindLane(i, e.dataTransfer.getData("text/plain"));
       }, children: [

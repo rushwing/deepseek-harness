@@ -8,6 +8,8 @@ Android/Termux bash capability provider for [DeepSeek Harness](https://github.co
 Registers as `ctx.shell` on Android so the model's `bash` tool executes in a controlled Termux
 environment — no fake sandboxing, no dependency on the ambient environment being accidentally right.
 
+The provider supports both legacy `run`/`start` and unified `execute` hosts. Unified executions retain the Termux bash path, controlled environment, and partial sandbox facts on both the live handle and the memoized result.
+
 ## Why
 
 On Android the upstream `bash-sandbox` fails closed (no bwrap/landlock/seatbelt platform chain),

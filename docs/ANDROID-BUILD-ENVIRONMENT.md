@@ -84,7 +84,7 @@ npm test
 
 ### 完整 APK 还需要什么
 
-工具链只是前置条件。当前基线是 Android 壳 0.14.0-preview、DSH 0.1.5-rc.1，不能直接套用旧 0.13.3 下载／overlay 命令。下列材料仍需按 [UPSTREAM-INTEGRATION.md](UPSTREAM-INTEGRATION.md) 装配：
+工具链只是前置条件。Android 壳基座为 0.14.0-preview；旧引擎入口固定 DSH 0.1.5-rc.1，官方 0.2.1-alpha.2 使用独立的 [源码构建入口](MASTER-ENGINE-BUILD.md)。不能直接套用旧 0.13.3 下载／overlay 命令。下列材料仍需按 [UPSTREAM-INTEGRATION.md](UPSTREAM-INTEGRATION.md) 装配：
 
 - 已校验的上游 snapshot，以及本仓插件与引擎补丁。
 - Debian/PRoot bundle：`fetch-debian-inputs.py` → `prepare-debian-bundle.py`，并实际注入 snapshot；只有 Debian 插件源码还不能启动环境。

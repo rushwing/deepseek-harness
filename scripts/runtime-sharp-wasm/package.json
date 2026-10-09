@@ -1,0 +1,10 @@
+{
+  "name": "deepcode-android-sharp-wasm",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "@img/sharp-wasm32": "0.35.5",
+    "@emnapi/runtime": "1.11.3",
+    "tslib": "2.8.1"
+  }
+}

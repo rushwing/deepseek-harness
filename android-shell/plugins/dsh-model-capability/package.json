@@ -1,6 +1,6 @@
 {
   "name": "@dsh-android/dsh-model-capability",
-  "description": "Host-side capability discovery for user-declared provider routes: passive endpoint descriptors first, vendor schemas second, user-approved active probes last — never inferred from URLs or model names",
+  "description": "Host-side capability discovery for user-declared provider routes: passive endpoint descriptors first, vendor schemas second, user-approved active probes last \u2014 never inferred from URLs or model names",
   "version": "0.2.1",
   "type": "module",
   "main": "lib/index.js",
@@ -19,8 +19,8 @@
     "test": "npm run build && node --test test/capability-probe.test.mjs test/catalog-lookup.test.mjs test/settings-writer.test.mjs test/dialect-gate.test.mjs test/signature-stamp.test.mjs"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "4.0.1",
-    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2"
+    "@deepseek-ai/cordis": "4.0.1 || 4.0.5-alpha.1",
+    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2 || 0.2.1-alpha.2"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "4.0.2",

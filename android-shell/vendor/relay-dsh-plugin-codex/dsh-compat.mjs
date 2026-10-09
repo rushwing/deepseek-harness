@@ -1,5 +1,20 @@
 import * as llm from '@deepseek-ai/dsh-llm';
 
+// V4 stores tool results as first-class tool messages. Older hosts retain
+// their released wrapper representation; inputs are never mutated.
+export function currentMessage(message, formatVersion) {
+  if (formatVersion < 4) return message;
+  if (message.source?.kind !== 'tool') return message;
+  const blocks = message.content;
+  if (!Array.isArray(blocks) || blocks.length !== 1 || blocks[0]?.type !== 'tool-result') return message;
+  const result = blocks[0];
+  if (result.toolCallId !== message.source.callId || !Array.isArray(result.content)) {
+    throw new TypeError('Codex tool result attribution mismatch');
+  }
+  return {...message, role: 'tool', toolCallId: result.toolCallId,
+    content: result.content, ...(result.isError === undefined ? {} : {isError: result.isError})};
+}
+
 // Keep namespace access: a named import fails before this adapter can run on
 // the other official DSH generation. Both constructors have the same contract.
 export function toolCallId(value) {

@@ -18,24 +18,27 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "test": "npm run build && node --test test/*.test.mjs"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-bash-local": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-shell": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-subprocess": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-sandbox": "0.1.5-rc.1",
-    "@deepseek-ai/cordis": "4.0.2",
-    "@deepseek-ai/schemastery": "3.18.2"
+    "@deepseek-ai/cordis": "4.0.2 || 4.0.5-alpha.1",
+    "@deepseek-ai/dsh-bash-local": "0.1.5-rc.1 || 0.2.1-alpha.2",
+    "@deepseek-ai/dsh-sandbox": "0.1.5-rc.1 || 0.2.1-alpha.2",
+    "@deepseek-ai/dsh-shell": "0.1.5-rc.1 || 0.2.1-alpha.2",
+    "@deepseek-ai/dsh-subprocess": "0.1.5-rc.1 || 0.2.1-alpha.2",
+    "@deepseek-ai/schemastery": "3.18.2 || 3.18.5-alpha.1"
   },
   "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.2",
     "@deepseek-ai/dsh-bash-local": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-shell": "0.1.5-rc.1",
-    "@deepseek-ai/dsh-subprocess": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-http-proxy": "0.1.5-rc.1",
     "@deepseek-ai/dsh-sandbox": "0.1.5-rc.1",
     "@deepseek-ai/dsh-settings": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-shell": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-subprocess": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-subprocess-local": "0.1.5-rc.1",
     "@deepseek-ai/dsh-timeout": "0.1.5-rc.1",
-    "@deepseek-ai/cordis": "4.0.2",
     "@deepseek-ai/schemastery": "3.18.2",
     "@types/node": "^24.0.0",
     "typescript": "^5.5.0"

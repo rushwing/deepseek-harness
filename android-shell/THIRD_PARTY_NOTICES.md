@@ -1,5 +1,28 @@
 # THIRD_PARTY_NOTICES
 
+## Source-built Harness master
+
+Harness `0.2.1-alpha.2` is built from public commit
+`d743267388641bc76f17c45ce8b4c231aed1d32c` of
+[deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness).
+Its MIT notice is shipped as `deepseek-harness-MIT.txt` and in the engine.
+`node-addon-system` 0.1.2 uses BSD-3-Clause; its notice accompanies the
+Android-built asynchronous file-lock addon. Node-pty 1.2.0-beta.15 and Koffi
+3.1.1 retain their MIT notices in their packages; their Android addons are built
+with the pinned source guards and NDK recorded by the build scripts.
+
+Sharp 0.35.5 uses the official `@img/sharp-wasm32` 0.35.5 fallback on Android.
+Its Apache-2.0 notice and upstream component/license matrix are shipped as
+`sharp-wasm-Apache-2.0.txt` and `sharp-wasm-THIRD-PARTY-NOTICES.md`, and retained
+inside the package. That matrix includes LGPL-3.0-or-later libraries (libvips,
+glib, libexif and libheif); GPL-3.0 and LGPL-3.0 texts accompany the snapshot
+and APK. The separate WASM module and JavaScript loader are unmodified and
+replaceable when rebuilding. The source/build entry points are
+[sharp](https://github.com/lovell/sharp) and
+[sharp-libvips](https://github.com/lovell/sharp-libvips); exact bundled component
+versions are retained in the package's `versions.json`. `@emnapi/runtime`
+1.11.3 retains its MIT notice and `tslib` 2.8.1 its 0BSD notice.
+
 > 本清单由 `scripts/check-third-party.mjs --write-notices` 从快照 dpkg 清单生成；
 > 与快照一起分发（APK assets/）。每个组件的许可证全文随快照包分发于 `usr/share/doc/<pkg>/copyright`，
 > 标准 GNU 文本副本另见仓库 `LICENSES/`。
