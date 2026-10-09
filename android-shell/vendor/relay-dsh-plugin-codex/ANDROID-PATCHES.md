@@ -69,3 +69,14 @@ activation-recovery contract above is unchanged: refresh() remains reachable
 only from the explicit enable. The pinned consumer suite gained the R6
 failed-spawn polling case and the R7 initial-disabled/cycle case against this
 exact file.
+
+## Harness master message-format compatibility
+
+The 0.2.1-alpha.2 integration wraps createMessage/freezeMessage with the local
+`dsh-compat.mjs` adapter and gives the synthetic system head a v4 system-prompt
+source. The legacy path remains guarded by SESSION_FORMAT_VERSION. The complete
+reviewed host file now has SHA256
+`77aa36a7877c0d150f8150f89eafdec42523ca082cef3139ea64a1483198c74b`.
+The consumer identity guard pins these bytes while retaining every activation
+recovery structural assertion. The original npm integrity in SOURCE.json still
+describes the unmodified upstream archive.

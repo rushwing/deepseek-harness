@@ -16,7 +16,8 @@ import {CodexAccount} from '../src/account.mjs'
 // createCodexExecutionPlugin, CodexSessionRuntime, CodexDshAdapter and the
 // real AndroidCodexClient/CodexAccount/JSONL child — is the real thing.
 const vendorPath=resolve(import.meta.dirname,'../../../vendor/relay-dsh-plugin-codex/lib/host-plugin.js')
-const PINNED_SHA256='3043c9f1c8f6a78d418c7e0f2be96339dec28ac6cf43b2ccdf8d6deae078e6d7'
+// Includes the reviewed master v4 message adapter; recovery anchors below remain mandatory.
+const PINNED_SHA256='77aa36a7877c0d150f8150f89eafdec42523ca082cef3139ea64a1483198c74b'
 function assertIdentity(){
   const bytes=readFileSync(vendorPath)
   assert.equal(createHash('sha256').update(bytes).digest('hex'),PINNED_SHA256,'vendored host-plugin.js drifted from the pinned patch')
