@@ -6,4 +6,4 @@ The Android runtime builds a pinned Harness revision recorded in [source-provena
 
 Keep future Harness updates at the repository root and Android changes under `android-mobile/`. Preserve merge commits when integrating these histories so subsequent synchronizations retain a common ancestor. The original Android project history and applicable licenses remain part of this repository.
 
-Harness lint, bilingual pairing, terminology, and repository-reference checks apply to Harness sources. The independent Android project retains its own documentation conventions, fixed source references, license records, and generated bundles. Run its repository audit and the checks required by its [development instructions](AGENTS.md) from this directory.
+Harness lint, bilingual pairing, terminology, repository-reference, and expected-filename checks apply to Harness sources. The independent Android project retains its own documentation conventions, fixed source references, license records, and generated bundles. Run its repository audit and the checks required by its [development instructions](AGENTS.md) from this directory.
