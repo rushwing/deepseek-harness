@@ -24,8 +24,8 @@ python3 scripts/first-build.py --phase native
 python3 scripts/prepare-master-engine.py --work .local/master-engine
 npm --prefix scripts/runtime-sharp-wasm ci --force --ignore-scripts --no-audit --no-fund
 python3 scripts/build-master-flock.py --source .local/master-engine/source --output .local/master-engine/android-flock
-python3 scripts/build-master-pty.py .local/master-engine/engine-master-deploy/node_modules/.pnpm/node-pty@1.2.0-beta.15/node_modules/node-pty .local/master-engine/android-pty
-python3 scripts/build-master-koffi.py .local/master-engine/engine-master-deploy/node_modules/.pnpm/koffi@3.1.1/node_modules/koffi .local/master-engine/android-koffi
+python3 scripts/build-master-apk.py --phase pty
+python3 scripts/build-master-apk.py --phase koffi
 python3 scripts/stage-master-runtime.py --source .local/master-engine/source --deploy .local/master-engine/engine-master-deploy --runtime .local/master-engine/runtime --assets .local/master-engine/assets --native .local/master-engine
 python3 scripts/package-master-runtime.py --source .local/master-engine/source --runtime .local/master-engine/runtime --generated .local/master-engine/assets --receipt .local/master-engine/master-runtime.json
 python3 scripts/first-build.py --phase apk
@@ -35,6 +35,8 @@ python3 scripts/first-build.py --phase apk
 CLI/Web 部署包含必需的递归工作区 peer 依赖。不会运行父 checkout 的默认 Git
 安装钩子。上游 Cosmokit/Schemastery 的 `link:` 覆盖转换为随包源码/编译产物，
 所有生产链接限定在引擎目录内，不能借构建目录通过宿主检查。
+原生依赖目录允许 pnpm 的补丁摘要后缀，但必须在部署目录内唯一解析；
+实际版本和源码 SHA 仍由各绑定构建脚本验证，不能只靠目录名判定输入。
 `stage-master-runtime.py` 全新展开公开 Termux 基座，删除旧引擎目录，
 安装源码构建的引擎、受审补丁和完整自有插件；不消费手机导出运行时。
 `--resume` 仅供补齐本 checkout `.local/` 下有本脚本收据的暂存区，禁止用于用户运行目录。

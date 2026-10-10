@@ -3,6 +3,7 @@
 import importlib.util
 from pathlib import Path
 import subprocess
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -13,7 +14,7 @@ spec.loader.exec_module(module)
 
 class MasterApkTests(unittest.TestCase):
     def test_full_build_has_no_legacy_assemble_and_checks_actual_apk_last(self):
-        with patch.object(module.subprocess, 'run') as run:
+        with patch.object(module.subprocess, 'run') as run, patch.object(module, 'native_package', return_value=Path('fixture-package')):
             module.main([])
         commands = [call.args[0] for call in run.call_args_list]
         self.assertEqual(len(commands), 11)
@@ -33,7 +34,17 @@ class MasterApkTests(unittest.TestCase):
     def test_single_phase_is_explicit(self):
         with patch.object(module.subprocess, 'run') as run:
             module.main(['--phase', 'stage'])
-        run.assert_called_once_with(module.commands()['stage'], cwd=module.ROOT, check=True)
+        run.assert_called_once_with(module.command('stage'), cwd=module.ROOT, check=True)
+
+    def test_pnpm_patch_suffix_resolves_and_ambiguity_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            deploy = Path(directory)
+            package = deploy / 'node_modules/.pnpm/node-pty@1.2.0-beta.15_patch_hash=fixture/node_modules/node-pty'
+            package.mkdir(parents=True)
+            self.assertEqual(module.native_package(deploy, 'node-pty'), package.resolve())
+            self.assertRaises(RuntimeError, module.native_package, deploy, 'koffi')
+            (deploy / 'node_modules/.pnpm/node-pty@other/node_modules/node-pty').mkdir(parents=True)
+            self.assertRaises(RuntimeError, module.native_package, deploy, 'node-pty')
 
 
 if __name__ == '__main__':
