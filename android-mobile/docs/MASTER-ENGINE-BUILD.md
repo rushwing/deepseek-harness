@@ -11,6 +11,11 @@ Android 工程保留在 `android-shell/`，官方源码使用固定公开 Git �
 维护者回执。以下命令使用 Linux/WSL、Python 3.11、Node 22、NDK 27.2.12479018。
 Node 开发头文件位于 `.tools/node22/include/node`。
 
+准备工具链并激活 `scripts/env.sh` 后，全流程入口为
+`python3 scripts/build-master-apk.py`。它按下面的相同顺序执行，不走旧引擎
+`first-build.py --phase assemble`。失败会立即停止；续跑单个阶段使用
+`--phase`，不得借另一个 checkout 的运行时或回执。CI 使用此入口执行干净构建。
+
 ```bash
 source scripts/env.sh
 python3 scripts/first-build.py --phase plugins
@@ -37,6 +42,12 @@ CLI/Web 部署包含必需的递归工作区 peer 依赖。不会运行父 check
 旧版核心全文件补丁不能覆盖新核心。新补丁的包名、版本、相对路径、原始 SHA
 和产物 SHA 位于 `master-runtime-patches.json`，原生壳仍使用版本与哈希保护。
 生成的 `master-runtime.json`、快照、原生二进制和构建收据不入 Git。
+
+Debian rootfs 和 Termux PRoot 依赖独立锁定在 `debian-inputs.lock.json`。
+Termux 是滚动包仓库，旧 `.deb` 地址可能下架；遇到 404 应核对官方包索引，
+在升级 PR 中明确更新版本、URL 和摘要并重新验证。构建过程不自动刷新锁，
+也不能用缓存掩盖已失效的公开输入。要长期保留历史版本，需另行归档受许可
+约束的公开输入及对应来源材料；现有哈希锁不保证上游永久提供下载。
 许可证与构建来源随 APK 保留；Sharp WASM 许可说明见
 [runtime-sharp-wasm](../scripts/runtime-sharp-wasm/README.md)。
 

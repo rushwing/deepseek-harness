@@ -31,6 +31,20 @@ sudo apt-get install -y openjdk-17-jdk python3 python3-venv git curl unzip xz-ut
 
 检查 `python3 --version` 是否达到要求；不要假定所有发行版的默认 Python 都满足。Node 单独从可信发行渠道安装，`node --version` 应为 22.x。上游完整 snapshot 构建还可能使用 pnpm，按对应构建脚本声明准备，不能把 npm 插件构建当作 snapshot 重建。
 
+官方引擎的 Android 原生绑定还需要 Node 开发头文件。下面从公开发行包准备
+本 checkout 的 Node 22.19.0 和匹配头文件，并校验发行清单中的摘要；已有目录
+应先检查，不覆盖。Python 使用稳定维护版本，不使用发行版遗留的预发布版。
+
+```bash
+mkdir -p .tools/downloads
+curl -fL --retry 3 https://nodejs.org/dist/v22.19.0/SHASUMS256.txt -o .tools/downloads/node-SHASUMS256.txt
+curl -fL --retry 3 https://nodejs.org/dist/v22.19.0/node-v22.19.0-linux-x64.tar.xz -o .tools/downloads/node-v22.19.0-linux-x64.tar.xz
+(cd .tools/downloads && awk '$2 == "node-v22.19.0-linux-x64.tar.xz"' node-SHASUMS256.txt | sha256sum -c -)
+mkdir .tools/node22
+tar -xJf .tools/downloads/node-v22.19.0-linux-x64.tar.xz --strip-components=1 -C .tools/node22
+export PATH="$PWD/.tools/node22/bin:$PATH"
+```
+
 ### SDK 目录与安装
 
 以下命令从仓库根执行。SDK、JDK 和缓存均不提交。

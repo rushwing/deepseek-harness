@@ -11,8 +11,8 @@
 从公开仓库新建独立 checkout，所有后续命令从它的根目录运行。记录本次 SHA，避免把另一目录的构建结果当成本次结果：
 
 ```bash
-git clone https://github.com/xiaotianfotos/deepcode.git
-cd deepcode
+git clone https://github.com/rushwing/deepseek-harness.git
+cd deepseek-harness/android-mobile
 git rev-parse HEAD
 git status --short
 ```
@@ -36,10 +36,10 @@ python3 scripts/bootstrap-android-host.py --check
 
 ```bash
 source scripts/env.sh
-python3 scripts/first-build.py
+python3 scripts/build-master-apk.py
 ```
 
-内部顺序及断点恢复：
+当前入口先构建插件、公开输入和原生组件，再按 [源码构建流程](MASTER-ENGINE-BUILD.md) 构建完整 CLI/Web、适配 Android 并打包。下面是底层首次构建脚本的阶段说明；`assemble` 和 `verify` 是旧引擎路径，不属于当前入口。当前流程续跑使用 `build-master-apk.py --phase <phase>`，仅在本轮前序输入已准备好时使用。
 
 | phase | 内容 |
 |---|---|

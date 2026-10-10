@@ -35,7 +35,8 @@ def prepare(work):
     if source.exists() or deploy.exists():
         raise RuntimeError('Use a fresh build directory; existing work is not overwritten')
     repo.mkdir()
-    env = dict(os.environ, LEFTHOOK='0', npm_config_cache=str(ROOT/'.tools/npm-cache'))
+    env = dict(os.environ, LEFTHOOK='0', npm_config_cache=str(ROOT/'.tools/npm-cache'),
+               PNPM_CONFIG_STORE_DIR=str(ROOT/'.tools/pnpm-store'))
     run(['git','init','--bare'], repo, env)
     run(['git','fetch','--depth=1',URL,COMMIT], repo, env)
     actual = subprocess.check_output(['git','rev-parse','FETCH_HEAD'], cwd=repo, text=True).strip()
