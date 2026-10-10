@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Vendored upstream paths follow vendor/README.md instead of repository naming policy.
+# Vendored sources and the independent Android project retain their own naming policy.
 root=$(git rev-parse --show-toplevel)
 candidate_file=$(mktemp)
 trap 'unlink "$candidate_file"' EXIT
 git -C "$root" ls-files -z -- \
   ':(icase,glob)*golden*' \
   ':(icase,glob)**/*golden*' \
-  ':(exclude,glob)vendor/**' > "$candidate_file"
+  ':(exclude,glob)vendor/**' \
+  ':(exclude,glob)android-mobile/**' > "$candidate_file"
 
 violations=()
 while IFS= read -r -d '' path; do

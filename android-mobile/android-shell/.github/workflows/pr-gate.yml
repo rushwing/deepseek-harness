@@ -1,0 +1,94 @@
+# PR Gate — dsh-mobile-apk: static scan + Kotlin compile gate + PR spec checks
+# Release gating still lives in the local build-release.ps1; this only blocks low-level errors and spec issues.
+name: PR Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  static:
+    name: 冲突标记与敏感信息扫描
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 冲突标记检查
+        run: |
+          if grep -rEn '^(<<<<<<< |>>>>>>> )' app/src --include='*.kt' --include='*.java' --include='*.xml' --include='*.html' --include='*.js' --include='*.yml' --include='*.yaml'; then
+            echo "::error::检测到未解决的 merge conflict 标记"
+            exit 1
+          fi
+          echo "无冲突标记 ✓"
+      - name: 敏感信息扫描
+        run: |
+          if grep -rEn '(sk-[A-Za-z0-9]{16,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,})' app/src scripts 2>/dev/null; then
+            echo "::error::检测到疑似密钥/令牌"
+            exit 1
+          fi
+          echo "无敏感信息 ✓"
+      # 镜像对端（协调仓 = 补丁权威源）：FX-208.2 去掉自包含比对开关——它跳过跨仓比对，
+      # 单边演进的补丁 PR 会照绿。改为显式检出协调仓并做逐字节跨仓比对。
+      - uses: actions/checkout@v4
+        with:
+          repository: kelai141/dsh-mobile
+          path: peer-coord
+      # 补丁镜像面跨仓一致性 + 引擎树补丁行为回归
+      - name: 补丁一致性门禁与回归
+        run: |
+          node scripts/check-patch-mirror.mjs --peer peer-coord
+          node scripts/patches/tests/spj-migration-link-f5.test.mjs
+          node scripts/patches/tests/atomic-stale-lock.test.mjs
+      # 控制协议 V2（0.13.8 批 F）：引擎侧编解码的往返等价与体积基线（壳侧 Kotlin 一侧由
+      # 本仓单测 + 跨语言往返门禁另守）。
+      - name: 协议 V2 往返与体积门禁
+        run: |
+          (cd plugins/dsh-android-manage && npm install --no-audit --no-fund && npm run build)
+          node scripts/check-protocol-v2.mjs
+      # 工具返回值 vs output.schema 运行时契约门禁（0.13.8-b 批 B2 T2 / E-10）
+      - name: 工具输出 schema 契约门禁
+        run: |
+          (cd plugins/dsh-android-manage && npm install --no-audit --no-fund && npm run build)
+          node scripts/check-tool-output-schema.mjs
+      - name: 控制 op 登记链门禁
+        run: node scripts/check-control-ops.mjs
+      # 壳侧加固语义（NSC / backup 规则 / exported）与子进程有界读（0.13.8-b FX-208.4 / E1）
+      - name: 壳侧加固与有界读门禁
+        run: |
+          node scripts/check-manifest-hardening.mjs
+          node scripts/check-bounded-io.mjs
+      # 快照指纹对账（ST-04）：净检出下 tar 被 .gitignore 忽略 → SKIP 计数（构建链以 --require 严格跑）
+      - name: 快照指纹对账门禁
+        run: node scripts/check-snapshot-fingerprint.mjs
+      # 接线面聚合断言（0.13.8-b FX-208.2/E2）：本仓布局下解析到同名相对路径
+      - name: 门禁接线面聚合断言
+        run: node scripts/check-release-gates.mjs
+      # 制度性门禁（0.13.8-b 批 B2 ST-25/26/31）：状态登记制 / 桥面对称性 / 门禁覆盖与 SKIP 纪律。
+      # 三者离线可跑（不依赖快照），故在 CI 与两条构建链同源；性能度量入口在无快照时计数 SKIP。
+      - name: 制度性门禁（登记制 / 桥面对称 / SKIP 纪律）
+        run: |
+          node scripts/check-state-registry.mjs
+          node scripts/check-bridge-symmetry.mjs
+          node scripts/check-gate-skips.mjs
+          node scripts/check-kotlin-comments.mjs
+          node scripts/check-build-chain-abort.mjs
+          node scripts/check-perf-instrumentation.mjs
+
+  compile:
+    name: Kotlin 编译门禁
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # Gradle cache acceleration: dependency/build caches reused across runs (full on first, incremental after)
+      - uses: gradle/actions/setup-gradle@v4
+      - name: 确保 Android SDK platform 36
+        run: |
+          yes | sudo "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" >/dev/null 2>&1 || true
+      - name: 编译 debug Kotlin（compileDebugKotlin，不依赖快照资产）
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:compileDebugKotlin --no-daemon --stacktrace

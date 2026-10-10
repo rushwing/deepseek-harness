@@ -52,6 +52,13 @@ describe('concrete terminology policy', () => {
     )).toEqual([])
   })
 
+  it('leaves Android terminology to its project without exempting similarly named paths', () => {
+    expect(findConcreteTermViolations('android-mobile/docs/source.md', blockedTerm)).toEqual([])
+    for (const file of ['android-mobile-tools/source.md', 'docs/android-mobile/source.md']) {
+      expect(findConcreteTermViolations(file, blockedTerm)).toEqual([{ file, line: 1 }])
+    }
+  })
+
   it('excludes vendored sources and frozen Agent Notes', () => {
     expect(findConcreteTermViolations(`vendor/example/${blockedTerm}.ts`, blockedTerm)).toEqual([])
     expect(findConcreteTermViolations(

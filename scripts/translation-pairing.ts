@@ -145,15 +145,17 @@ export const TRANSLATION_SCOPE_GLOB_EXCLUDES = [
   '.artifacts/**',
   'python/sdk-runtime/src/deepseek_harness_runtime/runtime/**',
   'vendor/**',
+  'android-mobile/**',
 ]
 
-/** Whether a repository-relative path belongs to a dependency or generated tree. */
+/** Whether a repository-relative path belongs to a dependency, generated tree, or the independent Android project. */
 function isTranslationSourceExcluded(file: string): boolean {
   const segments = file.split('/')
   return segments.some(segment => NON_SOURCE_DIRECTORIES.has(segment)
       || segment.startsWith('.doc-typecheck-')
     || segment.startsWith('.node-next-types-'))
     || file.startsWith('apps/web/dist/')
+    || file.startsWith('android-mobile/')
     || file.startsWith('python/sdk-runtime/src/deepseek_harness_runtime/runtime/')
 }
 
@@ -311,6 +313,7 @@ export function requiresSourceLanguageSwitcher(source: string): boolean {
   return ![
     'docs/agent-lifecycle.md',
     'docs/capability-seams.md',
+    'docs/cli-help.md',
     'docs/config-catalog.md',
     'docs/cordis-api/context.md',
     'docs/cordis-api/events.md',

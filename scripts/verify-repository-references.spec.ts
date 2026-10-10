@@ -172,4 +172,12 @@ describe('maintained repository reference policy', () => {
     expect(findRepositoryReferences('.agents/notes/implemented/process/current.md', organizationUrl, new Set()))
       .toEqual([{ file: '.agents/notes/implemented/process/current.md', line: 1, kind: 'organization-url' }])
   })
+
+  it('leaves Android source references to its project without exempting similarly named paths', () => {
+    expect(findRepositoryReferences('android-mobile/docs/source.md', organizationUrl, new Set())).toEqual([])
+    for (const file of ['android-mobile-tools/source.md', 'docs/android-mobile/source.md']) {
+      expect(findRepositoryReferences(file, organizationUrl, new Set()))
+        .toEqual([{ file, line: 1, kind: 'organization-url' }])
+    }
+  })
 })

@@ -8,7 +8,7 @@ import { historicalSchemaRegion } from './historical-schema-region.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const blockedTerm = 'prove' + 'nance'
-const excludedPrefixes = ['vendor/', '.agents/notes/archived/'] as const
+const excludedPrefixes = ['vendor/', 'android-mobile/', '.agents/notes/archived/'] as const
 
 /** One blocked term occurrence in a tracked path or text line. */
 export interface ConcreteTermViolation {
@@ -34,7 +34,8 @@ function containsBlockedTerm(value: string): boolean {
  * Find the blocked term in one maintained tracked file.
  * @param file - repository-relative tracked path.
  * @param source - text contents or symlink target.
- * @returns violations outside vendored sources, frozen Agent Notes, historical schemas and their checked generated regions.
+ * @returns violations outside vendored sources, the independent Android project, frozen Agent Notes,
+ * historical schemas and their checked generated regions.
  */
 export function findConcreteTermViolations(file: string, source: string): ConcreteTermViolation[] {
   if (isExcluded(file)) return []
