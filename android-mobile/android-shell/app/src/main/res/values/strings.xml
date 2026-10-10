@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">DeepCode</string>
+  <string name="ds_brand_subtitle">内嵌运行时</string>
+  <string name="ds_start_engine">启动引擎</string>
+  <string name="ds_retry">重试</string>
+  <string name="ds_restart">重新启动</string>
+  <string name="ds_starting">启动中</string>
+  <string name="ds_updating">更新中</string>
+  <string name="ds_undoing">回撤中</string>
+  <string name="ds_open_console">打开控制台</string>
+  <string name="ds_check_update">检查更新</string>
+  <!-- 0.13.8 批 H：启动页 APK 自更新（仅手动；同按钮二次确认；下载后自动拉起授权/安装） -->
+  <string name="ds_apk_checking">检查中…</string>
+  <string name="ds_apk_latest">APK 已是最新 %1$s</string>
+  <string name="ds_apk_confirm">下载并安装 %1$s</string>
+  <string name="ds_apk_available">发现新版 APK %1$s（当前 %2$s，%3$s）——再点一次同一按钮开始下载并安装</string>
+  <string name="ds_apk_downloading">下载中 %1$d%%</string>
+  <string name="ds_apk_download_hint">正在从镜像链下载 %1$s（%2$s）——请保持应用在前台</string>
+  <string name="ds_apk_retry">重试下载并安装 %1$s</string>
+  <string name="ds_apk_retry_install">重试安装</string>
+  <string name="ds_apk_need_permission">需要「安装未知应用」权限，已打开授权页——开启后返回即自动安装</string>
+  <string name="ds_apk_permission_denied">未获得「安装未知应用」权限——APK 已下载，授权后可再点按钮继续安装</string>
+  <string name="ds_apk_installing">已拉起系统安装器——安装完成后重新打开应用即生效</string>
+  <string name="ds_copy_log">复制</string>
+  <string name="ds_log_title">engine.log</string>
+  <string name="ds_runtime_ready">运行时已就绪</string>
+  <string name="ds_runtime_pending">运行时待解压</string>
+  <string name="ds_storage_granted">存储已授权</string>
+  <string name="ds_storage_needed">去授权存储</string>
+  <!-- 0.13.2 ADB 输入通道 IME（ADBKeyboard 协议；引擎 android_ui_input 中文输入通道） -->
+  <string name="adb_keyboard_label">DeepSeek ADB 输入通道</string>
+  <!-- 0.13.5 W4：设备控制无障碍服务（语义控制面） -->
+  <string name="a11y_service_label">DSH 设备控制</string>
+  <string name="a11y_service_summary">让 AI 助手以语义方式读取界面并操作控件</string>
+  <string name="a11y_service_description">开启后，AI 助手可以读取当前界面的控件（文本/描述/位置）并执行点击、输入、滚动等操作。仅在你主动开启时生效，关闭后立即失效；同时要求会话处于「完全访问」档位。</string>
+</resources>

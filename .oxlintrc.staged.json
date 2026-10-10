@@ -13,6 +13,7 @@
     "**/.node-next-types-*/**",
     "website/.generated/**",
     "vendor/**",
+    "android-mobile/**",
     "native/**",
     "**/*.js",
     "**/*.mjs",
