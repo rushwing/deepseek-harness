@@ -10,4 +10,6 @@ For a fresh current-engine APK, prepare the documented host tools, activate `scr
 
 Fork CI uses standard hosted runners by default. Real API validation is optional until the repository variable `DSH_RUN_REAL_API_TESTS` is `true` and the Actions secret `DEEPSEEK_API_KEY_EXTERNAL` is configured. Without opt-in, live validation is explicitly omitted; keyless gates remain active. Self-hosted standby drills require `DSH_RUN_SELF_HOSTED_STANDBY=true` and matching registered runners. The upstream Organization Project workflows belong to their configured repository.
 
+Upstream Cloudflare deployment is not part of fork validation. Weighted ownership approval is a separate fork opt-in through `DSH_RUN_WEIGHTED_APPROVAL=true`; it does not replace code tests. The engine's Android dependency closure uses a reviewed lock under `scripts/master-engine/`, and guarded compiler adaptation uses repository-relative CSS identities so client bundle baselines do not depend on the host directory.
+
 Harness lint, bilingual pairing, terminology, repository-reference, and expected-filename checks apply to Harness sources. The independent Android project retains its own documentation conventions, fixed source references, license records, and generated bundles. Run its repository audit and the checks required by its [development instructions](AGENTS.md) from this directory.

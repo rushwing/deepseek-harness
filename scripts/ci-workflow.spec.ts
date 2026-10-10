@@ -29,7 +29,7 @@ describe('Fork CI routing', () => {
         repository: 'rushwing/deepseek-harness',
         event_name: 'pull_request',
         ref: 'refs/heads/master',
-        event: { repository: { fork }, pull_request: { user: { login: author }, head: { repo: { fork: true, full_name: head } } } },
+        event: { repository: { fork }, pull_request: { state: 'open', user: { login: author }, head: { repo: { fork: true, full_name: head } } } },
       },
     }
   }
@@ -102,6 +102,28 @@ describe('Fork CI routing', () => {
       expect(enabled(condition, values)).toBe(false)
       values.github.repository = 'deepseek-harness/deepseek-harness'
       expect(enabled(condition, values)).toBe(true)
+    }
+  })
+
+  it('keeps upstream deployment off forks and ownership approval opt-in', () => {
+    const preview = workflowJob(loadWorkflow('.github/workflows/build-preview-cloudflare.yml'), 'preview').if
+    const values = context(true)
+    expect(enabled(preview, values)).toBe(false)
+    values.github.event.repository.fork = false
+    values.github.event.pull_request.head.repo.fork = false
+    expect(enabled(preview, values)).toBe(true)
+    values.github.event.pull_request.head.repo.fork = true
+    expect(enabled(preview, values)).toBe(false)
+    for (const [file, job] of [['weighted-approval.yml', 'publish-status'], ['weighted-approval-review-event.yml', 'record-review-event']] as const) {
+      const condition = workflowJob(loadWorkflow('.github/workflows/' + file), job).if
+      const review = context(true)
+      review.github.event_name = 'pull_request_target'
+      expect(enabled(condition, review)).toBe(false)
+      review.vars = { DSH_RUN_WEIGHTED_APPROVAL: 'true' }
+      expect(enabled(condition, review)).toBe(true)
+      review.vars = {}
+      review.github.event.repository.fork = false
+      expect(enabled(condition, review)).toBe(true)
     }
   })
 })
@@ -1363,7 +1385,8 @@ describe('Weighted approval workflow', () => {
       'cancel-in-progress': false,
     })
     expect(job).toMatchObject({
-      if: "(github.event_name != 'pull_request_target' || github.event.pull_request.state == 'open') && "
+      if: "(!github.event.repository.fork || vars.DSH_RUN_WEIGHTED_APPROVAL == 'true') && "
+        + "(github.event_name != 'pull_request_target' || github.event.pull_request.state == 'open') && "
         + "(github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && "
         + "(github.event_name != 'issue_comment' || (github.event.issue.pull_request && github.event.issue.state == 'open' &&\n"
         + "  (contains(github.event.comment.body, '/delegate') || contains(github.event.changes.body.from, '/delegate'))))",
@@ -1407,7 +1430,7 @@ describe('Weighted approval workflow', () => {
       run: 'node .github/review-ownership/check-approval.mjs',
     })
     expect(recordJob).toMatchObject({
-      if: "github.event.pull_request.state == 'open'",
+      if: "github.event.pull_request.state == 'open' && (!github.event.repository.fork || vars.DSH_RUN_WEIGHTED_APPROVAL == 'true')",
       name: 'record weighted approval review event',
       'runs-on': 'ubuntu-latest',
       'timeout-minutes': 2,

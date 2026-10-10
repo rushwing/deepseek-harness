@@ -64,6 +64,7 @@ jobs:
         run: |
           python3 scripts/audit-repository.py
           python3 scripts/test-build-master-apk.py
+          python3 scripts/test-master-client-build.py
 
       - name: Build runtime, run JVM tests, and verify APK
         run: |

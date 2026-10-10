@@ -9,10 +9,12 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tarfile
 from lib.master_workspace_closure import include_runtime_peers
 from lib.master_deploy_links import materialize
+from lib.master_client_build import canonicalize, normalize_regions
 
 ROOT = Path(__file__).resolve().parents[1]
 COMMIT = 'd743267388641bc76f17c45ce8b4c231aed1d32c'
@@ -57,17 +59,33 @@ def prepare(work):
     meta = json.loads(cli.read_text())
     if meta['version'] != VERSION: raise RuntimeError('Wrong engine version')
     closure = include_runtime_peers(source)
+    # The Android deployment adds explicit workspace peers. Its full dependency
+    # lock is reviewed alongside these scripts instead of resolving new semver
+    # versions on each computer. CSS Modules also hash a repository-relative
+    # filename so workbench baseline guards do not depend on the host path.
+    shutil.copyfile(ROOT/'scripts/master-engine/pnpm-lock.yaml', source/'pnpm-lock.yaml')
+    compiler = source/'packages/client/tsdown.client.ts'
+    compiler_raw = compiler.read_bytes()
+    compiler.write_bytes(canonicalize(compiler_raw))
     pnpm = ['npm','exec','--yes','--package=pnpm@'+PNPM,'--','pnpm']
-    run(pnpm+['install','--lockfile-only','--ignore-scripts'], source, env)
     run(pnpm+['install','--frozen-lockfile','--ignore-scripts'], source, env)
     run(pnpm+['run','build'], source, env)
+    for artifact in source.glob('packages/client/*/lib/*.js'):
+        raw = artifact.read_bytes()
+        normalized = normalize_regions(raw, source)
+        if normalized != raw:
+            artifact.write_bytes(normalized)
     run(pnpm+['--filter','@deepseek-ai/dsh','deploy','--prod','--legacy',deploy], source, env)
     materialize(deploy, source)
     receipt = {'commit':COMMIT,'url':URL,'engine':VERSION,'pnpm':PNPM,
         'public_source_sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),
         'deployment_bundles':['@deepseek-ai/dsh-base','@deepseek-ai/dsh-web-app'],
         'runtime_workspace_closure':closure,
-        'lock_sha256':hashlib.sha256((source/'pnpm-lock.yaml').read_bytes()).hexdigest()}
+        'lock_sha256':hashlib.sha256((source/'pnpm-lock.yaml').read_bytes()).hexdigest(),
+        'android_client_compiler':{'source_sha256':hashlib.sha256(compiler_raw).hexdigest(),
+                                   'patched_sha256':hashlib.sha256(compiler.read_bytes()).hexdigest(),
+                                   'css_filename':'repository-relative POSIX path',
+                                   'region_comments':'repository-relative CSS virtual ids'}}
     (work/'source-build.json').write_text(json.dumps(receipt, indent=2)+'\n')
     print('Built pinned public engine:', deploy)
 

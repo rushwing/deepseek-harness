@@ -37,6 +37,10 @@ CLI/Web 部署包含必需的递归工作区 peer 依赖。不会运行父 check
 所有生产链接限定在引擎目录内，不能借构建目录通过宿主检查。
 原生依赖目录允许 pnpm 的补丁摘要后缀，但必须在部署目录内唯一解析；
 实际版本和源码 SHA 仍由各绑定构建脚本验证，不能只靠目录名判定输入。
+Android 的完整部署依赖锁位于 `scripts/master-engine/pnpm-lock.yaml`，普通构建
+只执行 frozen-lockfile 安装，不自动重新解析依赖。原始客户端编译器先校验 SHA，
+再把 CSS 文件名改为仓库相对路径；生成的 CSS region 注释也去除构建目录前缀。
+编译器修改前后摘要随本轮回执记录，客户端补丁仍校验生成 bundle 的固定摘要。
 `stage-master-runtime.py` 全新展开公开 Termux 基座，删除旧引擎目录，
 安装源码构建的引擎、受审补丁和完整自有插件；不消费手机导出运行时。
 `--resume` 仅供补齐本 checkout `.local/` 下有本脚本收据的暂存区，禁止用于用户运行目录。
@@ -62,7 +66,7 @@ Codex 登录、真实模型或 Android 动态链接已在设备上验收。
 - `DSH_MIGRATION_ENGINE=<engine/node_modules/@deepseek-ai> node --test scripts/test-legacy-session-migration.mjs`，使用真实迁移 catalog 和 v4 消息重读。
 - `DSH_CONTEXT_ENGINE=<同一目录> node --test scripts/test-codex-context.mjs scripts/test-codex-settlement.mjs`，使用实际新引擎补丁。
 - `DSH_MODEL_CATALOG_ASSET=android-shell/app/src/main/assets/patched/master-dsh-api-session-controller-index.js node --test scripts/test-model-catalog.mjs`。
-- `test-master-deck.client.spec.ts` 复制到固定 workspace 的 `packages/api/session-controller/tests/`，设置 `DSH_ANDROID_ROOT`，用 workspace Vitest 运行。采用实际 Cordis、React DOM、会话组件与编辑器，检查双泳道、独立草稿和卸载释放。
+- `test-master-deck.client.spec.ts` 复制到固定 workspace 的 `packages/api/session-controller/tests/`，设置 `DSH_ANDROID_ROOT`，用 workspace Vitest 运行。默认读取本次构建的 `.local/master-engine/deck-patches`；其他独立构建可用 `DSH_MASTER_DECK_PATCHES` 指定。采用实际 Cordis、React DOM、会话组件与编辑器，检查双泳道、独立草稿和卸载释放。
 - `test-master-startup.py <deployed-cli> <fixture-home>` 只接受 `.local/` 配置 fixture，复制公开 profile 到独立 Linux 临时 HOME；不复制用户凭据。带自有插件的 fixture 将插件代码放在其 `profiles/web/node_modules`；遇到版本禁用即失败。
 - `test-master-sharp.cjs <deployed-sharp-package>` 使用实际官方 WASM 回退验证编码、缩放和元数据，属于宿主测试。
 - `test-master-search.mjs <Android engine> <host rg binary>` 模拟 Android 路径选择，使用真实上游 subprocess/search 验证匹配、无匹配、参数隔离和缺失程序拒绝；不能替代设备执行。Android 搜索使用公开基座随包的 Termux `bin/rg`。
