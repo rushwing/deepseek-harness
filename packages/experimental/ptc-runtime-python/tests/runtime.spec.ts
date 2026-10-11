@@ -4980,24 +4980,17 @@ describe('PythonPtcRuntime — hostile peer', () => {
     // walk with an O(depth) cursor that pulls one child at a time, so the only
     // width-proportional allocation is the output string the meter bounded.
     //
-    // Config: maxValueBytes 20 MiB against 384 MiB (20*12 = 240 MiB < 320 MiB
-    // budgetable, so it loads). `[0] * 6_000_000` is ~12 MB of JSON, under the
-    // 20 MiB budget, so it must round-trip. Pre-fix the ~400 MB of per-element
-    // frames plus the interpreter exceeded 384 MiB and returned MemoryError as an
-    // exception. Linux-only RLIMIT_AS repro; on macOS the value round-trips
-    // either way, but the fixture stays within the address space so it is honest.
-    //
-    // `maxWallMs` is 60s, not the 20s the memory assertion alone needs: the O(depth)
-    // cursor pulls 6M elements one at a time through Python-level frames, which costs
-    // ~11s on an idle machine and more under the coverage lane's V8 instrumentation
-    // with several workers sharing a box. This budget bounds the run without letting a
-    // loaded runner's scheduling latency read as a `timeout` — what this test asserts
-    // is the O(depth) memory shape, not a speed claim.
-    const { runtime } = await setup({ maxValueBytes: 20 * 1024 * 1024, addressSpaceMb: 384, maxWallMs: 60_000 })
-    const result = await runtime.run(runtime.resolve({ program: 'return [0] * 6_000_000', bindings: [] }))
+    // Keep the memory regression discriminating without making coverage walk 6M
+    // members: 3M zeroes encode to ~6 MB, below the 10 MiB byte budget. The
+    // 224 MiB address space clears the load gate (10*12 < 224-64), but cannot
+    // hold the old per-member traversal tuples plus the list and interpreter.
+    // The cursor traversal still round-trips every member under the same bound.
+    // This asserts allocation shape, so scheduling speed is not the oracle.
+    const { runtime } = await setup({ maxValueBytes: 10 * 1024 * 1024, addressSpaceMb: 224, maxWallMs: 60_000 })
+    const result = await runtime.run(runtime.resolve({ program: 'return [0] * 3_000_000', bindings: [] }))
     expect(result.error).toBeUndefined()
     expect(Array.isArray(result.value)).toBe(true)
-    expect((result.value as number[]).length).toBe(6_000_000)
+    expect((result.value as number[]).length).toBe(3_000_000)
   }, 90_000)
 
   it('validates wide binding arguments in O(depth), not O(width)', async () => {
