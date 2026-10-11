@@ -539,6 +539,10 @@ describe.skipIf(!isWin32 || !pwshAvailable())('windows-acl runner', () => {
     mkdirSync(child)
     writeFileSync(join(granted, 'file.txt'), 'x')
     writeFileSync(join(child, 'deep.txt'), 'x')
+    // Explicit image-provided FullControl wins over an inherited deny. This
+    // fixture tests inheritance, so the owned child must inherit its DACL.
+    const reset = spawnSync('icacls', [child, '/reset'], { encoding: 'utf8' })
+    expect(reset.status, `stderr: ${reset.stderr}`).toBe(0)
     const grant = AclWriteGrant.create(workspaceWriteSid(granted))
     grant.add(granted, true)
     try {
@@ -549,37 +553,7 @@ Add-Type -Namespace P -Name F -MemberDefinition @'
 public static extern IntPtr CreateFileW(string n, uint a, uint s, IntPtr sa, uint d, uint f, IntPtr t);
 [DllImport("kernel32.dll", SetLastError=true)]
 public static extern bool CloseHandle(IntPtr h);
-[StructLayout(LayoutKind.Sequential)]
-public struct LUID { public uint Low; public int High; }
-[StructLayout(LayoutKind.Sequential)]
-public struct PRIVILEGE { public uint Count; public LUID Id; public uint Attributes; }
-[DllImport("kernel32.dll")]
-public static extern IntPtr GetCurrentProcess();
-[DllImport("advapi32.dll", SetLastError=true)]
-public static extern bool OpenProcessToken(IntPtr process, uint access, out IntPtr token);
-[DllImport("advapi32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
-public static extern bool LookupPrivilegeValue(string system, string name, out LUID id);
-[DllImport("advapi32.dll", SetLastError=true)]
-public static extern bool AdjustTokenPrivileges(IntPtr token, bool all, ref PRIVILEGE state, uint size, IntPtr previous, IntPtr returned);
-public static void DisableBackupPrivileges() {
-  IntPtr token;
-  if (!OpenProcessToken(GetCurrentProcess(), 0x28, out token)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-  try {
-    foreach (string name in new [] { "SeBackupPrivilege", "SeRestorePrivilege" }) {
-      LUID id;
-      if (!LookupPrivilegeValue(null, name, out id)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-      var state = new PRIVILEGE { Count = 1, Id = id, Attributes = 0 };
-      if (!AdjustTokenPrivileges(token, false, ref state, 0, IntPtr.Zero, IntPtr.Zero)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-      int error = Marshal.GetLastWin32Error();
-      // ERROR_NOT_ALL_ASSIGNED means this privilege was already absent.
-      if (error != 0 && error != 1300) throw new System.ComponentModel.Win32Exception(error);
-    }
-  } finally { CloseHandle(token); }
-}
 '@ | Out-Null
-# This owned probe tests DACLs. Elevated hosted runners can enable backup
-# privileges, which bypass DACL checks for FILE_FLAG_BACKUP_SEMANTICS opens.
-[P.F]::DisableBackupPrivileges()
 function TryOpen([string]$label, [string]$path) {
   $h = [P.F]::CreateFileW($path, 0x10000000, 7, [IntPtr]::Zero, 3, 0x02000000, [IntPtr]::Zero)
   if ($h -eq [IntPtr]::new(-1)) { "$($label): DENIED" } else { [void][P.F]::CloseHandle($h); "$($label): OK" }

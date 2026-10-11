@@ -717,6 +717,14 @@ jobs:
           packages/experimental/tool-ralph/tests/integration.spec.ts
           packages/subprocess/subprocess-local/tests/process-exit.spec.ts
 
+      - name: Check inherited Windows ACL boundaries
+        shell: pwsh
+        run: >-
+          pnpm exec vitest run
+          --testTimeout 90000
+          packages/sandbox/sandbox-windows-acl/tests/runner.spec.ts
+          -t 'a FullControl open'
+
   # Single stable required check for branch protection: require "all checks
   # passed" instead of enumerating matrix legs whose names change as lanes and
   # node versions evolve. Every blocking job in THIS workflow must be listed in
