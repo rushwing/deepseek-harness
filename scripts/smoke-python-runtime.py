@@ -20,9 +20,10 @@ import tempfile
 import threading
 import time
 import zipfile
+from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Callable, Iterator, Literal
 
 if TYPE_CHECKING:
     from deepseek_harness import Notification, RunResult
@@ -951,11 +952,32 @@ def _smoke_sdk_authoring_cached(base_url: str, executable: Path, update_snapshot
     print("smoke-python-runtime: bundled Python, default skills, replacement and disabled skills passed")
 
 
+@contextmanager
+def office_temporary_directory() -> Iterator[str]:
+    """Own the Office payload until Windows releases exited-process image handles."""
+    directory = tempfile.mkdtemp(prefix="dsh-sdk-office-")
+    try:
+        yield directory
+    finally:
+        deadline = time.monotonic() + 5
+        while True:
+            try:
+                shutil.rmtree(directory)
+                break
+            except OSError as error:
+                # The installed-wheel smoke completed its PDF/PNG/XLSX checks
+                # before WinError 32 deleting node.exe. Do not suppress a live
+                # process or ACL failure: only bound the observed sharing lock.
+                if not IS_WINDOWS or getattr(error, "winerror", None) != 32 or time.monotonic() >= deadline:
+                    raise
+                time.sleep(0.05)
+
+
 def smoke_sdk_office(executable: Path) -> None:
     """Relocate the wheel payload and convert a real DOCX with the target platform engine."""
     from deepseek_harness import DeepSeekHarness
 
-    with tempfile.TemporaryDirectory(prefix="dsh-sdk-office-") as temporary:
+    with office_temporary_directory() as temporary:
         root = Path(temporary).resolve()
         relocated = root / executable.name
         stem = executable.name.removesuffix(".exe")
