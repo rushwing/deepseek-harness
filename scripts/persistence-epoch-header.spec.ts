@@ -15,7 +15,10 @@ function property(nodes: readonly SchemaNode[], index: number, name: string): nu
   return field.type
 }
 
-it('requires compatibility review before request headers can carry retired system text', { timeout: 60_000 }, () => {
+// The source-only compiler inventory shares the instrumented coverage lane's budget.
+const timeout = Math.max(60_000, Number(process.env.DSH_COVERAGE_TEST_TIMEOUT_MS ?? 0))
+
+it('requires compatibility review before request headers can carry retired system text', { timeout }, () => {
   const inventory = extractPersistenceSchema(resolve(import.meta.dirname, '..'))
   const before = inventory.roots.find(root => root.key === 'event:request/header')
   if (before === undefined) throw new Error('generated schema omits request/header')
