@@ -9,10 +9,15 @@ import { expect, it } from 'vitest'
 const exec = promisify(execFile)
 const svg = 'apps/web/tests/present-svg.e2e.ts'
 
-async function fixture(failSvg = false) {
+async function fixture(failSvg = false, inherited: NodeJS.ProcessEnv = process.env) {
   const root = await mkdtemp(join(tmpdir(), 'dsh-web-runner-'))
   const calls = join(root, 'calls.jsonl')
   const entry = join(root, 'pnpm.cjs')
+  // Windows selects one spelling of a case-insensitive environment name. Drop
+  // inherited variants before adding the owned child configuration.
+  const controlled = new Set(['npm_execpath', 'dsh_web_snapshot_workers', 'test_web_calls', 'test_web_fail_svg'])
+  const environment = Object.fromEntries(Object.entries(inherited)
+    .filter(([name]) => !controlled.has(name.toLowerCase())))
   try {
     await writeFile(entry, `
       const { appendFileSync } = require('node:fs');
@@ -27,7 +32,7 @@ async function fixture(failSvg = false) {
   return {
     root,
     run: () => exec(process.execPath, ['--import', 'tsx', 'scripts/run-web-snapshots.ts'], {
-      env: { ...process.env, npm_execpath: entry, DSH_WEB_SNAPSHOT_WORKERS: '4',
+      env: { ...environment, npm_execpath: entry, DSH_WEB_SNAPSHOT_WORKERS: '4',
         TEST_WEB_CALLS: calls, TEST_WEB_FAIL_SVG: String(failSvg) },
     }),
     async invocations(): Promise<string[][]> {
@@ -55,6 +60,16 @@ it('runs the SVG burst once with exclusive CPU before the remaining browser pool
     expect(pool).toBeGreaterThan(calls.findIndex(args => args.includes(svg)))
     expect(calls[pool]).toContain(`--exclude=${svg}`)
     expect(calls[pool]).toContain('--maxWorkers=4')
+  } finally {
+    await rm(owner.root, { recursive: true, force: true })
+  }
+})
+
+it('uses the owned runner when inherited lifecycle variables differ in case', async () => {
+  const owner = await fixture(false, { ...process.env, NPM_EXECPATH: process.execPath })
+  try {
+    await owner.run()
+    expect((await owner.invocations()).filter(args => args.includes(svg))).toHaveLength(1)
   } finally {
     await rm(owner.root, { recursive: true, force: true })
   }

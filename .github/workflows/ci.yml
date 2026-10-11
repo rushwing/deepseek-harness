@@ -725,6 +725,16 @@ jobs:
           packages/sandbox/sandbox-windows-acl/tests/runner.spec.ts
           -t 'a FullControl open'
 
+      - name: Check Windows child-process test isolation
+        shell: pwsh
+        env:
+          DSH_COVERAGE_TEST_TIMEOUT_MS: '90000'
+        run: >-
+          pnpm exec vitest run
+          --testTimeout 90000
+          scripts/run-web-snapshots.spec.ts
+          scripts/benchmark-npm-resolution.spec.ts
+
   # Single stable required check for branch protection: require "all checks
   # passed" instead of enumerating matrix legs whose names change as lanes and
   # node versions evolve. Every blocking job in THIS workflow must be listed in
