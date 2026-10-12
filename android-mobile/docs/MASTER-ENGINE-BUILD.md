@@ -11,6 +11,11 @@ Android 工程保留在 `android-shell/`，官方源码使用固定公开 Git �
 维护者回执。以下命令使用 Linux/WSL、Python 3.11、Node 22、NDK 27.2.12479018。
 Node 开发头文件位于 `.tools/node22/include/node`。
 
+准备工具链并激活 `scripts/env.sh` 后，全流程入口为
+`python3 scripts/build-master-apk.py`。它按下面的相同顺序执行，不走旧引擎
+`first-build.py --phase assemble`。失败会立即停止；续跑单个阶段使用
+`--phase`，不得借另一个 checkout 的运行时或回执。CI 使用此入口执行干净构建。
+
 ```bash
 source scripts/env.sh
 python3 scripts/first-build.py --phase plugins
@@ -19,8 +24,8 @@ python3 scripts/first-build.py --phase native
 python3 scripts/prepare-master-engine.py --work .local/master-engine
 npm --prefix scripts/runtime-sharp-wasm ci --force --ignore-scripts --no-audit --no-fund
 python3 scripts/build-master-flock.py --source .local/master-engine/source --output .local/master-engine/android-flock
-python3 scripts/build-master-pty.py .local/master-engine/engine-master-deploy/node_modules/.pnpm/node-pty@1.2.0-beta.15/node_modules/node-pty .local/master-engine/android-pty
-python3 scripts/build-master-koffi.py .local/master-engine/engine-master-deploy/node_modules/.pnpm/koffi@3.1.1/node_modules/koffi .local/master-engine/android-koffi
+python3 scripts/build-master-apk.py --phase pty
+python3 scripts/build-master-apk.py --phase koffi
 python3 scripts/stage-master-runtime.py --source .local/master-engine/source --deploy .local/master-engine/engine-master-deploy --runtime .local/master-engine/runtime --assets .local/master-engine/assets --native .local/master-engine
 python3 scripts/package-master-runtime.py --source .local/master-engine/source --runtime .local/master-engine/runtime --generated .local/master-engine/assets --receipt .local/master-engine/master-runtime.json
 python3 scripts/first-build.py --phase apk
@@ -30,6 +35,12 @@ python3 scripts/first-build.py --phase apk
 CLI/Web 部署包含必需的递归工作区 peer 依赖。不会运行父 checkout 的默认 Git
 安装钩子。上游 Cosmokit/Schemastery 的 `link:` 覆盖转换为随包源码/编译产物，
 所有生产链接限定在引擎目录内，不能借构建目录通过宿主检查。
+原生依赖目录允许 pnpm 的补丁摘要后缀，但必须在部署目录内唯一解析；
+实际版本和源码 SHA 仍由各绑定构建脚本验证，不能只靠目录名判定输入。
+Android 的完整部署依赖锁位于 `scripts/master-engine/pnpm-lock.yaml`，普通构建
+只执行 frozen-lockfile 安装，不自动重新解析依赖。原始客户端编译器先校验 SHA，
+再把 CSS 文件名改为仓库相对路径；生成的 CSS region 注释也去除构建目录前缀。
+编译器修改前后摘要随本轮回执记录，客户端补丁仍校验生成 bundle 的固定摘要。
 `stage-master-runtime.py` 全新展开公开 Termux 基座，删除旧引擎目录，
 安装源码构建的引擎、受审补丁和完整自有插件；不消费手机导出运行时。
 `--resume` 仅供补齐本 checkout `.local/` 下有本脚本收据的暂存区，禁止用于用户运行目录。
@@ -37,6 +48,12 @@ CLI/Web 部署包含必需的递归工作区 peer 依赖。不会运行父 check
 旧版核心全文件补丁不能覆盖新核心。新补丁的包名、版本、相对路径、原始 SHA
 和产物 SHA 位于 `master-runtime-patches.json`，原生壳仍使用版本与哈希保护。
 生成的 `master-runtime.json`、快照、原生二进制和构建收据不入 Git。
+
+Debian rootfs 和 Termux PRoot 依赖独立锁定在 `debian-inputs.lock.json`。
+Termux 是滚动包仓库，旧 `.deb` 地址可能下架；遇到 404 应核对官方包索引，
+在升级 PR 中明确更新版本、URL 和摘要并重新验证。构建过程不自动刷新锁，
+也不能用缓存掩盖已失效的公开输入。要长期保留历史版本，需另行归档受许可
+约束的公开输入及对应来源材料；现有哈希锁不保证上游永久提供下载。
 许可证与构建来源随 APK 保留；Sharp WASM 许可说明见
 [runtime-sharp-wasm](../scripts/runtime-sharp-wasm/README.md)。
 
@@ -49,7 +66,7 @@ Codex 登录、真实模型或 Android 动态链接已在设备上验收。
 - `DSH_MIGRATION_ENGINE=<engine/node_modules/@deepseek-ai> node --test scripts/test-legacy-session-migration.mjs`，使用真实迁移 catalog 和 v4 消息重读。
 - `DSH_CONTEXT_ENGINE=<同一目录> node --test scripts/test-codex-context.mjs scripts/test-codex-settlement.mjs`，使用实际新引擎补丁。
 - `DSH_MODEL_CATALOG_ASSET=android-shell/app/src/main/assets/patched/master-dsh-api-session-controller-index.js node --test scripts/test-model-catalog.mjs`。
-- `test-master-deck.client.spec.ts` 复制到固定 workspace 的 `packages/api/session-controller/tests/`，设置 `DSH_ANDROID_ROOT`，用 workspace Vitest 运行。采用实际 Cordis、React DOM、会话组件与编辑器，检查双泳道、独立草稿和卸载释放。
+- `test-master-deck.client.spec.ts` 复制到固定 workspace 的 `packages/api/session-controller/tests/`，设置 `DSH_ANDROID_ROOT`，用 workspace Vitest 运行。默认读取本次构建的 `.local/master-engine/deck-patches`；其他独立构建可用 `DSH_MASTER_DECK_PATCHES` 指定。采用实际 Cordis、React DOM、会话组件与编辑器，检查双泳道、独立草稿和卸载释放。
 - `test-master-startup.py <deployed-cli> <fixture-home>` 只接受 `.local/` 配置 fixture，复制公开 profile 到独立 Linux 临时 HOME；不复制用户凭据。带自有插件的 fixture 将插件代码放在其 `profiles/web/node_modules`；遇到版本禁用即失败。
 - `test-master-sharp.cjs <deployed-sharp-package>` 使用实际官方 WASM 回退验证编码、缩放和元数据，属于宿主测试。
 - `test-master-search.mjs <Android engine> <host rg binary>` 模拟 Android 路径选择，使用真实上游 subprocess/search 验证匹配、无匹配、参数隔离和缺失程序拒绝；不能替代设备执行。Android 搜索使用公开基座随包的 Termux `bin/rg`。

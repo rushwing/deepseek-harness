@@ -137,6 +137,15 @@ def stage(source, deploy, runtime, assets, native, resume=False):
     for name, binary in [('node-pty','pty.node'), ('koffi','koffi.node')]:
         candidates = list((nm/'.pnpm').glob(name+'@*/node_modules/'+name))
         if len(candidates) != 1: raise RuntimeError('Ambiguous native package '+name)
+        # Cross-compilation runs in the disposable deploy package. Its build
+        # directory contains compiler probes and intermediate ELF files which
+        # are not runtime inputs and do not have the addon's page alignment.
+        # Keep only the verified final Android addon in the new runtime.
+        build_dir = candidates[0]/'build'
+        if engine not in build_dir.resolve().parents:
+            raise RuntimeError('Native build directory escaped the new runtime')
+        if build_dir.exists():
+            shutil.rmtree(build_dir)
         dest = candidates[0]/('build/Release' if name == 'node-pty' else 'build/koffi/android_arm64')
         dest.mkdir(parents=True, exist_ok=True)
         shutil.copy2(native/('android-pty' if name == 'node-pty' else 'android-koffi')/binary, dest/binary)

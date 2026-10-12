@@ -5,6 +5,9 @@ import { pnpmInvocation } from './pnpm-invocation.ts'
 const serialFiles = [
   'apps/web/tests/hmr-live.e2e.ts',
   'apps/web/tests/client-plugin-live.e2e.ts',
+  // Its large replay burst needs an exclusive browser CPU allocation: a busy
+  // pool can lose the connection. Keep the default heartbeat and strict tripwire.
+  'apps/web/tests/present-svg.e2e.ts',
 ]
 const workerRaw = process.env.DSH_WEB_SNAPSHOT_WORKERS
 const workers = Number.parseInt(workerRaw ?? '', 10)

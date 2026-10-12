@@ -194,6 +194,9 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Test Office smoke cleanup
+        run: python scripts/test-smoke-python-cleanup.py
+
       - name: Install Python build tooling
         run: python -m pip install uv==0.11.23
 
@@ -374,12 +377,19 @@ jobs:
             Pop-Location
           }
 
+      - name: Report fork real API coverage
+        if: inputs.ci && github.event.repository.fork && vars.DSH_RUN_REAL_API_TESTS != 'true'
+        shell: bash
+        run: |
+          echo 'Real API validation was not requested for this fork. Installed-wheel builds and keyless tests still run. To enable live tests, set DSH_RUN_REAL_API_TESTS=true and configure the DEEPSEEK_API_KEY_EXTERNAL Actions secret.' >> "$GITHUB_STEP_SUMMARY"
+
       - name: Preflight installed-wheel real API test (POSIX)
         if: >-
           inputs.ci
+          && (!github.event.repository.fork || vars.DSH_RUN_REAL_API_TESTS == 'true')
           && runner.os != 'Windows'
           && (github.event_name != 'pull_request'
-              || !(github.event.pull_request.head.repo.fork
+              || !((github.event.pull_request.head.repo.fork && github.event.pull_request.head.repo.full_name != github.repository)
                    || github.event.pull_request.user.login == 'dependabot[bot]'))
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY_EXTERNAL }}
@@ -393,9 +403,10 @@ jobs:
       - name: Preflight installed-wheel real API test (Windows)
         if: >-
           inputs.ci
+          && (!github.event.repository.fork || vars.DSH_RUN_REAL_API_TESTS == 'true')
           && runner.os == 'Windows'
           && (github.event_name != 'pull_request'
-              || !(github.event.pull_request.head.repo.fork
+              || !((github.event.pull_request.head.repo.fork && github.event.pull_request.head.repo.full_name != github.repository)
                    || github.event.pull_request.user.login == 'dependabot[bot]'))
         shell: pwsh
         env:
@@ -408,9 +419,10 @@ jobs:
       - name: Run installed-wheel real API black-box test (POSIX)
         if: >-
           inputs.ci
+          && (!github.event.repository.fork || vars.DSH_RUN_REAL_API_TESTS == 'true')
           && runner.os != 'Windows'
           && (github.event_name != 'pull_request'
-              || !(github.event.pull_request.head.repo.fork
+              || !((github.event.pull_request.head.repo.fork && github.event.pull_request.head.repo.full_name != github.repository)
                    || github.event.pull_request.user.login == 'dependabot[bot]'))
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY_EXTERNAL }}
@@ -428,9 +440,10 @@ jobs:
       - name: Run installed-wheel real API black-box test (Windows)
         if: >-
           inputs.ci
+          && (!github.event.repository.fork || vars.DSH_RUN_REAL_API_TESTS == 'true')
           && runner.os == 'Windows'
           && (github.event_name != 'pull_request'
-              || !(github.event.pull_request.head.repo.fork
+              || !((github.event.pull_request.head.repo.fork && github.event.pull_request.head.repo.full_name != github.repository)
                    || github.event.pull_request.user.login == 'dependabot[bot]'))
         shell: pwsh
         env:

@@ -6,12 +6,127 @@ import { describe, expect, it } from 'vitest'
 
 function evaluateRunsOn(selector: unknown, context: Record<string, unknown>): unknown {
   if (typeof selector !== 'string') throw new TypeError('Runner selector must be a string')
-  return runInNewContext(selector.trim().slice(3, -2), context, { timeout: 1000 })
+  const github = isRecord(context.github) ? context.github : {}
+  const event = isRecord(github.event) ? github.event : {}
+  return runInNewContext(selector.trim().slice(3, -2), {
+    ...context,
+    github: { ...github, event: { repository: { fork: false }, ...event } },
+  }, { timeout: 1000 })
 }
 
 const root = resolve(import.meta.dirname, '..')
 const runnerPrivatePnpmDestination = /^\$\{\{ runner\.temp \}\}\/setup-pnpm-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}$/
 const nativeWindowsPnpmDestination = '${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}'
+
+describe('Fork CI routing', () => {
+  function context(fork: boolean, variables: Record<string, string> = {}, author = 'maintainer', head = 'rushwing/deepseek-harness') {
+    return {
+      vars: variables,
+      inputs: { ci: true },
+      runner: { os: 'Linux' },
+      fromJSON: JSON.parse,
+      github: {
+        repository: 'rushwing/deepseek-harness',
+        event_name: 'pull_request',
+        ref: 'refs/heads/master',
+        event: { repository: { fork }, pull_request: { state: 'open', user: { login: author }, head: { repo: { fork: true, full_name: head } } } },
+      },
+    }
+  }
+
+  function enabled(condition: unknown, values: Record<string, unknown>): boolean {
+    if (typeof condition !== 'string') throw new TypeError('Workflow must define a condition')
+    return Boolean(runInNewContext(condition, values, { timeout: 1000 }))
+  }
+
+  it.each(['node-24', 'node-24-coverage', 'node-24-consumers', 'windows-build', 'windows-coverage', 'windows-native-tests'])(
+    'routes %s to hosted runners in a fork while retaining explicit failover', (name) => {
+      const selector = workflowJob(loadWorkflow('.github/workflows/ci.yml'), name)['runs-on']
+      const windows = name.startsWith('windows')
+      expect(evaluateRunsOn(selector, context(true))).toBe(windows ? 'windows-2025' : 'ubuntu-24.04')
+      expect(evaluateRunsOn(selector, context(false))).toBe(windows ? 'dsh-windows-2025-16core' : 'dsh-ubuntu-24-04-16core')
+      const variable = windows ? 'DSH_CI_FAILOVER_WINDOWS' : 'DSH_CI_FAILOVER_LINUX'
+      expect(evaluateRunsOn(selector, context(true, { [variable]: 'blacksmith' }))).toMatch(/^blacksmith-/)
+      expect(evaluateRunsOn(selector, context(true, { [variable]: 'selfhosted' }))).toEqual(
+        windows ? ['self-hosted', 'dsh-win-ci', 'windows'] : ['self-hosted', 'linux', 'x64', 'vm-backup'],
+      )
+    },
+  )
+
+  it('requires fork opt-in and withholds real API tests from external and Dependabot PRs', () => {
+    const e2e = workflowJob(loadWorkflow('.github/workflows/e2e.yml'), 'e2e')
+    const builder = workflowJob(loadWorkflow('.github/workflows/build-exe-for-python-sdk.yml'), 'build')
+    if (!Array.isArray(builder.steps)) throw new TypeError('Runtime builder must define steps')
+    const live = builder.steps.filter(isRecord).filter(step => typeof step.name === 'string'
+      && /^(Preflight installed-wheel real API|Run installed-wheel real API)/.test(step.name))
+    expect(live).toHaveLength(4)
+    for (const condition of [e2e.if, ...live.map(step => step.if)]) {
+      const values = context(true, { DSH_RUN_REAL_API_TESTS: 'true' })
+      if (String(condition).includes("runner.os == 'Windows'")) values.runner.os = 'Windows'
+      expect(enabled(condition, values)).toBe(true)
+      values.vars = {}
+      expect(enabled(condition, values)).toBe(false)
+      values.vars = { DSH_RUN_REAL_API_TESTS: 'true' }
+      values.github.event.pull_request.head.repo.full_name = 'outsider/fork'
+      expect(enabled(condition, values)).toBe(false)
+      values.github.event.pull_request.head.repo.full_name = values.github.repository
+      values.github.event.pull_request.user.login = 'dependabot[bot]'
+      expect(enabled(condition, values)).toBe(false)
+      values.github.event_name = 'push'
+      values.github.event.repository.fork = false
+      values.vars = {}
+      expect(enabled(condition, values)).toBe(true)
+    }
+    expect(builder.steps).toContainEqual(expect.objectContaining({ name: 'Report fork real API coverage' }))
+  })
+
+  it.each(['serial-linux-selfhosted', 'serial-windows'])('does not queue %s without a fork standby opt-in', (name) => {
+    const condition = workflowJob(loadWorkflow('.github/workflows/ci-master.yml'), name).if
+    const values = context(true)
+    values.github.event_name = 'push'
+    expect(enabled(condition, values)).toBe(false)
+    values.vars = { DSH_RUN_SELF_HOSTED_STANDBY: 'true' }
+    expect(enabled(condition, values)).toBe(true)
+    values.vars = {}
+    values.github.event.repository.fork = false
+    expect(enabled(condition, values)).toBe(true)
+    values.github.event_name = 'pull_request'
+    expect(enabled(condition, values)).toBe(false)
+  })
+
+  it('confines the organization project policy to its configured repository', () => {
+    for (const [file, job] of [['issue-policy.yml', 'policy'], ['issue-lifecycle.yml', 'lifecycle']] as const) {
+      const condition = workflowJob(loadWorkflow('.github/workflows/' + file), job).if
+      const values = context(true)
+      values.github.event_name = 'issues'
+      expect(enabled(condition, values)).toBe(false)
+      values.github.repository = 'deepseek-harness/deepseek-harness'
+      expect(enabled(condition, values)).toBe(true)
+    }
+  })
+
+  it('keeps upstream deployment off forks and ownership approval opt-in', () => {
+    const preview = workflowJob(loadWorkflow('.github/workflows/build-preview-cloudflare.yml'), 'preview').if
+    const values = context(true)
+    expect(enabled(preview, values)).toBe(false)
+    values.github.event.repository.fork = false
+    values.github.event.pull_request.head.repo.fork = false
+    expect(enabled(preview, values)).toBe(true)
+    values.github.event.pull_request.head.repo.fork = true
+    expect(enabled(preview, values)).toBe(false)
+    for (const [file, job] of [['weighted-approval.yml', 'publish-status'], ['weighted-approval-review-event.yml', 'record-review-event']] as const) {
+      const condition = workflowJob(loadWorkflow('.github/workflows/' + file), job).if
+      const review = context(true)
+      review.github.event_name = 'pull_request_target'
+      expect(enabled(condition, review)).toBe(false)
+      review.vars = { DSH_RUN_WEIGHTED_APPROVAL: 'true' }
+      expect(enabled(condition, review)).toBe(true)
+      review.vars = {}
+      review.github.event.repository.fork = false
+      expect(enabled(condition, review)).toBe(true)
+    }
+  })
+})
 
 describe('CI workflow', () => {
   it('keeps at most ten worker jobs active while runtime targets follow the SDK suite', () => {
@@ -437,7 +552,7 @@ describe('CI workflow', () => {
     expect(report?.run).toContain('Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append')
 
     // serial-windows: master-only standby, self-hosted, non-blocking, lives in ci-master.
-    expect(serialWindows.if).toBe("github.event_name == 'push' && github.ref == 'refs/heads/master'")
+    expect(serialWindows.if).toContain("github.event_name == 'push' && github.ref == 'refs/heads/master'")
     expect(serialWindows['runs-on']).toEqual(['self-hosted', 'dsh-win-ci', 'windows'])
     expect(serialWindows.name).toBe('serial / windows (self-hosted standby)')
     // Its store must share the ReFS workspace volume for clone; the install
@@ -708,7 +823,7 @@ describe('CI workflow', () => {
       if (!isRecord(job)) throw new TypeError(`${name} must be defined`)
       expect(job.concurrency).toBeUndefined()
       // Standby drills remain post-merge work, but share run cancellation.
-      expect(job.if).toBe("github.event_name == 'push' && github.ref == 'refs/heads/master'")
+      expect(job.if).toContain("github.event_name == 'push' && github.ref == 'refs/heads/master'")
     }
 
     // Pin the post-merge runtime, Wine, and standby inventory.
@@ -1270,7 +1385,8 @@ describe('Weighted approval workflow', () => {
       'cancel-in-progress': false,
     })
     expect(job).toMatchObject({
-      if: "(github.event_name != 'pull_request_target' || github.event.pull_request.state == 'open') && "
+      if: "(!github.event.repository.fork || vars.DSH_RUN_WEIGHTED_APPROVAL == 'true') && "
+        + "(github.event_name != 'pull_request_target' || github.event.pull_request.state == 'open') && "
         + "(github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && "
         + "(github.event_name != 'issue_comment' || (github.event.issue.pull_request && github.event.issue.state == 'open' &&\n"
         + "  (contains(github.event.comment.body, '/delegate') || contains(github.event.changes.body.from, '/delegate'))))",
@@ -1314,7 +1430,7 @@ describe('Weighted approval workflow', () => {
       run: 'node .github/review-ownership/check-approval.mjs',
     })
     expect(recordJob).toMatchObject({
-      if: "github.event.pull_request.state == 'open'",
+      if: "github.event.pull_request.state == 'open' && (!github.event.repository.fork || vars.DSH_RUN_WEIGHTED_APPROVAL == 'true')",
       name: 'record weighted approval review event',
       'runs-on': 'ubuntu-latest',
       'timeout-minutes': 2,
@@ -1380,7 +1496,7 @@ describe('Issue lifecycle workflow', () => {
     expect(preflightStep?.run).toContain('if [ -f .github/issue-management/selective-preflight.json ]; then')
     expect(preflightStep?.run).toContain('node .github/issue-management/policy.mjs pr-preflight')
     expect(preflightStep?.if).toBeUndefined()
-    expect(policyJob.if).toBeUndefined()
+    expect(policyJob.if).toBe("github.repository == 'deepseek-harness/deepseek-harness'")
     expect(validateStep?.if).toBe("${{ steps.preflight.outputs.legacy-automated != 'true' }}")
 
     expect(tokenStep).toMatchObject({

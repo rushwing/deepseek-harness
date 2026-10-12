@@ -46,7 +46,7 @@ jobs:
           || vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'dsh-ubuntu-24-04-16core' }}
+          || (github.event.repository.fork && 'ubuntu-24.04' || 'dsh-ubuntu-24-04-16core') }}
     name: node 24 / static
     env:
       # Shared hosts expose host CPUs, not an isolated allocation.
@@ -113,7 +113,7 @@ jobs:
           || vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'dsh-ubuntu-24-04-16core' }}
+          || (github.event.repository.fork && 'ubuntu-24.04' || 'dsh-ubuntu-24-04-16core') }}
     name: node 24 / coverage
     env:
       # Shared hosts expose host CPUs, not an isolated allocation.
@@ -270,7 +270,7 @@ jobs:
           || vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'dsh-ubuntu-24-04-16core' }}
+          || (github.event.repository.fork && 'ubuntu-24.04' || 'dsh-ubuntu-24-04-16core') }}
     name: node 24 / snapshots and artifacts
     env:
       # Shared hosts expose host CPUs, not an isolated allocation.
@@ -535,7 +535,7 @@ jobs:
           || vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
+          || (github.event.repository.fork && 'windows-2025' || 'dsh-windows-2025-16core') }}
     name: windows node 24 / build & observational
     timeout-minutes: 60
     env:
@@ -597,7 +597,7 @@ jobs:
           || vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
+          || (github.event.repository.fork && 'windows-2025' || 'dsh-windows-2025-16core') }}
     name: windows node 24 / coverage
     timeout-minutes: 120
     env:
@@ -675,7 +675,7 @@ jobs:
           || vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
+          || (github.event.repository.fork && 'windows-2025' || 'dsh-windows-2025-16core') }}
     name: windows node 24 / native tests
     timeout-minutes: 60
     steps:
@@ -716,6 +716,24 @@ jobs:
           packages/workflow/workflow-ptc/tests/workflow-ptc.spec.ts
           packages/experimental/tool-ralph/tests/integration.spec.ts
           packages/subprocess/subprocess-local/tests/process-exit.spec.ts
+
+      - name: Check inherited Windows ACL boundaries
+        shell: pwsh
+        run: >-
+          pnpm exec vitest run
+          --testTimeout 90000
+          packages/sandbox/sandbox-windows-acl/tests/runner.spec.ts
+          -t 'a FullControl open'
+
+      - name: Check Windows child-process test isolation
+        shell: pwsh
+        env:
+          DSH_COVERAGE_TEST_TIMEOUT_MS: '90000'
+        run: >-
+          pnpm exec vitest run
+          --testTimeout 90000
+          scripts/run-web-snapshots.spec.ts
+          scripts/benchmark-npm-resolution.spec.ts
 
   # Single stable required check for branch protection: require "all checks
   # passed" instead of enumerating matrix legs whose names change as lanes and

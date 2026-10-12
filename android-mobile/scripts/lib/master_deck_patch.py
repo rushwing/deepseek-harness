@@ -12,8 +12,10 @@ BASELINES = {
     'dsh-api-session-controller': '78cff35e659f78158343ba403cc3144b1554225ad6efced1105b360a33ec46bc',
     'dsh-client-ui-session': '160ebb0d8912b7436e7219d8c94784f0e559f85a31511d7ebbcf7314d3be7d57',
     'dsh-client-ui-renderer': 'e40ba7ee84a5d93f5f0894bab866a76bc0879ee6631d5d8c17269696754e3c4b',
-    'dsh-client-ui-conversation': 'b3e968c5c0412b1070f355aecb3ce6acd3f9d4b14be1b0dc3370dc07f7472090',
-    'dsh-client-ui-workspace': '0aea5207824d85f356aa3d278978cf642d69c84d6ac541280d4f2ec333dd9783',
+    # Repository-relative CSS hashes and CSS virtual-id region comments are
+    # established by master_client_build; all executable logic is unchanged.
+    'dsh-client-ui-conversation': '365b4a153252e33c998381e9599da0a42e46aec5b44235f8e8ff80fa31aec88f',
+    'dsh-client-ui-workspace': '6e7bae0fea1c45cebcbff299c53d6c48e51b6056e5d6b5eeb58bb0ef3afccd4b',
 }
 SOURCES = {
     'dsh-api-session-controller': 'api/session-controller',

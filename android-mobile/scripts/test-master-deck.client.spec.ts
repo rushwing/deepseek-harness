@@ -20,7 +20,7 @@ import { FOLLOW, followScript } from './remote/session.client.ts'
 
 const root = process.env.DSH_ANDROID_ROOT
 if (!root) throw Error('Set DSH_ANDROID_ROOT to the Android repository')
-const patchDir = resolve(root, '.local/upstream-master-migration/deck-patches')
+const patchDir = process.env.DSH_MASTER_DECK_PATCHES ?? resolve(root, '.local/master-engine/deck-patches')
 const dependencies: Record<string, unknown> = {
   '@deepseek-ai/cordis': cordis,
   '@deepseek-ai/dsh-api-gateway/client': gateway,

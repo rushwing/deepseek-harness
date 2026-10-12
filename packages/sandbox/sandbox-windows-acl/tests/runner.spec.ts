@@ -539,11 +539,15 @@ describe.skipIf(!isWin32 || !pwshAvailable())('windows-acl runner', () => {
     mkdirSync(child)
     writeFileSync(join(granted, 'file.txt'), 'x')
     writeFileSync(join(child, 'deep.txt'), 'x')
+    // Explicit image-provided FullControl wins over an inherited deny. This
+    // fixture tests inheritance, so the owned child must inherit its DACL.
+    const reset = spawnSync('icacls', [child, '/reset'], { encoding: 'utf8' })
+    expect(reset.status, `stderr: ${reset.stderr}`).toBe(0)
     const grant = AclWriteGrant.create(workspaceWriteSid(granted))
     grant.add(granted, true)
     try {
       const probe = `
-$ErrorActionPreference='SilentlyContinue'
+$ErrorActionPreference='Stop'
 Add-Type -Namespace P -Name F -MemberDefinition @'
 [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode, EntryPoint="CreateFileW")]
 public static extern IntPtr CreateFileW(string n, uint a, uint s, IntPtr sa, uint d, uint f, IntPtr t);
